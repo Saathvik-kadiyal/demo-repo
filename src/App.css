@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist&display=swap');
+
+body {
+  font-family: 'Geist';
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+*{
+  background-color: gray;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
