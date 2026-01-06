@@ -130,11 +130,9 @@ export const useEmployeeData = () => {
   const getProcessedData = useCallback(
     async (start = 0, limit = 10, params = filters) => {
 
-      if (!token) return;
-
       try {
         setLoading(true);
-        const res = await fetchEmployees({ token, start, limit, params });
+        const res = await fetchEmployees({start, limit, params });
 
         const employees = Array.isArray(res?.data?.employees)
           ? res.data.employees
@@ -150,11 +148,6 @@ export const useEmployeeData = () => {
 
         setRows(mapped);
         setDisplayRows(mapped);
-        // setTotalRecords(res?.total_records || mapped.length);
-        // setTotalPages(
-        //   Math.ceil((res?.total_records || mapped.length) / limit)
-        // );
-
         const total = res?.total_records ?? 0;
 
         setTotalRecords(total);
@@ -177,7 +170,8 @@ export const useEmployeeData = () => {
 
       } catch (error) {
         const message =
-          error?.response?.data?.detail || "Failed to fetch data";
+          error?.response?.data?.detail ||error.message|| "Failed to fetch data";
+          console.log(message)
 
         setError(message);
         setRows([]);
@@ -192,9 +186,6 @@ export const useEmployeeData = () => {
     },
     [token]
   );
-
-
-  console.log(totalPages)
 
 
   const applyFilters = useCallback(
@@ -239,7 +230,6 @@ export const useEmployeeData = () => {
       setLoadingDetail(true);
       try {
         const emp = await fetchEmployeeDetail(
-          token,
           emp_id,
           duration_month,
           payroll_month
@@ -256,7 +246,6 @@ export const useEmployeeData = () => {
 
 
   const fetchDataFromBackend = async (file) => {
-    if (!token) return;
 
     setLoading(true);
     setError("");
@@ -265,7 +254,7 @@ export const useEmployeeData = () => {
     setSuccess("");
 
     try {
-      const res = await uploadFile(token, file);
+      const res = await uploadFile(file);
       setSuccess(res.message || "File uploaded successfully");
 
       const start = (page - 1) * 10;
@@ -338,8 +327,7 @@ export const useEmployeeData = () => {
         link.click();
         URL.revokeObjectURL(url);
       } catch (err) {
-        console.log("Download failed", err);
-        // alert("Failed to download data");
+        alert("Failed to download data",err);
       }
     },
     [token]

@@ -16,8 +16,9 @@ import {
   AccordionDetails,
   AccordionSummary,
   FormHelperText,
+  IconButton,
 } from "@mui/material";
-import { ChevronDown, X } from "lucide-react";
+import { ChevronDown, Info, X } from "lucide-react";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -539,7 +540,22 @@ const ClientSummaryDetailedPage = () => {
         }}
         slotProps={{
           textField: { size: "small", sx: { width: 200 } },
+           textField: {
+                      size: "small",
+                      sx: { width: 200 },
+                      InputProps: {
+                        endAdornment: startMonth && (
+                          <IconButton
+                            size="small"
+                            onClick={() => setStartMonth(null)}
+                          >
+                            <X size={16} />
+                          </IconButton>
+                        ),
+                      },
+                    },
         }}
+        
       />
       {isStartMonthInvalid && (
         <FormHelperText
@@ -552,7 +568,10 @@ const ClientSummaryDetailedPage = () => {
             left: 0,
           }}
         >
-          Start month is required
+         <span className="flex items-center gap-1">
+            <Info size={12} className="block" />
+            <span className="text-sm">Start month is required</span>
+          </span>
         </FormHelperText>
       )}
     </Box>
@@ -569,6 +588,20 @@ const ClientSummaryDetailedPage = () => {
         }}
         slotProps={{
           textField: { size: "small", sx: { width: 200 } },
+           textField: {
+                      size: "small",
+                      sx: { width: 200 },
+                      InputProps: {
+                        endAdornment: endMonth && (
+                          <IconButton
+                            size="small"
+                            onClick={() => setEndMonth(null)}
+                          >
+                            <X size={16} />
+                          </IconButton>
+                        ),
+                      },
+                    },
         }}
       />
       {isEndMonthInvalid && (
@@ -582,7 +615,11 @@ const ClientSummaryDetailedPage = () => {
             left: 0,
           }}
         >
-          End month must be after start month
+          <span className="flex items-start gap-1">
+                      <Info size={12} className="block" />
+                      <span className="text-sm">End month must be after start month</span>
+                    </span>
+          
         </FormHelperText>
       )}
     </Box>
@@ -601,7 +638,21 @@ const ClientSummaryDetailedPage = () => {
                 setMultipleMonths(v ? monthsList.map((m) => m.value) : []);
               }}
               disableFuture
-              slotProps={{ textField: { size: "small", sx: { width: 200 } } }}
+              slotProps={{ textField: { size: "small", sx: { width: 200 } } ,
+             textField: {
+                        size: "small",
+                        sx: { width: 200 },
+                        InputProps: {
+                          endAdornment: year && (
+                            <IconButton
+                              size="small"
+                              onClick={() => setYear(null)}
+                            >
+                              <X size={16} />
+                            </IconButton>
+                          ),
+                        },
+                      },}}
             />
  
             <Box
@@ -675,7 +726,10 @@ const ClientSummaryDetailedPage = () => {
                       color: "error.main",
                     }}
                   >
-                    Please select year
+                     <span className="flex items-center gap-1">
+                        <Info size={12} className="block" />
+                        <span className="text-sm">Please select year</span>
+                      </span>
                   </FormHelperText>
                 )}
               </FormControl>
@@ -702,7 +756,21 @@ const ClientSummaryDetailedPage = () => {
                 }
               }}
               disableFuture
-              slotProps={{ textField: { size: "small", sx: { width: 200 } } }}
+              slotProps={{ textField: { size: "small", sx: { width: 200 } },
+             textField: {
+                        size: "small",
+                        sx: { width: 200 },
+                        InputProps: {
+                          endAdornment: year && (
+                            <IconButton
+                              size="small"
+                              onClick={() => setYear(null)}
+                            >
+                              <X size={16} />
+                            </IconButton>
+                          ),
+                        },
+                      }, }}
             />
             <Box
               sx={{ position: "relative", width: 200, display: "inline-block" }}
@@ -751,7 +819,10 @@ const ClientSummaryDetailedPage = () => {
                       color: "error.main",
                     }}
                   >
-                    Please select year
+                    <span className="flex items-center gap-1">
+                        <Info size={12} className="block" />
+                        <span className="text-sm">Please select year</span>
+                      </span>
                   </FormHelperText>
                 )}
               </FormControl>
@@ -827,19 +898,16 @@ const ClientSummaryDetailedPage = () => {
   >
     <Box
       sx={{
-        backgroundColor: "white",
-        borderRadius: 2,
         padding: 4,
         display: "flex",
-        flexDirection: "column",
+        flexDirection: "row",
         alignItems: "center",
         gap: 2,
-        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
         minWidth: 200,
       }}
     >
       <CircularProgress size={40} />
-      <Typography variant="body1" fontWeight={500}>
+      <Typography variant="body1" fontWeight={500} color="white">
         Loading...
       </Typography>
     </Box>

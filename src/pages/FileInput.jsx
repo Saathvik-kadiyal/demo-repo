@@ -68,25 +68,22 @@ const FileInput = () => {
   };
 
   const handleFetchPage = async (filters) => {
-  setTableLoading(true);
-  try {
-    await getProcessedData(filters);
-  } finally {
-    setTableLoading(false);
-  }
-};
-
-
-const handleDownloadTemplate = async () => {
-  try {
     setTableLoading(true);
-    await downloadExcel();
-  } finally {
-    setTableLoading(false);
-  }
-};
+    try {
+      await getProcessedData(filters);
+    } finally {
+      setTableLoading(false);
+    }
+  };
 
-
+  const handleDownloadTemplate = async () => {
+    try {
+      setTableLoading(true);
+      await downloadExcel();
+    } finally {
+      setTableLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (errorFileLink) {
@@ -96,7 +93,6 @@ const handleDownloadTemplate = async () => {
 
       setErrorModalOpen(true);
     }
-
   }, [errorFileLink]);
 
   // 🔹 Success popup
@@ -110,10 +106,10 @@ const handleDownloadTemplate = async () => {
 
   // 🔹 Error popup
   useEffect(() => {
-    if (error&&!errorFileLink) {
+    if (error && !errorFileLink) {
       setPopupMessage(error);
       setPopupSeverity("error");
-       setPopupOpen(true);
+      setPopupOpen(true);
     }
   }, [error]);
 
@@ -124,7 +120,38 @@ const handleDownloadTemplate = async () => {
   const safeErrorRows = errorRows || [];
 
   return (
-    <Box sx={{ width: "100%", pt: 2, pb: 4, px: 2 }}>
+    <Box sx={{ width: "100%", pt: 2, pb: 4, px: 2, position: "relative",overflowY:tableLoading?"hidden":"auto",height:tableLoading?"400":"100%" }}>
+      {tableLoading && (
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "rgba(0, 0, 0, 0.3)",
+      backdropFilter: "blur(8px)",
+      height:"100%"
+          }}
+        >
+          <Box
+            sx={{
+              padding: 4,
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 2,
+              minWidth: 200,
+            }}
+          >
+            <CircularProgress size={40} />
+            <Typography variant="body1" fontWeight={500} color="white">
+              Loading...
+            </Typography>
+          </Box>
+        </Box>
+      )}
       <Typography variant="h5" fontWeight={600} mb={2}>
         Shift Allowance Data
       </Typography>
@@ -154,27 +181,23 @@ const handleDownloadTemplate = async () => {
           Download Template
         </Button> */}
         <Button
-  variant="outlined"
-  onClick={handleDownloadTemplate}
-  disabled={tableLoading}
->
-  Download Template
-</Button>
-
+          variant="outlined"
+          onClick={handleDownloadTemplate}
+          disabled={tableLoading}
+        >
+          Download Template
+        </Button>
       </Stack>
-
 
       <Modal
         open={errorModalOpen}
         onClose={(event, reason) => {
-
           if (reason === "backdropClick") return;
 
           setErrorModalOpen(false);
           setErrorFileLink && setErrorFileLink(null);
         }}
       >
-
         <Paper
           sx={{
             width: "60%",
@@ -190,7 +213,6 @@ const handleDownloadTemplate = async () => {
             backgroundColor: "#fff",
           }}
         >
-
           <IconButton
             sx={{ position: "absolute", right: 12, top: 12 }}
             onClick={() => {
@@ -201,15 +223,17 @@ const handleDownloadTemplate = async () => {
             <X size={20} />
           </IconButton>
 
-
-          <Typography variant="h6" mb={2} sx={{ color: "red", fontWeight: 600 }}>
+          <Typography
+            variant="h6"
+            mb={2}
+            sx={{ color: "red", fontWeight: 600 }}
+          >
             File Processed with Errors
           </Typography>
 
           <Stack direction="column" spacing={2} mb={2}>
             {safeErrorRows.length > 0 && (
               <Stack direction="row" spacing={2}>
-
                 <Button
                   variant="contained"
                   startIcon={<Pencil size={18} />}
@@ -224,7 +248,6 @@ const handleDownloadTemplate = async () => {
                   Edit
                 </Button>
 
-
                 {errorFileLink && (
                   <Button
                     variant="outlined"
@@ -234,7 +257,6 @@ const handleDownloadTemplate = async () => {
                     Download Error File
                   </Button>
                 )}
-
               </Stack>
             )}
           </Stack>
@@ -250,79 +272,11 @@ const handleDownloadTemplate = async () => {
       /> */}
 
       <Box sx={{ position: "relative" }}>
-        {tableLoading && (
-          <Box
-
-            sx={{
-
-              position: "fixed",
-
-              inset: 0,
-
-              zIndex: 9999,
-
-              display: "flex",
-
-              alignItems: "center",
-
-              justifyContent: "center",
-
-              backgroundColor: "rgba(0, 0, 0, 0.3)",
-
-              backdropFilter: "blur(8px)",
-
-            }}
-          >
-            <Box
-
-              sx={{
-
-                backgroundColor: "white",
-
-                borderRadius: 2,
-
-                padding: 4,
-
-                display: "flex",
-
-                flexDirection: "column",
-
-                alignItems: "center",
-
-                gap: 2,
-
-                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
-
-                minWidth: 200,
-
-              }}
-            >
-              <CircularProgress size={40} />
-              <Typography variant="body1" fontWeight={500}>
-
-                Loading...
-              </Typography>
-            </Box>
-          </Box>
-
-        )}
-
-
-        <DataTable
-          headers={UI_HEADERS}
-          rows={rows || []}
-          totalRecords={totalRecords || 0}
-          fetchPage={handleFetchPage}
-          loading={tableLoading}
-            
-        />
+        <DataTable headers={UI_HEADERS} setTableLoading={setTableLoading} />
       </Box>
 
-
-      {/* 🔹 Custom Centered Popup */}
       {popupOpen && (
         <>
-          {/* Overlay that blurs the background */}
           <Box
             sx={{
               position: "fixed",
@@ -350,7 +304,6 @@ const handleDownloadTemplate = async () => {
                 popupSeverity === "error"
                   ? "2px solid #ef4444"
                   : "2px solid #22c55e",
-
 
               boxShadow:
                 popupSeverity === "error"
@@ -386,10 +339,8 @@ const handleDownloadTemplate = async () => {
           </Box>
         </>
       )}
-
     </Box>
   );
 };
 
 export default FileInput;
-

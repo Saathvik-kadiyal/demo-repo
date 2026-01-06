@@ -7,7 +7,6 @@ import { CircularProgress } from "@mui/material";
 import {
   IconButton,
   Portal,
-
   MenuItem,
   Select,
   TextField,
@@ -61,8 +60,7 @@ const formatINR = (value) => {
   })}`;
 };
 
-const DataTable = ({ headers }) => {
-
+const DataTable = ({ headers, setTableLoading }) => {
   const {
     modelOpen,
     setModelOpen,
@@ -81,8 +79,6 @@ const DataTable = ({ headers }) => {
     shiftSummary,
   } = useEmployeeData();
 
- 
-
   const [infoOpen, setInfoOpen] = useState(false);
   const [infoPosition, setInfoPosition] = useState({ top: 0, left: 0 });
   const [searchQuery, setSearchQuery] = useState("");
@@ -93,25 +89,16 @@ const DataTable = ({ headers }) => {
   const [popupMessage, setPopupMessage] = useState("");
   const [popupType, setPopupType] = useState("");
   const [popupVisible, setPopupVisible] = useState(false);
-
   const [downloadLoading, setDownloadLoading] = useState(false);
-
-
-  const [suppressPopup, setSuppressPopup] = useState(false);
 
   const pageSize = 10;
   const isPageNotFull = displayRows.length < pageSize;
- 
-
-
 
   const isEndMonthInvalid =
     startMonth &&
     endMonth &&
     (dayjs(endMonth).isBefore(dayjs(startMonth), "month") ||
       dayjs(endMonth).isSame(dayjs(startMonth), "month"));
-
-  
 
   const [info, setInfo] = useState([
     { "A (9PM to 6AM) - ₹500": "" },
@@ -131,7 +118,14 @@ const DataTable = ({ headers }) => {
           disableColumnMenu: true,
 
           renderHeader: () => (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "#fff" }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                color: "#fff",
+              }}
+            >
               <span>Shift Details</span>
               <IconButton
                 size="small"
@@ -162,7 +156,6 @@ const DataTable = ({ headers }) => {
           renderCell: (params) => formatShiftDetails(params.value),
         };
       }
-
 
       if (header === "Total Allowances") {
         return {
@@ -231,109 +224,105 @@ const DataTable = ({ headers }) => {
     }
   });
 
+  const buildSearchParams = () => {
+    const params = {};
+    const q = searchQuery.trim();
 
-  
-
-const buildSearchParams = () => {
-  const params = {};
-  const q = searchQuery.trim();
-  
-  if (q.length > 2) {
-    if (searchBy === "Emp ID") params.emp_id = q;
-    else if (searchBy === "Account Manager") params.account_manager = q;
-    else if (searchBy === "Client") params.client = q;
-    else if (searchBy === "Department") params.department = q;
-  }
-
-  if (startMonth) params.start_month = startMonth;
-  if (endMonth) params.end_month = endMonth;
-
-  return params;
-};
-
-useEffect(() => {
-  const params = buildSearchParams();
-
-  const hasParams = Object.keys(params).length > 0;
-
-  if (hasParams) {
-    debouncedFetch(params, page);
-  } else {
-    getProcessedData((page - 1) * 10, 10);
-  }
-}, [page, searchQuery, searchBy, startMonth, endMonth]);
-
-
-
-
-
-// const handleDownload = async (searchQuery, startMonth, endMonth) => {
-//   try {
-//     setDownloadLoading(true);
-
-//     if (searchQuery?.trim() && startMonth) {
-//       await downloadSearchData({
-//         type: "SearchAndMonthRange",
-//         startMonth,
-//         endMonth,
-//         query: searchQuery.trim(),
-//         searchBy,
-//       });
-//       return;
-//     }
-
-//     if (searchQuery?.trim()) {
-//       await downloadSearchData({
-//         type: "Text",
-//         query: searchQuery.trim(),
-//         searchBy,
-//       });
-//       return;
-//     }
-
-//     if (startMonth) {
-//       await downloadSearchData({
-//         type: "MonthRange",
-//         startMonth,
-//         endMonth,
-//       });
-//     }
-//   } finally {
-//     setDownloadLoading(false);
-//   }
-// };
-const handleDownload = async (searchQuery, startMonth, endMonth) => {
-  setDownloadLoading(true); // show circular loader
-  try {
-    if (searchQuery?.trim() && startMonth) {
-      await downloadSearchData({
-        type: "SearchAndMonthRange",
-        startMonth,
-        endMonth,
-        query: searchQuery.trim(),
-        searchBy,
-      });
-    } else if (searchQuery?.trim()) {
-      await downloadSearchData({
-        type: "Text",
-        query: searchQuery.trim(),
-        searchBy,
-      });
-    } else if (startMonth) {
-      await downloadSearchData({
-        type: "MonthRange",
-        startMonth,
-        endMonth,
-      });
-    } else {
-      // Optional: if no filters, download all
-      await downloadSearchData({});
+    if (q.length > 2) {
+      if (searchBy === "Emp ID") params.emp_id = q;
+      else if (searchBy === "Account Manager") params.account_manager = q;
+      else if (searchBy === "Client") params.client = q;
+      else if (searchBy === "Department") params.department = q;
     }
-  } finally {
-    setDownloadLoading(false); // hide loader after download
-  }
-};
 
+    if (startMonth) params.start_month = startMonth;
+    if (endMonth) params.end_month = endMonth;
+
+    return params;
+  };
+
+  useEffect(() => {
+    const params = buildSearchParams();
+
+    const hasParams = Object.keys(params).length > 0;
+
+    if (hasParams) {
+      debouncedFetch(params, page);
+    } else {
+      getProcessedData((page - 1) * 10, 10);
+    }
+  }, [page, searchQuery, startMonth, endMonth]);
+
+  useEffect(() => {
+    loading ? setTableLoading(true) : setTableLoading(false);
+  }, [loading]);
+
+  // const handleDownload = async (searchQuery, startMonth, endMonth) => {
+  //   try {
+  //     setDownloadLoading(true);
+
+  //     if (searchQuery?.trim() && startMonth) {
+  //       await downloadSearchData({
+  //         type: "SearchAndMonthRange",
+  //         startMonth,
+  //         endMonth,
+  //         query: searchQuery.trim(),
+  //         searchBy,
+  //       });
+  //       return;
+  //     }
+
+  //     if (searchQuery?.trim()) {
+  //       await downloadSearchData({
+  //         type: "Text",
+  //         query: searchQuery.trim(),
+  //         searchBy,
+  //       });
+  //       return;
+  //     }
+
+  //     if (startMonth) {
+  //       await downloadSearchData({
+  //         type: "MonthRange",
+  //         startMonth,
+  //         endMonth,
+  //       });
+  //     }
+  //   } finally {
+  //     setDownloadLoading(false);
+  //   }
+  // };
+  const handleDownload = async (searchQuery, startMonth, endMonth) => {
+    setDownloadLoading(true); // show circular loader
+    try {
+      if (searchQuery?.trim() && startMonth) {
+        await downloadSearchData({
+          type: "SearchAndMonthRange",
+          startMonth,
+          endMonth,
+          query: searchQuery.trim(),
+          searchBy,
+        });
+      } else if (searchQuery?.trim()) {
+        await downloadSearchData({
+          type: "Text",
+          query: searchQuery.trim(),
+          searchBy,
+        });
+      } else if (startMonth) {
+        await downloadSearchData({
+          type: "MonthRange",
+          startMonth,
+          endMonth,
+        });
+      } else {
+        // Optional: if no filters, download all
+        await downloadSearchData({});
+      }
+    } finally {
+      setDownloadLoading(false); // hide loader after download
+    }
+  };
 
   const handleClear = () => {
     setSearchQuery("");
@@ -344,18 +333,25 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
     handlePageChange(1);
   };
 
-
   return (
     <>
       <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
         {[
-          { label: "Head Count", value: shiftSummary?.head_count ?? 0, bg: "#FF5722" },
+          {
+            label: "Head Count",
+            value: shiftSummary?.head_count ?? 0,
+            bg: "#FF5722",
+          },
 
           { label: "Shift A", value: shiftSummary?.shiftA ?? 0, bg: "#03A9F4" },
           { label: "Shift B", value: shiftSummary?.shiftB ?? 0, bg: "#E91E63" },
           { label: "Shift C", value: shiftSummary?.shiftC ?? 0, bg: "#FF9800" },
           { label: "Prime", value: shiftSummary?.prime ?? 0, bg: "#9C27B0" },
-          { label: "Total Allowances", value: formatINR(shiftSummary?.total ?? 0), bg: "#4CAF50" },
+          {
+            label: "Total Allowances",
+            value: formatINR(shiftSummary?.total ?? 0),
+            bg: "#4CAF50",
+          },
         ].map(({ label, value, bg }) => (
           <Box
             key={label}
@@ -378,16 +374,34 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
             <Typography variant="h3" fontWeight={700} fontSize="26px" mt={1}>
               {value}
             </Typography>
-
           </Box>
         ))}
       </Box>
-      <Box sx={{ width: "100%", display: "flex", flexDirection: "column", position: "relative" }}>
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          position: "relative",
+        }}
+      >
         <Box>
-          <Box sx={{ display: "flex", mb: 2, alignItems: "center", justifyContent: "space-between" }}>
+          <Box
+            sx={{
+              display: "flex",
+              mb: 2,
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
             <Box sx={{ display: "flex" }}>
               <Box sx={{ display: "flex", gap: 2 }}>
-                <Select size="small" value={searchBy} onChange={(e) => setSearchBy(e.target.value)}>
+                <Select
+                  size="small"
+                  sx={{ width: 160 }}
+                  value={searchBy}
+                  onChange={(e) => setSearchBy(e.target.value)}
+                >
                   <MenuItem value="Emp ID">Emp ID</MenuItem>
                   <MenuItem value="Account Manager">Client Partner</MenuItem>
                   <MenuItem value="Department">Department</MenuItem>
@@ -432,95 +446,109 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
                 </Box>
               </Box>
 
-
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <Box sx={{ position: "relative", display: "flex", gap: 2 }}>
                   <Box sx={{ width: 5 }} />
-                  <DatePicker
-                    views={["year", "month"]}
-                    label="Start Month"
-                    value={startMonth ? dayjs(startMonth) : null}
-                    onChange={(newValue) =>
-                      setStartMonth(newValue ? newValue.format("YYYY-MM") : null)
-                    }
-                    inputFormat="YYYY-MM"
-                    disableFuture
-                    slotProps={{
-                      popper: {
-                        disablePortal: false,
-                        modifiers: [
-                          {
-                            name: "preventOverflow",
-                            options: {
-                              altAxis: true,
-                            },
-                          },
-                        ],
-                      },
-                      textField: {
-                        size: "small",
-                        sx: { width: 170 },
-                        InputProps: {
-                          endAdornment: startMonth && (
-                            <IconButton size="small" onClick={() => setStartMonth(null)}>
-                              <X size={16} />
-                            </IconButton>
-                          ),
-                        },
-                      },
-                    }}
-                  />
 
-                  <DatePicker
-                    views={["year", "month"]}
-                    label="End Month"
-                    value={endMonth ? dayjs(endMonth) : null}
-                    onChange={(newValue) =>
-                      setEndMonth(newValue ? newValue.format("YYYY-MM") : null)
-                    }
-                    minDate={startMonth ? dayjs(startMonth) : undefined}
-                    inputFormat="YYYY-MM"
-                    disableFuture
-                    slotProps={{
-                      popper: {
-                        disablePortal: false,
-                        modifiers: [
-                          {
-                            name: "preventOverflow",
-                            options: {
-                              altAxis: true,
+                  <Box sx={{ position: "relative", display: "flex", gap: 2 }}>
+                    <DatePicker
+                      views={["year", "month"]}
+                      label="Start Month"
+                      value={startMonth ? dayjs(startMonth) : null}
+                      onChange={(newValue) =>
+                        setStartMonth(
+                          newValue ? newValue.format("YYYY-MM") : null
+                        )
+                      }
+                      inputFormat="YYYY-MM"
+                      disableFuture
+                      slotProps={{
+                        popper: {
+                          disablePortal: false,
+                          modifiers: [
+                            {
+                              name: "preventOverflow",
+                              options: { altAxis: true },
                             },
-                          },
-                        ],
-                      },
-                      textField: {
-                        size: "small",
-                        sx: { width: 170, },
-                        InputProps: {
-                          endAdornment: endMonth && (
-                            <IconButton size="small" onClick={() => setEndMonth(null)}>
-                              <X size={16} />
-                            </IconButton>
-                          ),
+                          ],
                         },
-                      },
-                    }}
-                  />
-
-                  {isEndMonthInvalid && (
-                    <FormHelperText
-                      error
-                      sx={{
-                        position: "absolute", bottom: -25, left: 0, fontSize: "12px", zIndex: 1500, backgroundColor: "#fff",
-                        px: 0.5,
+                        textField: {
+                          size: "small",
+                          sx: { width: 170 },
+                          InputProps: {
+                            endAdornment: startMonth && (
+                              <IconButton
+                                size="small"
+                                onClick={() => setStartMonth(null)}
+                              >
+                                <X size={16} />
+                              </IconButton>
+                            ),
+                          },
+                        },
                       }}
-                    >
-                      End Month must be after Start Month
-                    </FormHelperText>
-                  )}
+                    />
+                    <DatePicker
+                      views={["year", "month"]}
+                      label="End Month"
+                      value={endMonth ? dayjs(endMonth) : null}
+                      onChange={(newValue) =>
+                        setEndMonth(
+                          newValue ? newValue.format("YYYY-MM") : null
+                        )
+                      }
+                      minDate={startMonth ? dayjs(startMonth) : undefined}
+                      inputFormat="YYYY-MM"
+                      disableFuture
+                      slotProps={{
+                        popper: {
+                          disablePortal: false,
+                          modifiers: [
+                            {
+                              name: "preventOverflow",
+                              options: { altAxis: true },
+                            },
+                          ],
+                        },
+                        textField: {
+                          size: "small",
+                          sx: { width: 170 },
+                          InputProps: {
+                            endAdornment: endMonth && (
+                              <IconButton
+                                size="small"
+                                onClick={() => setEndMonth(null)}
+                              >
+                                <X size={16} />
+                              </IconButton>
+                            ),
+                          },
+                        },
+                      }}
+                    />
+
+                    {isEndMonthInvalid && (
+                      <FormHelperText
+                        sx={{
+                          position: "absolute",
+                          bottom: -25,
+                          left: 0,
+                          fontSize: "12px",
+                          backgroundColor: "#fff",
+                          color: "orange",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                          m: 0,
+                        }}
+                      >
+                        <Info size={12} className="block" />
+                        End Month must be after Start Month
+                      </FormHelperText>
+                    )}
+                  </Box>
                 </Box>
               </LocalizationProvider>
-
 
               <Button
                 variant="outlined"
@@ -536,20 +564,19 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
               >
                 Clear
               </Button>
-
             </Box>
             <Tooltip title="Download Allowance Data">
               <Button
                 variant="outlined"
                 size="small"
-                onClick={() => handleDownload(searchQuery, startMonth, endMonth)}
+                onClick={() =>
+                  handleDownload(searchQuery, startMonth, endMonth)
+                }
                 disabled={!searchQuery?.trim() && !startMonth}
                 sx={{ textTransform: "none", px: 2, py: 1 }}
               >
                 Download Data
               </Button>
-
-
             </Tooltip>
           </Box>
 
@@ -561,11 +588,10 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
               transition: "margin-top 0.2s ease",
             }}
           >
-
-            {loading && (
+            {/* {loading && (
               <Box
                 sx={{
-                  position: "fixed",
+                  position: "absolute",
                   inset: 0,
                   zIndex: 9999,
                   display: "flex",
@@ -590,9 +616,9 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
                   <Typography>Loading...</Typography>
                 </Box>
               </Box>
-            )}
+            )} */}
 
-           {/* {downloadLoading && (
+            {/* {downloadLoading && (
   <Box
     sx={{
       position: "absolute",
@@ -624,43 +650,39 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
   </Box>
 )} */}
 
-{downloadLoading && (
-  <Box
-    sx={{
-      position: "fixed",
-      inset: 0,
-      zIndex: 9999,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: "rgba(0,0,0,0.3)",
-      backdropFilter: "blur(8px)",
-    }}
-  >
-    <Box
-      sx={{
-        backgroundColor: "white",
-        borderRadius: 2,
-        padding: 4,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 2,
-      }}
-    >
-      <CircularProgress size={40} />
-      <Typography>Downloading...</Typography>
-    </Box>
-  </Box>
-)}
-
-
+            {downloadLoading && (
+              <Box
+                sx={{
+                  position: "fixed",
+                  inset: 0,
+                  zIndex: 9999,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "rgba(0,0,0,0.3)",
+                  backdropFilter: "blur(8px)",
+                }}
+              >
+                <Box
+                  sx={{
+                    backgroundColor: "white",
+                    borderRadius: 2,
+                    padding: 4,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 2,
+                  }}
+                >
+                  <CircularProgress size={40} />
+                  <Typography>Downloading...</Typography>
+                </Box>
+              </Box>
+            )}
 
             <DataGrid
               rows={displayRows}
               columns={columns}
-
-
               autoHeight={false}
               rowHeight={52}
               // disableVirtualization
@@ -668,12 +690,10 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
               pagination={false}
               hideFooter
               scrollbarSize={0}
-
               disableRowSelectionOnClick
               disableColumnReorder
               disableColumnSorting
               disableExtendRowFullWidth
-
               slots={{
                 noRowsOverlay: () => (
                   <Box
@@ -691,7 +711,6 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
                   </Box>
                 ),
               }}
-
               sx={{
                 // border: "1px solid #D3D3D3",
                 // maxHeight: "80vh",
@@ -721,13 +740,11 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
                   borderRight: "1px solid #D3D3D3",
                 },
 
-
                 "& .MuiDataGrid-scrollbar": {
                   display: "none !important",
                 },
 
                 "& .MuiDataGrid-columnHeaders": {
-
                   borderBottom: "1px solid #fff",
                   borderLeft: "1px solid #D3D3D3",
                   borderRight: "1px solid #D3D3D3",
@@ -748,7 +765,6 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
                 },
 
                 "& .MuiDataGrid-cell": {
-
                   borderBottom: "none",
                   borderRight: "1px solid #D3D3D3",
                 },
@@ -771,12 +787,17 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
             />
           </Box>
 
-
           {totalPages > 0 && (
-            <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", p: 1 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                alignItems: "center",
+                p: 1,
+              }}
+            >
               <Pagination
                 count={totalPages}
-
                 page={page}
                 onChange={(e, value) => handlePageChange(value)}
                 color="primary"
@@ -790,8 +811,6 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
           )}
         </Box>
 
-
-
         {modelOpen && selectedEmployee && (
           <EmployeeModal
             employee={selectedEmployee}
@@ -804,7 +823,6 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
             setPopupType={setPopupType}
           />
         )}
-
 
         {popupVisible && (
           <>
@@ -837,7 +855,6 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
                   popupType === "success"
                     ? "2px solid #22c55e"
                     : "2px solid #ef4444",
-
 
                 boxShadow:
                   popupType === "success"
@@ -877,8 +894,8 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
           <Portal>
             <Box
               onClick={(e) => {
-                console.log(e)
-                e.stopPropagation()
+                console.log(e);
+                e.stopPropagation();
               }}
               sx={{
                 position: "fixed",
@@ -893,10 +910,7 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
               }}
             >
               <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                <IconButton
-                  size="small"
-                  onClick={() => setInfoOpen(false)}
-                >
+                <IconButton size="small" onClick={() => setInfoOpen(false)}>
                   <X size={16} />
                 </IconButton>
               </Box>
@@ -907,7 +921,11 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
                 return (
                   <Box
                     key={i}
-                    sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      mb: 0.5,
+                    }}
                   >
                     <Typography fontWeight={600}>{key}</Typography>
                     <Typography>{value}</Typography>
@@ -922,7 +940,3 @@ const handleDownload = async (searchQuery, startMonth, endMonth) => {
   );
 };
 export default DataTable;
-
-
-
-
