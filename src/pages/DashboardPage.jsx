@@ -846,107 +846,88 @@ const DashboardPage = () => {
           }}
         >
           <div className="flex flex-col gap-4 ">
-            <div className="flex flex-col md:flex-row gap-4 items-center pt-4 justify-evenly">
-              <div className="w-full md:max-w-3/5 h-80 rounded-md shadow-sm flex justify-center items-center">
-                {/* DonutChart */}
-                {loading ? (
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <CircularProgress color="black" size={40} />
-                    <Typography sx={{ color: "black" }}>Loading...</Typography>
-                  </Box>
-                ) : data?.dashboard &&
-                  Object.keys(data.dashboard).length > 0 ? (
-                  <DonutChart
-                    clients={data.dashboard.clients}
-                    onSelectClient={setSelectedDonutClient}
-                    topN={topFilter}
-                    onSelectColor={setSelectedColor}
-                    clientColors={clientColors}
-                    setClientColors={setClientColors}
-                    enums={enums}
-                  />
-                ) : (
-                  <Typography>No data Available</Typography>
-                )}
-              </div>
+            <div className="flex flex-col gap-4 pt-4">
+  {/* Grid with three charts */}
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    {/* Donut Chart */}
+    <div className="md:col-span-2 h-80 rounded-md shadow-sm flex justify-center items-center">
+      {loading ? (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <CircularProgress color="black" size={40} />
+          <Typography sx={{ color: "black" }}>Loading...</Typography>
+        </Box>
+      ) : data?.dashboard && Object.keys(data.dashboard).length > 0 ? (
+        <DonutChart
+          clients={data.dashboard.clients}
+          onSelectClient={setSelectedDonutClient}
+          topN={topFilter}
+          onSelectColor={setSelectedColor}
+          clientColors={clientColors}
+          setClientColors={setClientColors}
+          enums={enums}
+        />
+      ) : (
+        <Typography>No data Available</Typography>
+      )}
+    </div>
 
-              <div className="w-full md:max-w-2/5 h-80 rounded-md shadow-sm flex justify-center items-center">
-                {/* DepartmentBarChart */}
-                {loading ? (
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <CircularProgress color="black" size={40} />
-                    <Typography sx={{ color: "black" }}>Loading...</Typography>
-                  </Box>
-                ) : selectedDonutClient &&
-                  data?.dashboard &&
-                  Object.keys(data.dashboard).length > 0 ? (
-                  <DepartmentBarChart
-                    clientName={selectedDonutClient}
-                    transformedData={transformedData}
-                  />
-                ) : data?.dashboard &&
-                  Object.keys(data.dashboard).length > 0 ? (
-                  <h3 className="text-center">
-                    Click on the slice to view the graph
-                  </h3>
-                ) : (
-                  <Typography>No data Available</Typography>
-                )}
-              </div>
-            </div>
+    {/* Department Bar Chart - Increased height, spans two rows */}
+    <div className="md:row-span-2 h-80 md:h-[600px] rounded-md shadow-sm flex justify-center items-center">
+      {loading ? (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <CircularProgress color="black" size={40} />
+          <Typography sx={{ color: "black" }}>Loading...</Typography>
+        </Box>
+      ) : selectedDonutClient && data?.dashboard && Object.keys(data.dashboard).length > 0 ? (
+        <DepartmentBarChart
+          clientName={selectedDonutClient}
+          transformedData={transformedData}
+        />
+      ) : data?.dashboard && Object.keys(data.dashboard).length > 0 ? (
+        <h3 className="text-center">Click on the slice to view the graph</h3>
+      ) : (
+        <Typography>No data Available</Typography>
+      )}
+    </div>
 
-            <div className="flex flex-row gap-4 justify-evenly w-full">
-              <div className="rounded-md shadow-sm p-4 w-[50%] flex items-center justify-center min-h-60">
-                {loading ? (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 2,
-                    }}
-                  >
-                    <CircularProgress size={40} />
-                    <Typography>Loading...</Typography>
-                  </Box>
-                ) : horizontalChartData ? (
-                  <HorizontalAllowanceBarChart
-                    chartDataFromParent={horizontalChartData}
-                    enums={enums}
-                  />
-                ) : (
-                  <Typography align="center">No data available</Typography>
-                )}
-              </div>
+    {/* Department Allowance Chart */}
+    <div className="md:col-span-2 shadow-sm p-8 rounded-md flex items-center justify-center max-h-100">
+      {loading ? (
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
+          <CircularProgress size={40} />
+          <Typography>Loading...</Typography>
+        </Box>
+      ) : selectedDonutClient && transformedData ? (
+        <DepartmentAllowanceChart
+          clientName={selectedDonutClient}
+          transformedData={transformedData}
+          selectedColor={selectedColor}
+        />
+      ) : selectedDonutClient && !transformedData ? (
+        <Typography align="center">No data available</Typography>
+      ) : (
+        <Typography align="center">Select a client to view department allowance</Typography>
+      )}
+    </div>
+  </div>
 
-              <div className="shadow-sm p-8 rounded-md w-[50%] flex items-center justify-center min-h-60">
-                {loading ? (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 2,
-                    }}
-                  >
-                    <CircularProgress size={40} />
-                    <Typography>Loading...</Typography>
-                  </Box>
-                ) : selectedDonutClient && transformedData ? (
-                  <DepartmentAllowanceChart
-                    clientName={selectedDonutClient}
-                    transformedData={transformedData}
-                    selectedColor={selectedColor}
-                  />
-                ) : selectedDonutClient && !transformedData ? (
-                  <Typography align="center">No data available</Typography>
-                ) : (
-                  <Typography align="center">
-                    Select a client to view department allowance
-                  </Typography>
-                )}
-              </div>
-            </div>
+  {/* Horizontal Allowance Bar Chart - Separate row */}
+  <div className="rounded-md shadow-sm p-4 flex items-center justify-center min-h-60">
+    {loading ? (
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
+        <CircularProgress size={40} />
+        <Typography>Loading...</Typography>
+      </Box>
+    ) : horizontalChartData ? (
+      <HorizontalAllowanceBarChart
+        chartDataFromParent={horizontalChartData}
+        enums={enums}
+      />
+    ) : (
+      <Typography align="center">No data available</Typography>
+    )}
+  </div>
+</div>
 
             <div className="pt-4 pb-4 w-full flex items-center justify-center">
               {loading ? (

@@ -665,8 +665,6 @@ const DataTable = ({ headers, setTableLoading }) => {
               >
                 <Box
                   sx={{
-                    backgroundColor: "white",
-                    borderRadius: 2,
                     padding: 4,
                     display: "flex",
                     flexDirection: "column",

@@ -56,6 +56,43 @@ const FIELD_MAP = {
   total_allowance: "Total Allowances",
 };
 
+export const TEMPLATE_HEADERS = [
+  "Emp ID",
+  "Emp Name",
+  "Grade",
+  "Current Status(e)",
+  "Department",
+  "Client",
+  "Project",
+  "Project Code",
+  "Account Manager",
+  "Practice Lead/ Head",
+  "Delivery/ Project Manager",
+  "Duration Month",
+  "Payroll Month",
+  "Shift A\n(09 PM to 06 AM)\nINR 500",
+  "Shift B\n(04 PM to 01 AM)\nINR 350",
+  "Shift C\n(06 AM to 03 PM)\nINR 100",
+  "Prime\n(12 AM to 09 AM)\nINR 700",
+  "# Shift Types(e)",
+  "TOTAL DAYS",
+  "Timesheet Billable Days",
+  "Timesheet Non Billable Days",
+  "Diff",
+  "Final Total Days",
+  "Billability Status",
+  "Practice Remarks",
+  "RMG Comments",
+  "Amar Approval",
+  "Shift A Allowances",
+  "Shift B Allowances",
+  "Shift C Allowances",
+  "Prime Allowances",
+  "TOTAL DAYS Allowances",
+  "AM Email Attempt(e)",
+  "AM Approval Status(e)"
+];
+
 const backendApi = import.meta.env.VITE_BACKEND_API;
 
 
@@ -286,21 +323,24 @@ export const useEmployeeData = () => {
   //   XLSX.utils.book_append_sheet(wb, ws, "Employee Data");
   //   XLSX.writeFile(wb, "Allowance_Template.xlsx");
   // }, []);
-  const downloadExcel = useCallback(async () => {
-    return new Promise((resolve) => {
-      const data = [Object.fromEntries(EXPORT_HEADERS.map((h) => [h, ""]))];
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Employee Data");
+const downloadExcel = useCallback(async () => {
+  return new Promise((resolve) => {
+    const data = [Object.fromEntries(TEMPLATE_HEADERS.map((h) => [h, ""]))];
+    const ws = XLSX.utils.json_to_sheet(data);
+    
+    // Optional: Set column widths
+    ws['!cols'] = TEMPLATE_HEADERS.map(h => ({ wch: Math.max(h.length, 15) }));
+    
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Employee Data");
 
-      XLSX.writeFile(wb, "Allowance_Template.xlsx");
+    XLSX.writeFile(wb, "Allowance_Template.xlsx");
 
-      // allow React to paint loader
-      setTimeout(() => {
-        resolve();
-      }, 0);
-    });
-  }, []);
+    setTimeout(() => {
+      resolve();
+    }, 0);
+  });
+}, []);
 
 
 

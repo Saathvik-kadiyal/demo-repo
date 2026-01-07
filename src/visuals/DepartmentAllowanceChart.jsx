@@ -111,7 +111,7 @@ import { LineChart } from "@mui/x-charts/LineChart";
 import { formatRupeesWithUnit } from "../utils/utils";
 
 const DEPARTMENT_ENUMS = {
-  "Infra - IT Operations": "IT Operations",
+  "Infra - IT Operations": "IT Ops",
   IQE: "IQE",
   SAP: "SAP",
   "Accounts & Finance": "Finance",
@@ -162,8 +162,8 @@ const DepartmentAllowanceChart = ({ transformedData, clientName = "" }) => {
   }, [dataset]);
 
   return (
-    <LineChart
-      height={400}
+   <div className="w-full h-full">
+ <LineChart
       dataset={dataset}
       xAxis={[
         {
@@ -212,6 +212,7 @@ const DepartmentAllowanceChart = ({ transformedData, clientName = "" }) => {
         },
       ]}
     />
+   </div>
   );
 };
 

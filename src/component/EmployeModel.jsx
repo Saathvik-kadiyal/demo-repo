@@ -153,14 +153,14 @@ const updateShift = (key, value) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-3"
+      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-3 mt-12"
       onClick={() => {
         resetChanges();
         onClose();
       }}
     >
       <div
-        className="bg-white rounded-2xl shadow-xl w-full max-w-[760px] max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-2xl shadow-xl w-full max-w-[760px] max-h-[90vh] overflow-y-auto scroll-smooth"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close */}

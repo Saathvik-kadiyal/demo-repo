@@ -90,8 +90,10 @@ const EmployeeEditPage = () => {
     try {
       const correctedRow = { ...selectedEmployee, ...editedFields };
       delete correctedRow.reason;
+      console.log(correctedRow)
 
-      const data = await correctEmployeeRows(token, [correctedRow]);
+      const data = await correctEmployeeRows( [correctedRow]);
+      console.log(data)
 
 
       if (data?.message) {

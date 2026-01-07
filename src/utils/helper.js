@@ -17,10 +17,10 @@ export const debounce = (fn, delay) => {
 export const fetchDashboardClientSummary = async (
   payload
 ) => {
- 
+
 
   try {
-   const response = await axiosInstance.post(
+    const response = await axiosInstance.post(
       "/dashboard/client-allowance-summary",
       payload
     );
@@ -108,27 +108,40 @@ export const fetchEmployeeDetail = async (
 
 
 export const uploadFile = async (file) => {
-  if (!file) throw new Error("No file selected");
+  const token = localStorage.getItem("access_token")
+  if (!token) throw new Error("Not authenticated");
 
   const formData = new FormData();
-  formData.append("file", file); 
+  formData.append("file", file);
 
   try {
-    const response = await axiosInstance.post("/upload", formData);
+    const response = await axios.post(`${backendApi}/upload`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
     return response.data;
   } catch (err) {
-    console.error("Upload error:", err.response?.data || err.message);
-    throw new Error(
-      err?.response?.data?.detail ||
-      err?.response?.data?.message ||
-      err?.message ||
-      "File upload failed"
-    );
+    if (err.response) {
+      const { status, data } = err.response;
+      const error = new Error(
+        typeof data?.detail === "string"
+          ? data.detail
+          : data?.message || "File upload failed"
+      );
+
+      error.status = status;
+      error.detail = data?.detail;
+      throw error;
+    }
+    if (err.request) {
+      throw new Error("No response from server. Please try again later.");
+    }
+    throw new Error(err.message || "File upload failed");
   }
 };
-
-
-
 
 export const updateEmployeeShift = async (
   emp_id,
@@ -182,7 +195,7 @@ export const toBackendMonthFormat = (monthStr) => {
   if (!match) return monthStr;
 
   const [, mon, year] = match;
-  const yyyy = "20" + year; 
+  const yyyy = "20" + year;
   return `${yyyy}-${months[mon]}`;
 };
 
@@ -192,7 +205,7 @@ export const toFrontendMonthFormat = (monthStr) => {
 
   const [year, month] = monthStr.split("-");
   const months = [
-    "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
   ];
 
   return `${months[parseInt(month, 10) - 1]}'${year.slice(2)}`;
@@ -201,18 +214,19 @@ export const toFrontendMonthFormat = (monthStr) => {
 
 export const correctEmployeeRows = async (correctedRows) => {
   if (!token) throw new Error("Not authenticated");
- 
+
   const payload = correctedRows.map(({ reason, ...row }) => row);
- 
+  console.log(payload)
+
   try {
+    
     const response = await axiosInstance.post(
       `/upload/correct_error_rows`,
       { corrected_rows: payload }
     );
- 
     return response.data;
   } catch (err) {
-     throw new Error(
+    throw new Error(
       err?.response?.data?.detail ||
       err?.response?.data?.message ||
       err?.message ||

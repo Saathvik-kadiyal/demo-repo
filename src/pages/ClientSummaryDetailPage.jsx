@@ -318,6 +318,14 @@ const ClientSummaryDetailedPage = () => {
       };
     });
   }, [data, monthKeys]);
+
+   useEffect(() => {
+      setEndMonth(null);
+      setStartMonth(null);
+      setYear(null);
+      setQuarterlySelection([]);
+      setMultipleMonths([]);
+    }, [timelineSelection]);
  
   return (
     <Box
@@ -559,13 +567,14 @@ const ClientSummaryDetailedPage = () => {
       />
       {isStartMonthInvalid && (
         <FormHelperText
-          error
           sx={{
             m: 0,
             p: 0,
             position: "absolute",
             bottom: -20,
             left: 0,
+            color:"orange"
+
           }}
         >
          <span className="flex items-center gap-1">
@@ -606,13 +615,13 @@ const ClientSummaryDetailedPage = () => {
       />
       {isEndMonthInvalid && (
         <FormHelperText
-          error
           sx={{
             m: 0,
             p: 0,
             position: "absolute",
             bottom: -39,
             left: 0,
+            color:"orange"
           }}
         >
           <span className="flex items-start gap-1">
@@ -723,7 +732,8 @@ const ClientSummaryDetailedPage = () => {
                       bottom: -20,
                       left: 0,
                       fontSize: "0.75rem",
-                      color: "error.main",
+                                  color:"orange"
+
                     }}
                   >
                      <span className="flex items-center gap-1">
@@ -816,7 +826,8 @@ const ClientSummaryDetailedPage = () => {
                       bottom: -20,
                       left: 0,
                       fontSize: "0.75rem",
-                      color: "error.main",
+                                  color:"orange"
+
                     }}
                   >
                     <span className="flex items-center gap-1">
@@ -850,7 +861,9 @@ const ClientSummaryDetailedPage = () => {
  
         <Button
           variant="contained"
-          disabled={isEndMonthInvalid}
+          disabled={
+  isEndMonthInvalid || (startMonth && !endMonth)
+}
           onClick={() => {
             handleClientSummaryWithDepartments();
           }}
@@ -867,6 +880,7 @@ const ClientSummaryDetailedPage = () => {
             setYear(null);
             setMultipleMonths([]);
             setQuarterlySelection([]);
+            setSelectedClients([])
             runFetch({ clients: "ALL" });
           }}
         >
