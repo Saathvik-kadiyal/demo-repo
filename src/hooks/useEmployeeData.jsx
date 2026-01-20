@@ -196,7 +196,7 @@ export const useEmployeeData = () => {
           shiftC: shiftDetails["C(6AM to 3PM)"] ?? 0,
           prime: shiftDetails["PRIME(12AM to 9AM)"] ?? 0,
           total: shiftDetails["total_allowance"] ?? 0,
-          head_count: shiftDetails["head_count"] ?? 0,
+          head_count: shiftDetails["headcount"] ?? 0,
         });
 
         if ((res?.total_records ?? 0) === 0) {

@@ -34,29 +34,25 @@ export const fetchDashboardClientSummary = async (
   }
 };
 
-
 export const fetchEmployees = async ({
   start = 0,
   limit = 10,
   params = {},
 }) => {
   try {
-    const hasParams = Object.keys(params).length > 0;
+    const requestBody = {
+      ...params,
+      start,
+      limit,
+    };
 
-    const requestParams = hasParams
-      ? { ...params, start, limit }
-      : { start, limit };
-
-    const response = await axiosInstance.get(
+    const response = await axiosInstance.post(
       "/employee-details/search",
-      {
-        params: requestParams,
-      }
+      requestBody
     );
 
     const data = response.data;
 
-    // Normalize API response shape
     if (Array.isArray(data?.data?.data)) {
       return {
         ...data,
@@ -76,7 +72,7 @@ export const fetchEmployees = async ({
       "Unable to fetch employees."
     );
   }
-};
+}
 
 
 export const fetchEmployeeDetail = async (

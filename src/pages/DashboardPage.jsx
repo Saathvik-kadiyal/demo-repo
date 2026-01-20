@@ -35,6 +35,7 @@ import DonutChart from "../visuals/DonutChart.jsx";
 import AccountManagersTable from "../component/AccountManagersTable.jsx";
 import DepartmentAllowanceChart from "../visuals/DepartmentAllowanceChart.jsx";
 import HorizontalAllowanceBarChart from "../visuals/HorizontalAllowanceBarChart.jsx";
+import TimeRangeSelector from "../component/TimeRangeSelector.jsx";
 
 const hideScrollbar = {
   scrollbarWidth: "none",
@@ -495,306 +496,26 @@ const DashboardPage = () => {
             Select Clients
           </Button>
 
-          {timelineSelection === "range" && (
-           <LocalizationProvider dateAdapter={AdapterDayjs}>
-  <Box sx={{ display: "flex", gap: 2, position: "relative" }}>
-    {/* Start Month */}
-    <Box sx={{ position: "relative" }}>
-      <DatePicker
-        views={["year", "month"]}
-        label="Start Month"
-        value={startMonth ? dayjs(startMonth) : null}
-        maxDate={endMonth ? dayjs(endMonth) : undefined}
-        disableFuture
-        onChange={(newValue) =>
-          setStartMonth(newValue ? newValue.format("YYYY-MM") : null)
-        }
-        inputFormat="YYYY-MM"
-        slotProps={{
-          popper: {
-            disablePortal: false,
-            modifiers: [
-              {
-                name: "preventOverflow",
-                options: { altAxis: true },
-              },
-            ],
-          },
-          textField: {
-            size: "small",
-            sx: { width: 200 },
-            InputProps: {
-              endAdornment: startMonth && (
-                <IconButton
-                  size="small"
-                  onClick={() => setStartMonth(null)}
-                >
-                  <X size={16} />
-                </IconButton>
-              ),
-            },
-          },
-        }}
-      />
+       <TimeRangeSelector
+  timelineSelection={timelineSelection}
+  setTimelineSelection={setTimelineSelection}
+  timelines={timelines}
+  startMonth={startMonth}
+  setStartMonth={setStartMonth}
+  endMonth={endMonth}
+  setEndMonth={setEndMonth}
+  isStartMonthInvalid={isStartMonthInvalid}
+  isEndMonthInvalid={isEndMonthInvalid}
+  year={year}
+  setYear={setYear}
+  monthsList={monthsList}
+  multipleMonths={multipleMonths}
+  setMultipleMonths={setMultipleMonths}
+  quarterlyList={quarterlyList}
+  quarterlySelection={quarterlySelection}
+  setQuarterlySelection={setQuarterlySelection}
+/>
 
-      {isStartMonthInvalid && (
-        <FormHelperText
-          sx={{
-            m: 0,
-            p: 0,
-            position: "absolute",
-            bottom: -20,
-            left: 0,
-            color: "orange",
-          }}
-        >
-          <span className="flex items-center gap-1">
-            <Info size={12} className="block" />
-            <span className="text-sm">Start month is required</span>
-          </span>
-        </FormHelperText>
-      )}
-    </Box>
-
-    {/* End Month */}
-    <Box sx={{ position: "relative" }}>
-      <DatePicker
-        views={["year", "month"]}
-        label="End Month"
-        value={endMonth ? dayjs(endMonth) : null}
-        minDate={startMonth ? dayjs(startMonth) : undefined}
-        disableFuture
-        onChange={(newValue) =>
-          setEndMonth(newValue ? newValue.format("YYYY-MM") : null)
-        }
-        inputFormat="YYYY-MM"
-        slotProps={{
-          popper: {
-            disablePortal: false,
-            modifiers: [
-              {
-                name: "preventOverflow",
-                options: { altAxis: true },
-              },
-            ],
-          },
-          textField: {
-            size: "small",
-            sx: { width: 200 },
-            InputProps: {
-              endAdornment: endMonth && (
-                <IconButton
-                  size="small"
-                  onClick={() => setEndMonth(null)}
-                >
-                  <X size={16} />
-                </IconButton>
-              ),
-            },
-          },
-        }}
-      />
-
-      {isEndMonthInvalid && (
-        <FormHelperText
-          sx={{
-            m: 0,
-            p: 0,
-            position: "absolute",
-            bottom: -39,
-            left: 0,
-            color: "orange",
-          }}
-        >
-          <span className="flex items-center gap-1">
-            <Info size={12} className="block" />
-            <span className="text-sm">
-              End month must be after start month
-            </span>
-          </span>
-        </FormHelperText>
-      )}
-    </Box>
-  </Box>
-</LocalizationProvider>
-
-          )}
-
-          {timelineSelection === "monthly" && (
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                views={["year"]}
-                label="Select Year"
-                value={year}
-                onChange={(v) => {
-                  setYear(v);
-                  setMultipleMonths(v ? monthsList.map((m) => m.value) : []);
-                }}
-                disableFuture
-                slotProps={{
-                  textField: { size: "small", sx: { width: 200 } },
-                }}
-              />
-              <Box sx={{ position: "relative", width: 200 }}>
-                <FormControl sx={{ width: "100%" }} size="small">
-                  <InputLabel>Select Months</InputLabel>
-                  <Select
-                    multiple
-                    value={multipleMonths}
-                    disabled={!year}
-                    input={<OutlinedInput label="Select Months" />}
-                    renderValue={(selected) =>
-                      selected.length === 12
-                        ? "All Months"
-                        : selected
-                            .map(
-                              (m) =>
-                                monthsList.find((x) => x.value === m)?.label
-                            )
-                            .join(", ")
-                    }
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value.includes("ALL")) {
-                        if (multipleMonths.length === 12) {
-                          setMultipleMonths([]);
-                        } else {
-                          setMultipleMonths(monthsList.map((m) => m.value));
-                        }
-                        return;
-                      }
-                      const uniqueMonths = [...new Set(value)];
-                      if (uniqueMonths.length === monthsList.length) {
-                        setMultipleMonths(monthsList.map((m) => m.value));
-                      } else {
-                        setMultipleMonths(uniqueMonths);
-                      }
-                    }}
-                  >
-                    <MenuItem value="ALL">
-                      <Checkbox checked={multipleMonths.length === 12} />
-                      <ListItemText primary="All Months" />
-                    </MenuItem>
-
-                    {monthsList.map((month) => (
-                      <MenuItem key={month.value} value={month.value}>
-                        <Checkbox
-                          checked={multipleMonths.includes(month.value)}
-                        />
-                        <ListItemText primary={month.label} />
-                      </MenuItem>
-                    ))}
-                  </Select>
-
-                  {!year && (
-                    <FormHelperText
-                      sx={{
-                        position: "absolute",
-                        bottom: -20,
-                        left: 0,
-                        color: "orange",
-                        m: 0,
-                        p: 0,
-                      }}
-                    >
-                      <span className="flex items-center gap-1">
-                        <Info size={12} className="block" />
-                        <span className="text-sm">Please select year</span>
-                      </span>
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Box>
-            </LocalizationProvider>
-          )}
-
-          {timelineSelection === "quarterly" && (
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                views={["year"]}
-                label="Select Year"
-                value={year}
-                onChange={(v) => {
-                  setYear(v);
-                  setQuarterlySelection(
-                    v ? quarterlyList.map((m) => m.value) : []
-                  );
-                }}
-                disableFuture
-                slotProps={{
-                  textField: { size: "small", sx: { width: 200 } },
-                }}
-              />
-              <Box sx={{ position: "relative", width: 200 }}>
-                <FormControl sx={{ width: "100%" }} size="small">
-                  <InputLabel>Select Quarter</InputLabel>
-                  <Select
-                    multiple
-                    value={quarterlySelection}
-                    onChange={(e) =>
-                      setQuarterlySelection([...new Set(e.target.value)])
-                    }
-                    input={<OutlinedInput label="Select Quarter" />}
-                    disabled={!year}
-                    renderValue={(selected) =>
-                      selected.length === 0
-                        ? ""
-                        : selected
-                            .map(
-                              (q) =>
-                                quarterlyList.find((x) => x.value === q)?.label
-                            )
-                            .join(", ")
-                    }
-                  >
-                    {quarterlyList.map((qtr) => (
-                      <MenuItem key={qtr.value} value={qtr.value}>
-                        <Checkbox
-                          checked={quarterlySelection.includes(qtr.value)}
-                        />
-                        <ListItemText primary={qtr.label} />
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {!year && (
-                    <FormHelperText
-                      sx={{
-                        position: "absolute",
-                        bottom: -20,
-                        left: 0,
-                        color: "orange",
-                        m:0,
-                        p:0
-                      }}
-                    >
-                      <span className="flex items-center gap-1">
-                        <Info size={12} className="block" />
-                        <span className="text-sm">Please select year</span>
-                      </span>
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Box>
-            </LocalizationProvider>
-          )}
-
-          <Box>
-            <FormControl sx={{ width: 120 }}>
-              <InputLabel>Selection</InputLabel>
-              <Select
-                value={timelineSelection}
-                label="Selection"
-                size="small"
-                onChange={(e) => setTimelineSelection(e.target.value)}
-              >
-                {timelines.map((timeline) => (
-                  <MenuItem key={timeline.value} value={timeline.value}>
-                    {timeline.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
 
           <Box>
             <FormControl sx={{ width: 120 }}>

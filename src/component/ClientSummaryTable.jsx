@@ -51,7 +51,7 @@ const ClientSummaryTable = ({
       width: 340,
       renderCell: (params) => {
         const { row } = params;
-        const paddingLeft = row.level > 0 ? row.level * 6 : 0;
+        const paddingLeft = row.level > 0 ? row.level * 4 : 0;
         const canExpand = row.level === 0 || (row.level === 1 && !row.hasError);
  
         return (
@@ -127,10 +127,47 @@ const ClientSummaryTable = ({
     },
     { field: "headCount", headerName: "Head Count", width: 120 },
     { field: "accountManager", headerName: "Client Partner", width: 200 },
-    { field: "shiftA", headerName: "Shift A", width: 150 },
-    { field: "shiftB", headerName: "Shift B", width: 150 },
-    { field: "shiftC", headerName: "Shift C", width: 150 },
-    { field: "primeShift", headerName: "PRIME", width: 150 },
+  {
+  field: "shiftA",
+  width: 150,
+  renderHeader: () => (
+    <div style={{ whiteSpace: "normal", textAlign: "center", fontWeight: "bold" }}>
+      <div>Shift A - ₹500</div>
+      <div>9PM - 6AM</div>
+    </div>
+  ),
+},
+{
+  field: "shiftB",
+  width: 150,
+  renderHeader: () => (
+    <div style={{ whiteSpace: "normal", textAlign: "center", fontWeight: "bold" }}>
+      <div>Shift B - ₹350</div>
+      <div>4PM - 1AM</div>
+    </div>
+  ),
+},
+{
+  field: "shiftC",
+  width: 150,
+  renderHeader: () => (
+    <div style={{ whiteSpace: "normal", textAlign: "center", fontWeight: "bold" }}>
+      <div>Shift C - ₹100</div>
+      <div>6AM - 3PM</div>
+    </div>
+  ),
+},
+{
+  field: "primeShift",
+  width: 150,
+  renderHeader: () => (
+    <div style={{ whiteSpace: "normal", textAlign: "center", fontWeight: "bold" }}>
+      <div>PRIME - ₹700</div>
+      <div>12AM - 9AM</div>
+    </div>
+  ),
+},
+
     {
       field: "amount",
       headerName: "Total Allowance",
@@ -233,7 +270,7 @@ const ClientSummaryTable = ({
                   flatRows.push({
                     id: `${deptKey}-emp-${emp.emp_id}`,
                     clientKey: `${deptKey}-emp-${emp.emp_id}`,
-                    clientName: emp.emp_name,
+                    clientName: `${emp.emp_id} ${emp.emp_name}`,
                     level: 2,
                     headCount: 1,
                     accountManager: emp.account_manager ?? "",

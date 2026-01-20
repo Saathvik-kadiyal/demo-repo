@@ -42,7 +42,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-screen w-full bg-linear-to-br from-gray-50 via-blue-50 to-gray-100 relative">
+    <div className="h-100vh w-full bg-linear-to-br from-gray-50 via-blue-50 to-gray-100 relative">
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-0 -left-4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
         <div className="absolute top-0 -right-4 w-72 h-72 bg-gray-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
@@ -218,18 +218,20 @@ export default function LoginPage() {
                 <a className="text-blue-600 hover:text-blue-700 font-semibold cursor-pointer">
                   Forgot password?
                 </a>
-              </div>
 
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+                {error && (
+                <div className="absolute bottom-35 text-red-700 px-4 py-3 rounded-xl text-sm">
                   {error}
                 </div>
               )}
+              </div>
+
+              
 
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full bg-linear-to-r cursor-pointer from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full bg-linear-to-r cursor-pointer from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3.5 my-2 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {loading ? (
                   <div className="flex items-center justify-center cursor-pointer">

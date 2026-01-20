@@ -130,6 +130,10 @@ const ClientSummaryPage = () => {
           alignItems: "center",
         }}
       >
+
+
+
+
         <FormControl sx={{ width: 200, py: 0.5 }}>
           <InputLabel>Client</InputLabel>
           <Select

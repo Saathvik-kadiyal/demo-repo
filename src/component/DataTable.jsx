@@ -1,8 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { DataGrid, GridOverlay } from "@mui/x-data-grid";
 import Pagination from "@mui/material/Pagination";
-import { FormHelperText, Tooltip } from "@mui/material";
+import { FormHelperText } from "@mui/material";
 import { CircularProgress } from "@mui/material";
+import {
+  FormControl,
+  InputLabel,
+  Checkbox,
+  ListItemText,
+  Tooltip,
+} from "@mui/material";
+import { formatRupees } from "../utils/utils";
 
 import {
   IconButton,
@@ -21,6 +29,32 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import EmployeeModal from "./EmployeModel.jsx";
 import { useEmployeeData } from "../hooks/useEmployeeData.jsx";
+import DynamicSearchSelector from "./DynamicSearchSelector.jsx";
+import TimeRangeSelector from "./TimeRangeSelector.jsx";
+
+const today = dayjs();
+const currentYear = today.year();
+const currentMonth = today.month() + 1; // 1–12
+
+const FILTER_WIDTH = 150;
+const FILTER_HEIGHT = 40;
+
+const datePickerTextFieldProps = {
+  size: "small",
+  sx: {
+    width: FILTER_WIDTH,
+    height: FILTER_HEIGHT,
+  },
+};
+
+const selectSx = {
+  width: FILTER_WIDTH,
+  height: FILTER_HEIGHT,
+  "& .MuiOutlinedInput-root": {
+    height: FILTER_HEIGHT,
+    paddingRight: "32px",
+  },
+};
 
 const formatMonth = (value) => {
   if (!value) return "";
@@ -79,6 +113,23 @@ const DataTable = ({ headers, setTableLoading }) => {
     shiftSummary,
   } = useEmployeeData();
 
+  // const [appliedFilters, setAppliedFilters] = useState({
+  //   searchQuery: "",
+  //   searchBy: "Emp ID",
+  //   startMonth: null,
+  //   endMonth: null,
+  // });
+  const [appliedFilters, setAppliedFilters] = useState({
+    searchQuery: "",
+    searchBy: "Emp ID",
+    startMonth: null,
+    endMonth: null,
+    selectedYear: null,
+    selectedMonths: [],
+    selectedQuarters: [],
+    clients: "All",
+  });
+
   const [infoOpen, setInfoOpen] = useState(false);
   const [infoPosition, setInfoPosition] = useState({ top: 0, left: 0 });
   const [searchQuery, setSearchQuery] = useState("");
@@ -90,6 +141,55 @@ const DataTable = ({ headers, setTableLoading }) => {
   const [popupType, setPopupType] = useState("");
   const [popupVisible, setPopupVisible] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
+  const [timelineSelection, setTimelineSelection] = useState("range");
+
+  const [year, setYear] = useState(null);
+  const [selectedMonths, setSelectedMonths] = useState([]);
+  const [selectedQuarters, setSelectedQuarters] = useState([]);
+
+  const monthsList = [
+    { label: "January", value: "01" },
+    { label: "February", value: "02" },
+    { label: "March", value: "03" },
+    { label: "April", value: "04" },
+    { label: "May", value: "05" },
+    { label: "June", value: "06" },
+    { label: "July", value: "07" },
+    { label: "August", value: "08" },
+    { label: "September", value: "09" },
+    { label: "October", value: "10" },
+    { label: "November", value: "11" },
+    { label: "December", value: "12" },
+  ];
+
+  const quarterlyList = [
+    { label: "Q1 (Jan - Mar)", value: "Q1" },
+    { label: "Q2 (Apr - Jun)", value: "Q2" },
+    { label: "Q3 (Jul - Sep)", value: "Q3" },
+    { label: "Q4 (Oct - Dec)", value: "Q4" },
+  ];
+
+  const quarterEndMonth = {
+    Q1: 3,
+    Q2: 6,
+    Q3: 9,
+    Q4: 12,
+  };
+
+  const shiftRates = {
+    shiftA: 500,
+    shiftB: 350,
+    shiftC: 100,
+    prime: 700,
+  };
+
+  const isClearDisabled =
+    !searchQuery &&
+    !startMonth &&
+    !endMonth &&
+    !year &&
+    selectedMonths.length === 0 &&
+    selectedQuarters.length === 0;
 
   const pageSize = 10;
   const isPageNotFull = displayRows.length < pageSize;
@@ -177,7 +277,6 @@ const DataTable = ({ headers, setTableLoading }) => {
         disableColumnMenu: true,
       };
     }),
-
     {
       field: "actions",
       headerName: "",
@@ -224,25 +323,64 @@ const DataTable = ({ headers, setTableLoading }) => {
     }
   });
 
-  const buildSearchParams = () => {
+  const buildSearchParams = (filters) => {
     const params = {};
-    const q = searchQuery.trim();
+    const q = filters.searchQuery?.trim();
 
-    if (q.length > 2) {
-      if (searchBy === "Emp ID") params.emp_id = q;
-      else if (searchBy === "Account Manager") params.account_manager = q;
-      else if (searchBy === "Client") params.client = q;
-      else if (searchBy === "Department") params.department = q;
+    if (q && q.length > 2) {
+      switch (filters.searchBy) {
+        case "Emp ID":
+          params.emp_id = q;
+          break;
+
+        case "Account Manager":
+          params.account_manager = q;
+          break;
+
+        case "Client":
+          params.client = { [q]: [] };
+          break;
+
+        case "Department":
+          params.department = q;
+          break;
+
+        default:
+          break;
+      }
     }
 
-    if (startMonth) params.start_month = startMonth;
-    if (endMonth) params.end_month = endMonth;
+    if (filters.department && filters.department !== "All") {
+      params.department = filters.department;
+    }
+
+    if (filters.startMonth) params.start_month = filters.startMonth;
+    if (filters.endMonth) params.end_month = filters.endMonth;
+
+    if (filters.start !== undefined) params.start = filters.start;
+    if (filters.limit !== undefined) params.limit = filters.limit;
+
+    if (filters.selectedYear) params.selected_year = filters.selectedYear;
+
+    if (filters.selectedMonths?.length)
+      params.selected_months = filters.selectedMonths;
+
+    if (filters.selectedQuarters?.length)
+      params.selected_quarters = filters.selectedQuarters;
+
+    if (filters.client && Object.keys(filters.client).length > 0) {
+      params.client = filters.client;
+    }
 
     return params;
   };
 
   useEffect(() => {
-    const params = buildSearchParams();
+    const params = buildSearchParams({
+      ...appliedFilters,
+      start: (page - 1) * 10,
+      limit: 10,
+    });
 
     const hasParams = Object.keys(params).length > 0;
 
@@ -251,49 +389,58 @@ const DataTable = ({ headers, setTableLoading }) => {
     } else {
       getProcessedData((page - 1) * 10, 10);
     }
-  }, [page, searchQuery, startMonth, endMonth]);
+  }, [page, appliedFilters]);
 
   useEffect(() => {
     loading ? setTableLoading(true) : setTableLoading(false);
   }, [loading]);
 
-  // const handleDownload = async (searchQuery, startMonth, endMonth) => {
-  //   try {
-  //     setDownloadLoading(true);
 
-  //     if (searchQuery?.trim() && startMonth) {
-  //       await downloadSearchData({
-  //         type: "SearchAndMonthRange",
-  //         startMonth,
-  //         endMonth,
-  //         query: searchQuery.trim(),
-  //         searchBy,
-  //       });
-  //       return;
-  //     }
+  const isSubmitDisabled =
+  (timelineSelection === "range" && isEndMonthInvalid) ||
+  (timelineSelection === "monthly" && (!year || selectedMonths.length === 0)) ||
+  (timelineSelection === "quarterly" && (!year || selectedQuarters.length === 0));
 
-  //     if (searchQuery?.trim()) {
-  //       await downloadSearchData({
-  //         type: "Text",
-  //         query: searchQuery.trim(),
-  //         searchBy,
-  //       });
-  //       return;
-  //     }
 
-  //     if (startMonth) {
-  //       await downloadSearchData({
-  //         type: "MonthRange",
-  //         startMonth,
-  //         endMonth,
-  //       });
-  //     }
-  //   } finally {
-  //     setDownloadLoading(false);
-  //   }
-  // };
+  const handleSubmitFilters = () => {
+  let start = startMonth;
+  let end = endMonth;
+
+  if (timelineSelection === "monthly") {
+    start = `${dayjs(year).format("YYYY")}-${selectedMonths[0]}`;
+    end = `${dayjs(year).format("YYYY")}-${selectedMonths.at(-1)}`;
+  }
+
+  if (timelineSelection === "quarterly") {
+    const quarterToMonths = {
+      Q1: ["01", "02", "03"],
+      Q2: ["04", "05", "06"],
+      Q3: ["07", "08", "09"],
+      Q4: ["10", "11", "12"],
+    };
+
+    const months = selectedQuarters.flatMap(q => quarterToMonths[q]);
+    start = `${dayjs(year).format("YYYY")}-${months[0]}`;
+    end = `${dayjs(year).format("YYYY")}-${months.at(-1)}`;
+  }
+
+  setAppliedFilters({
+    searchQuery,
+    searchBy,
+    startMonth: start ? dayjs(start).format("YYYY-MM") : null,
+    endMonth: end ? dayjs(end).format("YYYY-MM") : null,
+    selectedYear: year ? dayjs(year).format("YYYY") : null,
+    selectedMonths,
+    selectedQuarters,
+    clients: "All",
+  });
+
+  handlePageChange(1);
+};
+
+
   const handleDownload = async (searchQuery, startMonth, endMonth) => {
-    setDownloadLoading(true); // show circular loader
+    setDownloadLoading(true);
     try {
       if (searchQuery?.trim() && startMonth) {
         await downloadSearchData({
@@ -316,20 +463,34 @@ const DataTable = ({ headers, setTableLoading }) => {
           endMonth,
         });
       } else {
-        // Optional: if no filters, download all
         await downloadSearchData({});
       }
     } finally {
-      setDownloadLoading(false); // hide loader after download
+      setDownloadLoading(false);
     }
   };
-
   const handleClear = () => {
     setSearchQuery("");
     setSearchBy("Emp ID");
     setErrorSearch("");
     setStartMonth(null);
     setEndMonth(null);
+    setYear(null);
+    setSelectedMonths([]);
+    setSelectedQuarters([]);
+    setTimelineSelection("range");
+
+    setAppliedFilters({
+      searchQuery: "",
+      searchBy: "Emp ID",
+      startMonth: null,
+      endMonth: null,
+      selectedYear: null,
+      selectedMonths: [],
+      selectedQuarters: [],
+      clients: "All",
+    });
+
     handlePageChange(1);
   };
 
@@ -343,10 +504,26 @@ const DataTable = ({ headers, setTableLoading }) => {
             bg: "#FF5722",
           },
 
-          { label: "Shift A", value: shiftSummary?.shiftA ?? 0, bg: "#03A9F4" },
-          { label: "Shift B", value: shiftSummary?.shiftB ?? 0, bg: "#E91E63" },
-          { label: "Shift C", value: shiftSummary?.shiftC ?? 0, bg: "#FF9800" },
-          { label: "Prime", value: shiftSummary?.prime ?? 0, bg: "#9C27B0" },
+          {
+            label: `Shift A - ₹${shiftRates.shiftA}`,
+            value: formatINR(shiftSummary?.shiftA ?? 0),
+            bg: "#03A9F4",
+          },
+          {
+            label: `Shift B - ₹${shiftRates.shiftB}`,
+            value: formatINR(shiftSummary?.shiftB ?? 0),
+            bg: "#E91E63",
+          },
+          {
+            label: `Shift C - ₹${shiftRates.shiftC}`,
+            value: formatINR(shiftSummary?.shiftC ?? 0),
+            bg: "#FF9800",
+          },
+          {
+            label: `Prime - ₹${shiftRates.prime}`,
+            value: formatINR(shiftSummary?.prime ?? 0),
+            bg: "#9C27B0",
+          },
           {
             label: "Total Allowances",
             value: formatINR(shiftSummary?.total ?? 0),
@@ -373,6 +550,7 @@ const DataTable = ({ headers, setTableLoading }) => {
 
             <Typography variant="h3" fontWeight={700} fontSize="26px" mt={1}>
               {value}
+              {/* {label === "Head Count" ? value : formatRupees(value)} */}
             </Typography>
           </Box>
         ))}
@@ -391,193 +569,114 @@ const DataTable = ({ headers, setTableLoading }) => {
               display: "flex",
               mb: 2,
               alignItems: "center",
-              justifyContent: "space-between",
+              gap: 1,
             }}
           >
-            <Box sx={{ display: "flex" }}>
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <Select
-                  size="small"
-                  sx={{ width: 160 }}
-                  value={searchBy}
-                  onChange={(e) => setSearchBy(e.target.value)}
-                >
-                  <MenuItem value="Emp ID">Emp ID</MenuItem>
-                  <MenuItem value="Account Manager">Client Partner</MenuItem>
-                  <MenuItem value="Department">Department</MenuItem>
-                  <MenuItem value="Client">Client</MenuItem>
-                </Select>
-
-                <Box sx={{ position: "relative", width: 300 }}>
-                  <TextField
-                    size="small"
-                    placeholder={`Search by ${searchBy}...`}
-                    value={searchQuery}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setSearchQuery(value);
-                      if (!value) return setErrorSearch("");
-                      if (!pattern.test(value)) {
-                        setErrorSearch(
-                          "First 2 characters must be letters, then letters, numbers or '-' allowed"
-                        );
-                      } else {
-                        setErrorSearch("");
-                      }
-                    }}
-                    error={Boolean(errorSearch)}
-                    sx={{ width: "100%" }}
-                  />
-                  {errorSearch && (
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        position: "absolute",
-                        top: "100%",
-                        left: 0,
-                        color: "red",
-                        fontSize: "11px",
-                        mt: "2px",
-                      }}
-                    >
-                      {errorSearch}
-                    </Typography>
-                  )}
-                </Box>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                flex: 1,
+                flexDirection: "column",
+                width: "100%",
+              }}
+            >
+              <Box sx={{ display: "flex", width: "100%" }}>
+                <Tooltip title="Download Allowance Data">
+                  <Button
+                    sx={{ ml: "auto" }}
+                    variant="outlined"
+                    onClick={() =>
+                      handleDownload(searchQuery, startMonth, endMonth)
+                    }
+                  >
+                    Download Data
+                  </Button>
+                </Tooltip>
               </Box>
 
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <Box sx={{ position: "relative", display: "flex", gap: 2 }}>
-                  <Box sx={{ width: 5 }} />
-
-                  <Box sx={{ position: "relative", display: "flex", gap: 2 }}>
-                    <DatePicker
-                      views={["year", "month"]}
-                      label="Start Month"
-                      value={startMonth ? dayjs(startMonth) : null}
-                      onChange={(newValue) =>
-                        setStartMonth(
-                          newValue ? newValue.format("YYYY-MM") : null
-                        )
-                      }
-                      inputFormat="YYYY-MM"
-                      disableFuture
-                      slotProps={{
-                        popper: {
-                          disablePortal: false,
-                          modifiers: [
-                            {
-                              name: "preventOverflow",
-                              options: { altAxis: true },
-                            },
-                          ],
-                        },
-                        textField: {
-                          size: "small",
-                          sx: { width: 170 },
-                          InputProps: {
-                            endAdornment: startMonth && (
-                              <IconButton
-                                size="small"
-                                onClick={() => setStartMonth(null)}
-                              >
-                                <X size={16} />
-                              </IconButton>
-                            ),
-                          },
-                        },
-                      }}
-                    />
-                    <DatePicker
-                      views={["year", "month"]}
-                      label="End Month"
-                      value={endMonth ? dayjs(endMonth) : null}
-                      onChange={(newValue) =>
-                        setEndMonth(
-                          newValue ? newValue.format("YYYY-MM") : null
-                        )
-                      }
-                      minDate={startMonth ? dayjs(startMonth) : undefined}
-                      inputFormat="YYYY-MM"
-                      disableFuture
-                      slotProps={{
-                        popper: {
-                          disablePortal: false,
-                          modifiers: [
-                            {
-                              name: "preventOverflow",
-                              options: { altAxis: true },
-                            },
-                          ],
-                        },
-                        textField: {
-                          size: "small",
-                          sx: { width: 170 },
-                          InputProps: {
-                            endAdornment: endMonth && (
-                              <IconButton
-                                size="small"
-                                onClick={() => setEndMonth(null)}
-                              >
-                                <X size={16} />
-                              </IconButton>
-                            ),
-                          },
-                        },
-                      }}
-                    />
-
-                    {isEndMonthInvalid && (
-                      <FormHelperText
-                        sx={{
-                          position: "absolute",
-                          bottom: -25,
-                          left: 0,
-                          fontSize: "12px",
-                          backgroundColor: "#fff",
-                          color: "orange",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 0.5,
-                          m: 0,
-                        }}
-                      >
-                        <Info size={12} className="block" />
-                        End Month must be after Start Month
-                      </FormHelperText>
-                    )}
-                  </Box>
-                </Box>
-              </LocalizationProvider>
-
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={handleClear}
-                disabled={!searchQuery && !startMonth && !endMonth}
+              <Box
                 sx={{
-                  ml: 1,
-                  height: "40px",
-                  textTransform: "none",
-                  alignSelf: "center",
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 2,
+                  alignItems: "center",
+                  flex: 1,
+                  minWidth: 0,
                 }}
               >
-                Clear
-              </Button>
+                <DynamicSearchSelector
+                  options={[
+                    { value: "Emp ID", label: "Emp ID" },
+                    { value: "Account Manager", label: "Client Partner" },
+                    { value: "Department", label: "Department" },
+                    { value: "Client", label: "Client" },
+                  ]}
+                  selectedOption={searchBy}
+                  setSelectedOption={setSearchBy}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  error={errorSearch}
+                  setError={setErrorSearch}
+                  pattern={pattern}
+                />
+
+                <TimeRangeSelector
+                  timelineSelection={timelineSelection}
+                  setTimelineSelection={setTimelineSelection}
+                  timelines={[
+                    { value: "range", label: "Range" },
+                    { value: "monthly", label: "Monthly" },
+                    { value: "quarterly", label: "Quarterly" },
+                  ]}
+                  startMonth={startMonth}
+                  setStartMonth={setStartMonth}
+                  endMonth={endMonth}
+                  setEndMonth={setEndMonth}
+                  isStartMonthInvalid={false}
+                  isEndMonthInvalid={isEndMonthInvalid}
+                  year={year}
+                  setYear={setYear}
+                  monthsList={monthsList}
+                  multipleMonths={selectedMonths}
+                  setMultipleMonths={setSelectedMonths}
+                  quarterlyList={quarterlyList}
+                  quarterlySelection={selectedQuarters}
+                  setQuarterlySelection={setSelectedQuarters}
+                />
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 1,
+                    alignItems: "center",
+                    minHeight: 56,
+                  }}
+                >
+                  <Button
+  variant="contained"
+  size="small"
+  onClick={handleSubmitFilters}
+  disabled={isSubmitDisabled}
+  sx={{ height: 40 }}
+>
+  Search
+</Button>
+
+
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handleClear}
+                    disabled={isClearDisabled}
+                    sx={{ minHeight: "40px", textTransform: "none" }}
+                  >
+                    Clear
+                  </Button>
+                </Box>
+              </Box>
             </Box>
-            <Tooltip title="Download Allowance Data">
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() =>
-                  handleDownload(searchQuery, startMonth, endMonth)
-                }
-                disabled={!searchQuery?.trim() && !startMonth}
-                sx={{ textTransform: "none", px: 2, py: 1 }}
-              >
-                Download Data
-              </Button>
-            </Tooltip>
           </Box>
 
           <Box
@@ -588,68 +687,6 @@ const DataTable = ({ headers, setTableLoading }) => {
               transition: "margin-top 0.2s ease",
             }}
           >
-            {/* {loading && (
-              <Box
-                sx={{
-                  position: "absolute",
-                  inset: 0,
-                  zIndex: 9999,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "rgba(0,0,0,0.3)",
-                  backdropFilter: "blur(8px)",
-                }}
-              >
-                <Box
-                  sx={{
-                    backgroundColor: "white",
-                    borderRadius: 2,
-                    padding: 4,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 2,
-                  }}
-                >
-                  <CircularProgress size={40} />
-                  <Typography>Loading...</Typography>
-                </Box>
-              </Box>
-            )} */}
-
-            {/* {downloadLoading && (
-  <Box
-    sx={{
-      position: "absolute",
-      inset: 0,
-      zIndex: 2000,
-       pointerEvents: "all", 
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: "rgba(255,255,255,0.7)",
-      backdropFilter: "blur(2px)",
-    }}
-  >
-    <Box
-      sx={{
-        backgroundColor: "#fff",
-        borderRadius: 2,
-        px: 3,
-        py: 2,
-        display: "flex",
-        alignItems: "center",
-        gap: 2,
-        boxShadow: 3,
-      }}
-    >
-      <CircularProgress size={28} />
-      <Typography fontSize="14px">Downloading...</Typography>
-    </Box>
-  </Box>
-)} */}
-
             {downloadLoading && (
               <Box
                 sx={{
