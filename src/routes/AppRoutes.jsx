@@ -2,13 +2,11 @@ import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import Layout from "../Layout/Layout.jsx";
 import PrivateRoute from "./PrivateRoute.jsx";
-import Comparision from "../component/Comparision.jsx";
-import ClientSummaryDetailedPage from "../pages/ClientSummaryDetailPage.jsx";
-import EmployeeEditPage from "../pages/EmployeeEditPage.jsx";
+import LoginPage from "../pages/LoginPage.jsx";
+const ClientSummaryDetailedPage = lazy(()=>import("../pages/ClientSummaryDetailPage.jsx"));
+const EmployeeEditPage = lazy(()=>import("../pages/EmployeeEditPage.jsx"));
 const DashboardPage = lazy(() => import("../pages/DashboardPage.jsx"));
-const ClientSummaryPage = lazy(() => import("../pages/ClientSummaryPage.jsx"));
 const FileInput = lazy(() => import("../pages/FileInput.jsx"));
-const LoginPage = lazy(() => import("../pages/LoginPage.jsx"));
 const NotFound = lazy(() => import("../pages/NotFound.jsx"));
 
 const AppRoutes = () => {
@@ -27,19 +25,9 @@ const AppRoutes = () => {
           element={
              <PrivateRoute>
             <Suspense fallback={<div className="p-6">Loading Dashboard...</div>}>
-             
                 <DashboardPage />
-             
             </Suspense>
              </PrivateRoute>
-          }
-        />
-         <Route
-          path="comparison"
-          element={
-            <Suspense fallback={<div className="p-6">Loading Comparision.</div>}>
-              <Comparision />
-            </Suspense>
           }
         />
         <Route
@@ -58,18 +46,15 @@ const AppRoutes = () => {
             </Suspense>
         }
         />
-        <Route
+         <Route
           path="client-summary"
           element={
             <Suspense fallback={<div className="p-6">Loading Client Summary...</div>}>
-              {/* <ClientSummaryPage /> */}
               <ClientSummaryDetailedPage/>
             </Suspense>
           }
         />
       </Route>
-
-      {/* Catch-all 404 */}
       <Route
         path="*"
         element={

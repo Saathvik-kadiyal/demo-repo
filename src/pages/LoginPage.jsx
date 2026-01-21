@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import "../Styles/LoginPage.css";
+import "../styles/LoginPage.css";
 
 const backendApi = import.meta.env?.VITE_BACKEND_API || "";
 
@@ -14,6 +14,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
+    console.log(email,password)
 
     try {
       const response = await axios.post(`${backendApi}/auth/login`, {
