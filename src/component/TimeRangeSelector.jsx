@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   FormControl,
   FormHelperText,
   IconButton,
@@ -40,7 +39,6 @@ const TimeRangeSelector = ({
 }) => {
   return (
     <>
-      {/* Timeline selection */}
       <FormControl sx={{ width: 160 }}>
         <InputLabel>Selection</InputLabel>
         <Select
@@ -58,10 +56,8 @@ const TimeRangeSelector = ({
       </FormControl>
 
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        {/* RANGE */}
         {timelineSelection === "range" && (
           <Box sx={{ display: "flex", gap: 2 }}>
-            {/* Start */}
             <Box sx={{ position: "relative" }}>
               <DatePicker
                 views={["year", "month"]}
@@ -91,7 +87,6 @@ const TimeRangeSelector = ({
               )}
             </Box>
 
-            {/* End */}
             <Box sx={{ position: "relative" }}>
               <DatePicker
                 views={["year", "month"]}
@@ -123,7 +118,6 @@ const TimeRangeSelector = ({
           </Box>
         )}
 
-        {/* MONTHLY */}
         {timelineSelection === "monthly" && (
           <>
             <DatePicker
