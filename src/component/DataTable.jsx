@@ -896,7 +896,7 @@ const DataTable = ({ headers, setTableLoading }) => {
                     ? "0 0 12px rgba(34,197,94,0.45)"
                     : "0 0 12px rgba(239,68,68,0.45)",
                 zIndex: 3000,
-                boxShadow: 5,
+                // boxShadow: 5,
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
