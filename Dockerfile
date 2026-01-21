@@ -31,3 +31,7 @@ EXPOSE 80
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
+
+
+#  docker build -t excelupload-react .
+# docker run -p 8080:80 excelupload-react
