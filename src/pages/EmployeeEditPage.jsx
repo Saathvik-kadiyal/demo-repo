@@ -151,7 +151,7 @@ const EmployeeEditPage = () => {
           backgroundColor: "#312e81",
           overflow: "visible",
           paddingLeft: "16px",
-          backgroundColor: "transparent",
+          // backgroundColor: "transparent",
         }}
       >
         {/* Shift Allowance */}
