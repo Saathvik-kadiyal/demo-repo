@@ -4,17 +4,17 @@ import { Box, IconButton, Popover, Typography } from "@mui/material";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { ChevronDown, Info, EllipsisVertical } from "lucide-react";
- 
+
 const formatINR = (value) => {
   if (value == null) return "";
   return `₹${Number(value).toLocaleString("en-IN")}`;
 };
- 
+
 const parseINR = (value) => {
   if (!value) return 0;
   return Number(String(value).replace(/[₹,]/g, ""));
 };
- 
+
 const ClientSummaryTable = ({
   clientsMap,
   monthTotals,
@@ -22,28 +22,28 @@ const ClientSummaryTable = ({
   monthTotalB,
   monthTotalC,
   monthTotalPRIME,
-  monthHeadCount
+  monthHeadCount,
 }) => {
   const [openMap, setOpenMap] = useState({});
   const [popoverAnchor, setPopoverAnchor] = useState(null);
   const [popoverMessage, setPopoverMessage] = useState("");
   const [sortAnchor, setSortAnchor] = useState(null);
   const [sortOrder, setSortOrder] = useState(null);
- 
+
   const toggleOpen = (key) => {
     setOpenMap((prev) => ({ ...prev, [key]: !prev[key] }));
   };
- 
+
   const handleInfoClick = (event, message) => {
     setPopoverAnchor(event.currentTarget);
     setPopoverMessage(message);
   };
- 
+
   const handlePopoverClose = () => {
     setPopoverAnchor(null);
     setPopoverMessage("");
   };
- 
+
   const columns = [
     {
       field: "clientName",
@@ -53,7 +53,7 @@ const ClientSummaryTable = ({
         const { row } = params;
         const paddingLeft = row.level > 0 ? row.level * 4 : 0;
         const canExpand = row.level === 0 || (row.level === 1 && !row.hasError);
- 
+
         return (
           <Box
             sx={{
@@ -69,7 +69,7 @@ const ClientSummaryTable = ({
             }}
           >
             {params.value}
- 
+
             {row.level === 0 && (
               <IconButton
                 size="small"
@@ -89,7 +89,7 @@ const ClientSummaryTable = ({
                 />
               </IconButton>
             )}
- 
+
             {row.level === 1 && row.hasError && (
               <IconButton
                 size="small"
@@ -101,7 +101,7 @@ const ClientSummaryTable = ({
                 <Info size={16} />
               </IconButton>
             )}
- 
+
             {row.level === 1 && !row.hasError && (
               <IconButton
                 size="small"
@@ -127,46 +127,70 @@ const ClientSummaryTable = ({
     },
     { field: "headCount", headerName: "Head Count", width: 120 },
     { field: "accountManager", headerName: "Client Partner", width: 200 },
-  {
-  field: "shiftA",
-  width: 150,
-  renderHeader: () => (
-    <div style={{ whiteSpace: "normal", textAlign: "center", fontWeight: "bold" }}>
-      <div>Shift A - ₹500</div>
-      <div>9PM - 6AM</div>
-    </div>
-  ),
-},
-{
-  field: "shiftB",
-  width: 150,
-  renderHeader: () => (
-    <div style={{ whiteSpace: "normal", textAlign: "center", fontWeight: "bold" }}>
-      <div>Shift B - ₹350</div>
-      <div>4PM - 1AM</div>
-    </div>
-  ),
-},
-{
-  field: "shiftC",
-  width: 150,
-  renderHeader: () => (
-    <div style={{ whiteSpace: "normal", textAlign: "center", fontWeight: "bold" }}>
-      <div>Shift C - ₹100</div>
-      <div>6AM - 3PM</div>
-    </div>
-  ),
-},
-{
-  field: "primeShift",
-  width: 150,
-  renderHeader: () => (
-    <div style={{ whiteSpace: "normal", textAlign: "center", fontWeight: "bold" }}>
-      <div>PRIME - ₹700</div>
-      <div>12AM - 9AM</div>
-    </div>
-  ),
-},
+    {
+      field: "shiftA",
+      width: 150,
+      renderHeader: () => (
+        <div
+          style={{
+            whiteSpace: "normal",
+            textAlign: "center",
+            fontWeight: "bold",
+          }}
+        >
+          <div>Shift A - ₹500</div>
+          <div>9PM - 6AM</div>
+        </div>
+      ),
+    },
+    {
+      field: "shiftB",
+      width: 150,
+      renderHeader: () => (
+        <div
+          style={{
+            whiteSpace: "normal",
+            textAlign: "center",
+            fontWeight: "bold",
+          }}
+        >
+          <div>Shift B - ₹350</div>
+          <div>4PM - 1AM</div>
+        </div>
+      ),
+    },
+    {
+      field: "shiftC",
+      width: 150,
+      renderHeader: () => (
+        <div
+          style={{
+            whiteSpace: "normal",
+            textAlign: "center",
+            fontWeight: "bold",
+          }}
+        >
+          <div>Shift C - ₹100</div>
+          <div>6AM - 3PM</div>
+        </div>
+      ),
+    },
+    {
+      field: "primeShift",
+      width: 150,
+      renderHeader: () => (
+        <div
+          style={{
+            whiteSpace: "normal",
+            textAlign: "center",
+            fontWeight: "bold",
+          }}
+        >
+          <div>PRIME - ₹700</div>
+          <div>12AM - 9AM</div>
+        </div>
+      ),
+    },
 
     {
       field: "amount",
@@ -175,7 +199,7 @@ const ClientSummaryTable = ({
       renderHeader: () => (
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Typography fontWeight={700}>Total Allowance</Typography>
- 
+
           <IconButton
             size="small"
             sx={{ color: "#fff" }}
@@ -183,7 +207,7 @@ const ClientSummaryTable = ({
           >
             <EllipsisVertical color="white" fontSize="small" />
           </IconButton>
- 
+
           <Menu
             anchorEl={sortAnchor}
             open={Boolean(sortAnchor)}
@@ -197,7 +221,7 @@ const ClientSummaryTable = ({
             >
               High → Low
             </MenuItem>
- 
+
             <MenuItem
               onClick={() => {
                 setSortOrder("asc");
@@ -206,7 +230,7 @@ const ClientSummaryTable = ({
             >
               Low → High
             </MenuItem>
- 
+
             <MenuItem
               onClick={() => {
                 setSortOrder(null);
@@ -220,15 +244,15 @@ const ClientSummaryTable = ({
       ),
     },
   ];
- 
+
   const rows = useMemo(() => {
     const flatRows = [];
- 
+
     Object.entries(clientsMap || {})
       .filter(([k]) => k !== "total" && k !== "month_total")
       .forEach(([clientName, clientObj]) => {
         const clientKey = clientName;
- 
+
         flatRows.push({
           id: clientKey,
           clientKey,
@@ -242,13 +266,13 @@ const ClientSummaryTable = ({
           primeShift: formatINR(clientObj.client_PRIME ?? 0),
           amount: formatINR(clientObj.client_total ?? 0),
         });
- 
+
         if (openMap[clientKey]) {
           Object.entries(clientObj.departments || {}).forEach(
             ([deptName, deptObj]) => {
               const deptKey = `${clientKey}-${deptName}`;
               const hasError = deptObj.error && deptObj.error.trim() !== "";
- 
+
               flatRows.push({
                 id: deptKey,
                 clientKey: deptKey,
@@ -264,7 +288,7 @@ const ClientSummaryTable = ({
                 primeShift: formatINR(deptObj.dept_PRIME ?? 0),
                 amount: formatINR(deptObj.dept_total ?? 0),
               });
- 
+
               if (openMap[deptKey] && !hasError) {
                 (deptObj.employees || []).forEach((emp) => {
                   flatRows.push({
@@ -282,36 +306,36 @@ const ClientSummaryTable = ({
                   });
                 });
               }
-            }
+            },
           );
         }
       });
- 
+
     const monthTotalRow = {
       id: "monthTotal",
       clientKey: "monthTotal",
       clientName: "Month Total",
-      headCount: monthHeadCount??"",
+      headCount: monthHeadCount ?? "",
       shiftA: formatINR(monthTotalA),
       shiftB: formatINR(monthTotalB),
       shiftC: formatINR(monthTotalC),
       primeShift: formatINR(monthTotalPRIME),
       amount: formatINR(monthTotals),
     };
- 
+
     let sortableRows = [...flatRows];
- 
+
     if (sortOrder) {
       sortableRows.sort((a, b) => {
         const aVal = parseINR(a.amount);
         const bVal = parseINR(b.amount);
- 
+
         return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
       });
     }
- 
+
     sortableRows.push(monthTotalRow);
- 
+
     return sortableRows;
   }, [
     clientsMap,
@@ -323,9 +347,9 @@ const ClientSummaryTable = ({
     monthTotalPRIME,
     sortOrder,
   ]);
- 
+
   const isEmpty = Object.keys(clientsMap).length === 0 || clientsMap?.message;
- 
+
   return (
     <Box
       sx={{
@@ -356,7 +380,7 @@ const ClientSummaryTable = ({
             disableColumnSelector
             disableColumnSorting
             disableDensitySelector
-             disableRowSelectionOnClick
+            disableRowSelectionOnClick
             getRowId={(row) => row.id}
             getRowClassName={(params) => {
               if (params.row.id === "monthTotal") return "row-month-total";
@@ -390,24 +414,26 @@ const ClientSummaryTable = ({
               "& .MuiDataGrid-columnHeaders": {
                 overflowY: "hidden",
                 scrollbarWidth: "none",
+                position: "sticky",
+                top: 0,
               },
               "& .MuiDataGrid-columnHeaders::-webkit-scrollbar": {
                 display: "none",
               },
-                "& .MuiDataGrid-cell": {
-            outline: "none",
-            cursor: "pointer",
-          },
-          "& .MuiDataGrid-cell:focus": {
-            outline: "none",
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            position: "sticky",
-            top: 0,
-          },
+              //       "& .MuiDataGrid-cell": {
+              //   outline: "none",
+              //   cursor: "pointer",
+              // },
+              "& .MuiDataGrid-cell:focus": {
+                outline: "none",
+              },
+              // "& .MuiDataGrid-columnHeaders": {
+              //   position: "sticky",
+              //   top: 0,
+              // },
             }}
           />
- 
+
           <Popover
             open={Boolean(popoverAnchor)}
             anchorEl={popoverAnchor}
@@ -424,7 +450,5 @@ const ClientSummaryTable = ({
     </Box>
   );
 };
- 
+
 export default ClientSummaryTable;
- 
- 
