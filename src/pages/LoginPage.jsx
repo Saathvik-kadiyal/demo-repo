@@ -14,6 +14,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
+    console.log(email,password)
 
     try {
       const response = await axios.post(`${backendApi}/auth/login`, {
