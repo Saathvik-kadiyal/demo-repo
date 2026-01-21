@@ -272,7 +272,7 @@ const Comparision = () => {
                   sx={{
                     fontWeight: "bold",
                     background: "black",
-                    color: "white",
+                    // color: "white",
                     width: 150,
                     backgroundColor: highlightMonth === m ? "#ffe36e" : "black",
                     color: highlightMonth === m ? "black" : "white",

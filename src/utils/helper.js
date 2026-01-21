@@ -306,38 +306,38 @@ export const downloadClientSummary = async (payload) => {
 
 
 
-// export const fetchClientComparison = async (
-//   searchBy = "",
-//   startMonth = "",
-//   endMonth = "",
-//   client = ""
-// ) => {
-//   const token = localStorage.getItem("access_token");
-//   if (!token) throw new Error("Not authenticated");
-//   if (!client) throw new Error("Client is required");
+export const fetchClientComparison = async (
+  searchBy = "",
+  startMonth = "",
+  endMonth = "",
+  client = ""
+) => {
+  const token = localStorage.getItem("access_token");
+  if (!token) throw new Error("Not authenticated");
+  if (!client) throw new Error("Client is required");
 
-//   const params = new URLSearchParams();
-//   params.append("client", client);
+  const params = new URLSearchParams();
+  params.append("client", client);
 
-//   if (startMonth) params.append("start_month", startMonth);
-//   if (endMonth) params.append("end_month", endMonth);
-//   if (searchBy) params.append("account_manager", searchBy);
+  if (startMonth) params.append("start_month", startMonth);
+  if (endMonth) params.append("end_month", endMonth);
+  if (searchBy) params.append("account_manager", searchBy);
 
-//   try {
-//     const response = await axios.get(
-//       `${backendApi}/client-comparison?${params.toString()}`,
-//       {
-//         headers: { Authorization: `Bearer ${token}` },
-//       }
-//     );
+  try {
+    const response = await axios.get(
+      `${backendApi}/client-comparison?${params.toString()}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
 
-//     return response.data;
-//   } catch (err) {
-//     if (err?.response?.data?.detail) throw new Error(err.response.data.detail);
-//     if (err?.message) throw new Error(err.message);
-//     throw new Error("Unable to fetch client comparison data.");
-//   }
-// };
+    return response.data;
+  } catch (err) {
+    if (err?.response?.data?.detail) throw new Error(err.response.data.detail);
+    if (err?.message) throw new Error(err.message);
+    throw new Error("Unable to fetch client comparison data.");
+  }
+};
 
 export const fetchClientDepartments = async () => {
   try {
