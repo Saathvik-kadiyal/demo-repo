@@ -338,7 +338,7 @@ const DataTable = ({ headers, setTableLoading }) => {
           break;
 
         case "Client":
-          params.client = { [q]: [] };
+          params.client = q;
           break;
 
         case "Department":
