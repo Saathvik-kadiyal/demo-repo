@@ -48,7 +48,17 @@ const AppRoutes = () => {
             </Suspense>
         }
         />
+         <Route
+          path="client-summary"
+          element={
+            <Suspense fallback={<div className="p-6">Loading Client Summary...</div>}>
+              <ClientSummaryDetailedPage/>
+            </Suspense>
+          }
+        />
       </Route>
+
+      
       <Route
         path="*"
         element={
