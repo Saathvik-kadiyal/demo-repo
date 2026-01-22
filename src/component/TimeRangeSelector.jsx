@@ -73,7 +73,7 @@ const TimeRangeSelector = ({
                 slotProps={{
                   textField: {
                     size: "small",
-                    sx: { width: 200 },
+                    sx: {position:"fixed", width: 200 },
                     InputProps: {
                       endAdornment: startMonth && (
                         <IconButton size="small" onClick={() => setStartMonth(null)}>
@@ -103,7 +103,8 @@ const TimeRangeSelector = ({
                 slotProps={{
                   textField: {
                     size: "small",
-                    sx: { width: 200 },
+                    sx: { position: "fixed", width: 200 },
+
                     InputProps: {
                       endAdornment: endMonth && (
                         <IconButton size="small" onClick={() => setEndMonth(null)}>
