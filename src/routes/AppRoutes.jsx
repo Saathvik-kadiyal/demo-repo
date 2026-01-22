@@ -2,11 +2,11 @@ import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import Layout from "../Layout/Layout.jsx";
 import PrivateRoute from "./PrivateRoute.jsx";
-import ClientSummaryDetailedPage from "../pages/ClientSummaryDetailPage.jsx";
-import EmployeeEditPage from "../pages/EmployeeEditPage.jsx";
+import LoginPage from "../pages/LoginPage.jsx";
+const ClientSummaryDetailedPage = lazy(()=>import("../pages/ClientSummaryDetailPage.jsx"));
+const EmployeeEditPage = lazy(()=>import("../pages/EmployeeEditPage.jsx"));
 const DashboardPage = lazy(() => import("../pages/DashboardPage.jsx"));
 const FileInput = lazy(() => import("../pages/FileInput.jsx"));
-const LoginPage = lazy(() => import("../pages/LoginPage.jsx"));
 const NotFound = lazy(() => import("../pages/NotFound.jsx"));
 
 const AppRoutes = () => {
@@ -25,9 +25,7 @@ const AppRoutes = () => {
           element={
              <PrivateRoute>
             <Suspense fallback={<div className="p-6">Loading Dashboard...</div>}>
-             
                 <DashboardPage />
-             
             </Suspense>
              </PrivateRoute>
           }
