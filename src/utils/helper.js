@@ -1,5 +1,6 @@
 import axios from "axios";
 import axiosInstance from "./axiosInstance";
+import dayjs from "dayjs";
 
 const backendApi = import.meta.env.VITE_BACKEND_API;
 const token = localStorage.getItem("access_token");
@@ -171,6 +172,10 @@ export const updateEmployeeShift = async (
 
 export const toBackendMonthFormat = (monthStr) => {
   if (!monthStr) return "";
+
+  if(dayjs.isDayjs(monthStr)){
+    monthStr =  monthStr.format("YYYY-MM");
+  }
 
   const months = {
     Jan: "01",

@@ -71,12 +71,18 @@ const TimeRangeSelector = ({
                 disableFuture
                 onChange={setStartMonth}
                 slotProps={{
+                  popper: {
+                    disablePortal: true,
+                  },
                   textField: {
                     size: "small",
                     sx: { width: 200 },
                     InputProps: {
                       endAdornment: startMonth && (
-                        <IconButton size="small" onClick={() => setStartMonth(null)}>
+                        <IconButton
+                          size="small"
+                          onClick={() => setStartMonth(null)}
+                        >
                           <X size={16} />
                         </IconButton>
                       ),
@@ -85,7 +91,9 @@ const TimeRangeSelector = ({
                 }}
               />
               {isStartMonthInvalid && (
-                <FormHelperText sx={{ position: "absolute", bottom: -20, color: "orange" }}>
+                <FormHelperText
+                  sx={{ position: "absolute", bottom: -20, color: "orange" }}
+                >
                   <Info size={12} /> Start month is required
                 </FormHelperText>
               )}
@@ -101,13 +109,19 @@ const TimeRangeSelector = ({
                 disableFuture
                 onChange={setEndMonth}
                 slotProps={{
+                  popper: {
+                    disablePortal: true,
+                  },
                   textField: {
                     size: "small",
                     sx: { width: 200 },
 
                     InputProps: {
                       endAdornment: endMonth && (
-                        <IconButton size="small" onClick={() => setEndMonth(null)}>
+                        <IconButton
+                          size="small"
+                          onClick={() => setEndMonth(null)}
+                        >
                           <X size={16} />
                         </IconButton>
                       ),
@@ -116,7 +130,9 @@ const TimeRangeSelector = ({
                 }}
               />
               {isEndMonthInvalid && (
-                <FormHelperText sx={{ position: "absolute", bottom: -36, color: "orange" }}>
+                <FormHelperText
+                  sx={{ position: "absolute", bottom: -36, color: "orange" }}
+                >
                   <Info size={12} /> End month must be after start month
                 </FormHelperText>
               )}
@@ -137,9 +153,13 @@ const TimeRangeSelector = ({
               }}
               disableFuture
               slotProps={{
+                popper: {
+                  disablePortal: true,
+                },
                 textField: {
                   size: "small",
                   sx: { width: 200 },
+
                   InputProps: {
                     endAdornment: year && (
                       <IconButton size="small" onClick={() => setYear(null)}>
@@ -178,53 +198,54 @@ const TimeRangeSelector = ({
 
         {/* QUARTERLY */}
         {timelineSelection === "quarterly" && (
-  <>
-    <DatePicker
-      views={["year"]}
-      label="Select Year"
-      value={year}
-      onChange={(v) => {
-        setYear(v);
-        setQuarterlySelection([]);
-      }}
-      disableFuture
-      slotProps={{
-        textField: { size: "small", sx: { width: 200 } },
-      }}
-    />
+          <>
+            <DatePicker
+              views={["year"]}
+              label="Select Year"
+              value={year}
+              onChange={(v) => {
+                setYear(v);
+                setQuarterlySelection([]);
+              }}
+              disableFuture
+              slotProps={{
+                popper: {
+                  disablePortal: true,
+                },
+                textField: { size: "small", sx: { width: 200 } },
+              }}
+            />
 
-    <FormControl sx={{ width: 200 }} size="small">
-      <InputLabel>Select Quarter</InputLabel>
-      <Select
-        multiple
-        value={quarterlySelection}
-        onChange={(e) =>
-          setQuarterlySelection([...new Set(e.target.value)])
-        }
-        input={<OutlinedInput label="Select Quarter" />}
-        disabled={!year}
-        renderValue={(selected) =>
-          selected.length === 0
-            ? "Select Quarter"
-            : selected
-                .map(
-                  (q) =>
-                    quarterlyList.find((x) => x.value === q)?.label
-                )
-                .join(", ")
-        }
-      >
-        {quarterlyList.map((q) => (
-          <MenuItem key={q.value} value={q.value}>
-            <Checkbox checked={quarterlySelection.includes(q.value)} />
-            <ListItemText primary={q.label} />
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  </>
-)}
-
+            <FormControl sx={{ width: 200 }} size="small">
+              <InputLabel>Select Quarter</InputLabel>
+              <Select
+                multiple
+                value={quarterlySelection}
+                onChange={(e) =>
+                  setQuarterlySelection([...new Set(e.target.value)])
+                }
+                input={<OutlinedInput label="Select Quarter" />}
+                disabled={!year}
+                renderValue={(selected) =>
+                  selected.length === 0
+                    ? "Select Quarter"
+                    : selected
+                        .map(
+                          (q) => quarterlyList.find((x) => x.value === q)?.label
+                        )
+                        .join(", ")
+                }
+              >
+                {quarterlyList.map((q) => (
+                  <MenuItem key={q.value} value={q.value}>
+                    <Checkbox checked={quarterlySelection.includes(q.value)} />
+                    <ListItemText primary={q.label} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </>
+        )}
       </LocalizationProvider>
     </>
   );
