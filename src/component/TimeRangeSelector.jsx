@@ -61,7 +61,6 @@ const TimeRangeSelector = ({
         {/* RANGE */}
         {timelineSelection === "range" && (
           <Box sx={{ display: "flex", gap: 2 }}>
-            {/* Start */}
             <Box sx={{ position: "relative" }}>
               <DatePicker
                 views={["year", "month"]}
@@ -71,6 +70,10 @@ const TimeRangeSelector = ({
                 disableFuture
                 onChange={setStartMonth}
                 slotProps={{
+                  popper: {
+                    disablePortal: true,
+                    
+                  },
                   textField: {
                     size: "small",
                     sx: { width: 200 },
@@ -91,7 +94,6 @@ const TimeRangeSelector = ({
               )}
             </Box>
 
-            {/* End */}
             <Box sx={{ position: "relative" }}>
               <DatePicker
                 views={["year", "month"]}
@@ -101,6 +103,10 @@ const TimeRangeSelector = ({
                 disableFuture
                 onChange={setEndMonth}
                 slotProps={{
+                  popper: {
+                    disablePortal: true,
+                    
+                  },
                   textField: {
                     size: "small",
                     sx: { width: 200 },
@@ -136,6 +142,10 @@ const TimeRangeSelector = ({
               }}
               disableFuture
               slotProps={{
+                popper: {
+                  disablePortal: true,
+                
+                },
                 textField: {
                   size: "small",
                   sx: { width: 200 },
@@ -155,7 +165,7 @@ const TimeRangeSelector = ({
               <Select
                 multiple
                 value={multipleMonths}
-                onChange={(e) =>
+                onChange={(e) => 
                   setMultipleMonths([...new Set(e.target.value)])
                 }
                 input={<OutlinedInput label="Select Months" />}
@@ -177,53 +187,53 @@ const TimeRangeSelector = ({
 
         {/* QUARTERLY */}
         {timelineSelection === "quarterly" && (
-  <>
-    <DatePicker
-      views={["year"]}
-      label="Select Year"
-      value={year}
-      onChange={(v) => {
-        setYear(v);
-        setQuarterlySelection([]);
-      }}
-      disableFuture
-      slotProps={{
-        textField: { size: "small", sx: { width: 200 } },
-      }}
-    />
+          <>
+            <DatePicker
+              views={["year"]}
+              label="Select Year"
+              value={year}
+              onChange={(v) => {
+                setYear(v);
+                setQuarterlySelection([]);
+              }}
+              disableFuture
+              slotProps={{
+                popper: {
+                  disablePortal: true,
+                  
+                },
+                textField: { size: "small", sx: { width: 200 } },
+              }}
+            />
 
-    <FormControl sx={{ width: 200 }} size="small">
-      <InputLabel>Select Quarter</InputLabel>
-      <Select
-        multiple
-        value={quarterlySelection}
-        onChange={(e) =>
-          setQuarterlySelection([...new Set(e.target.value)])
-        }
-        input={<OutlinedInput label="Select Quarter" />}
-        disabled={!year}
-        renderValue={(selected) =>
-          selected.length === 0
-            ? "Select Quarter"
-            : selected
-                .map(
-                  (q) =>
-                    quarterlyList.find((x) => x.value === q)?.label
-                )
-                .join(", ")
-        }
-      >
-        {quarterlyList.map((q) => (
-          <MenuItem key={q.value} value={q.value}>
-            <Checkbox checked={quarterlySelection.includes(q.value)} />
-            <ListItemText primary={q.label} />
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  </>
-)}
-
+            <FormControl sx={{ width: 200 }} size="small">
+              <InputLabel>Select Quarter</InputLabel>
+              <Select
+                multiple
+                value={quarterlySelection}
+                onChange={(e) =>
+                  setQuarterlySelection([...new Set(e.target.value)])
+                }
+                input={<OutlinedInput label="Select Quarter" />}
+                disabled={!year}
+                renderValue={(selected) =>
+                  selected.length === 0
+                    ? "Select Quarter"
+                    : selected
+                        .map((q) => quarterlyList.find((x) => x.value === q)?.label)
+                        .join(", ")
+                }
+              >
+                {quarterlyList.map((q) => (
+                  <MenuItem key={q.value} value={q.value}>
+                    <Checkbox checked={quarterlySelection.includes(q.value)} />
+                    <ListItemText primary={q.label} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </>
+        )}
       </LocalizationProvider>
     </>
   );

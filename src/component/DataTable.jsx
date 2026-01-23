@@ -1,60 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { DataGrid, GridOverlay } from "@mui/x-data-grid";
+import { DataGrid} from "@mui/x-data-grid";
 import Pagination from "@mui/material/Pagination";
-import { FormHelperText } from "@mui/material";
-import { CircularProgress } from "@mui/material";
-import {
-  FormControl,
-  InputLabel,
-  Checkbox,
-  ListItemText,
-  Tooltip,
-} from "@mui/material";
-import { formatRupees } from "../utils/utils";
-
+// import { CircularProgress,Tooltip } from "@mui/material";
 import {
   IconButton,
   Portal,
-  MenuItem,
-  Select,
-  TextField,
   Box,
   Typography,
   Button,
-} from "@mui/material";
+  CircularProgress,
+  Tooltip
+} from "@mui/material"; 
 import { X, Eye, Info } from "lucide-react";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import EmployeeModal from "./EmployeModel.jsx";
 import { useEmployeeData } from "../hooks/useEmployeeData.jsx";
 import DynamicSearchSelector from "./DynamicSearchSelector.jsx";
 import TimeRangeSelector from "./TimeRangeSelector.jsx";
-
-const today = dayjs();
-const currentYear = today.year();
-const currentMonth = today.month() + 1; // 1–12
-
-const FILTER_WIDTH = 150;
-const FILTER_HEIGHT = 40;
-
-const datePickerTextFieldProps = {
-  size: "small",
-  sx: {
-    width: FILTER_WIDTH,
-    height: FILTER_HEIGHT,
-  },
-};
-
-const selectSx = {
-  width: FILTER_WIDTH,
-  height: FILTER_HEIGHT,
-  "& .MuiOutlinedInput-root": {
-    height: FILTER_HEIGHT,
-    paddingRight: "32px",
-  },
-};
 
 const formatMonth = (value) => {
   if (!value) return "";
@@ -113,12 +75,6 @@ const DataTable = ({ headers, setTableLoading }) => {
     shiftSummary,
   } = useEmployeeData();
 
-  // const [appliedFilters, setAppliedFilters] = useState({
-  //   searchQuery: "",
-  //   searchBy: "Emp ID",
-  //   startMonth: null,
-  //   endMonth: null,
-  // });
   const [appliedFilters, setAppliedFilters] = useState({
     searchQuery: "",
     searchBy: "Emp ID",
@@ -168,13 +124,6 @@ const DataTable = ({ headers, setTableLoading }) => {
     { label: "Q3 (Jul - Sep)", value: "Q3" },
     { label: "Q4 (Oct - Dec)", value: "Q4" },
   ];
-
-  const quarterEndMonth = {
-    Q1: 3,
-    Q2: 6,
-    Q3: 9,
-    Q4: 12,
-  };
 
   const shiftRates = {
     shiftA: 500,
@@ -338,7 +287,7 @@ const DataTable = ({ headers, setTableLoading }) => {
           break;
 
         case "Client":
-          params.client = { [q]: [] };
+          params.client = q;
           break;
 
         case "Department":
@@ -397,46 +346,46 @@ const DataTable = ({ headers, setTableLoading }) => {
 
 
   const isSubmitDisabled =
-  (timelineSelection === "range" && isEndMonthInvalid) ||
-  (timelineSelection === "monthly" && (!year || selectedMonths.length === 0)) ||
-  (timelineSelection === "quarterly" && (!year || selectedQuarters.length === 0));
+    (timelineSelection === "range" && isEndMonthInvalid) ||
+    (timelineSelection === "monthly" && (!year || selectedMonths.length === 0)) ||
+    (timelineSelection === "quarterly" && (!year || selectedQuarters.length === 0));
 
 
   const handleSubmitFilters = () => {
-  let start = startMonth;
-  let end = endMonth;
+    let start = startMonth;
+    let end = endMonth;
 
-  if (timelineSelection === "monthly") {
-    start = `${dayjs(year).format("YYYY")}-${selectedMonths[0]}`;
-    end = `${dayjs(year).format("YYYY")}-${selectedMonths.at(-1)}`;
-  }
+    if (timelineSelection === "monthly") {
+      start = `${dayjs(year).format("YYYY")}-${selectedMonths[0]}`;
+      end = `${dayjs(year).format("YYYY")}-${selectedMonths.at(-1)}`;
+    }
 
-  if (timelineSelection === "quarterly") {
-    const quarterToMonths = {
-      Q1: ["01", "02", "03"],
-      Q2: ["04", "05", "06"],
-      Q3: ["07", "08", "09"],
-      Q4: ["10", "11", "12"],
-    };
+    if (timelineSelection === "quarterly") {
+      const quarterToMonths = {
+        Q1: ["01", "02", "03"],
+        Q2: ["04", "05", "06"],
+        Q3: ["07", "08", "09"],
+        Q4: ["10", "11", "12"],
+      };
 
-    const months = selectedQuarters.flatMap(q => quarterToMonths[q]);
-    start = `${dayjs(year).format("YYYY")}-${months[0]}`;
-    end = `${dayjs(year).format("YYYY")}-${months.at(-1)}`;
-  }
+      const months = selectedQuarters.flatMap(q => quarterToMonths[q]);
+      start = `${dayjs(year).format("YYYY")}-${months[0]}`;
+      end = `${dayjs(year).format("YYYY")}-${months.at(-1)}`;
+    }
 
-  setAppliedFilters({
-    searchQuery,
-    searchBy,
-    startMonth: start ? dayjs(start).format("YYYY-MM") : null,
-    endMonth: end ? dayjs(end).format("YYYY-MM") : null,
-    selectedYear: year ? dayjs(year).format("YYYY") : null,
-    selectedMonths,
-    selectedQuarters,
-    clients: "All",
-  });
+    setAppliedFilters({
+      searchQuery,
+      searchBy,
+      startMonth: start ? dayjs(start).format("YYYY-MM") : null,
+      endMonth: end ? dayjs(end).format("YYYY-MM") : null,
+      selectedYear: year ? dayjs(year).format("YYYY") : null,
+      selectedMonths,
+      selectedQuarters,
+      clients: "All",
+    });
 
-  handlePageChange(1);
-};
+    handlePageChange(1);
+  };
 
 
   const handleDownload = async (searchQuery, startMonth, endMonth) => {
@@ -561,6 +510,7 @@ const DataTable = ({ headers, setTableLoading }) => {
           display: "flex",
           flexDirection: "column",
           position: "relative",
+          overflowY: "hidden",
         }}
       >
         <Box>
@@ -655,14 +605,14 @@ const DataTable = ({ headers, setTableLoading }) => {
                   }}
                 >
                   <Button
-  variant="contained"
-  size="small"
-  onClick={handleSubmitFilters}
-  disabled={isSubmitDisabled}
-  sx={{ height: 40 }}
->
-  Search
-</Button>
+                    variant="contained"
+                    size="small"
+                    onClick={handleSubmitFilters}
+                    disabled={isSubmitDisabled}
+                    sx={{ height: 40 }}
+                  >
+                    Search
+                  </Button>
 
 
                   <Button
@@ -720,8 +670,6 @@ const DataTable = ({ headers, setTableLoading }) => {
               columns={columns}
               autoHeight={false}
               rowHeight={52}
-              // disableVirtualization
-
               pagination={false}
               hideFooter
               scrollbarSize={0}
@@ -747,11 +695,7 @@ const DataTable = ({ headers, setTableLoading }) => {
                 ),
               }}
               sx={{
-                // border: "1px solid #D3D3D3",
-                // maxHeight: "80vh",
                 borderTop: "1px solid #D3D3D3",
-                // borderLeft: "1px solid #D3D3D3",
-                // borderRight: "1px solid #D3D3D3",
                 borderRight: "none",
                 borderBottom: isPageNotFull ? "none" : "1px solid #D3D3D3",
                 height: "70vh",

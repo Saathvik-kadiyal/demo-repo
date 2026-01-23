@@ -96,6 +96,7 @@ export const TEMPLATE_HEADERS = [
 const backendApi = import.meta.env.VITE_BACKEND_API;
 
 
+
 const mapBackendToUI = (row) => {
   const uiRow = {};
   Object.entries(FIELD_MAP).forEach(([key, label]) => {
@@ -308,6 +309,7 @@ export const useEmployeeData = () => {
       } else {
         setError("Network error");
       }
+      
     }
     finally {
       setLoading(false);
