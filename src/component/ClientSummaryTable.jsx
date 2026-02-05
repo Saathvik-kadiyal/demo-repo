@@ -23,6 +23,7 @@ const ClientSummaryTable = ({
   monthTotalC,
   monthTotalPRIME,
   monthHeadCount,
+  
 }) => {
   const [openMap, setOpenMap] = useState({});
   const [popoverAnchor, setPopoverAnchor] = useState(null);

@@ -1,8 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Geist&display=swap');
 
-body {
-  font-family: 'Geist';
-}
+
 
 .scrollbar-hidden::-webkit-scrollbar {
   display: none;
@@ -11,10 +9,6 @@ body {
 .scrollbar-hidden {
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-
-*{
-  background-color: gray;
 }
 
 html,
@@ -28,8 +22,8 @@ no-scrollbar::-webkit-scrollbar {
     display: none;
   }
 
-  /* Hide scrollbar for IE, Edge and Firefox */
+
   .no-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none; 
+    scrollbar-width: none; 
   }
