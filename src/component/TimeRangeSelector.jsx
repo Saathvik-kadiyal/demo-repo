@@ -77,7 +77,6 @@ const TimeRangeSelector = ({
                   textField: {
                     size: "small",
                     sx: { width: 200 },
-
                     InputProps: {
                       endAdornment: startMonth && (
                         <IconButton
