@@ -21,6 +21,10 @@ import { useState, useEffect } from "react";
 import { Pen, X } from "lucide-react";
 import * as XLSX from "xlsx";
 import { correctEmployeeRows } from "../utils/helper";
+import arrow from "../assets/arrow.svg";
+import ErrorTable from "../component/ReusableTable/ErrorTable";
+
+
 
 const BACKEND_TO_FRONTEND = {
   emp_id: "EMP ID",
@@ -92,7 +96,7 @@ const EmployeeEditPage = () => {
       delete correctedRow.reason;
       console.log(correctedRow)
 
-      const data = await correctEmployeeRows( [correctedRow]);
+      const data = await correctEmployeeRows([correctedRow]);
       console.log(data)
 
 
@@ -143,214 +147,71 @@ const EmployeeEditPage = () => {
     : true;
 
   return (
-    <Box sx={{ p: 4 }}>
-      <Box
-        sx={{
-          display: "inline-flex",
-          alignItems: "center",
-          backgroundColor: "#312e81",
-          overflow: "visible",
-          paddingLeft: "16px",
-          // backgroundColor: "transparent",
-        }}
-      >
+
+    <Box sx={{ p: 3, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
+
+
+
+      <Box display="flex" alignItems="center" gap={0.5} sx={{ mb: 3 }}>
+        {/* Back arrow */}
+        <img src={arrow} alt="back" style={{ width: 16, height: 16 }} />
+
         {/* Shift Allowance */}
-        <Box
+        <Typography
           onClick={() => navigate("/shift-allowance")}
           sx={{
-            position: "relative",
-            px: 3,
-            py: 1,
-            color: "white",
-            fontSize: 14,
-            fontWeight: 500,
-            backgroundColor: "#3730a3",
             cursor: "pointer",
-
-            /* LEFT < */
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              left: "-16px",
-              top: 0,
-              width: 0,
-              height: 0,
-              borderTop: "20px solid transparent",
-              borderBottom: "20px solid transparent",
-              borderRight: "16px solid #3730a3",
-            },
-
-            "&:hover": {
-              backgroundColor: "#2563eb",
-              "&::before": {
-                borderRightColor: "#2563eb",
-              },
-            },
+            fontSize: "14px",
+            fontWeight: 500,
+            color: "#111827",
           }}
         >
-          Shift Allowance
-        </Box>
+          Shift Allowance Data
+        </Typography>
 
-        {/* Error Records */}
-        <Box
+        {/* Separator */}
+        <Typography
           sx={{
-            position: "relative",
-            px: 3,
-            py: 1,
-            color: "white",
-            fontSize: 14,
-            fontWeight: 700,
-            backgroundColor: "#3730a3",
-            borderTopRightRadius: "999px",
-            borderBottomRightRadius: "999px",
-
-            /* < separator */
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              left: "-16px",
-              top: 0,
-              width: 0,
-              height: 0,
-              borderTop: "20px solid transparent",
-              borderBottom: "20px solid transparent",
-              borderRight: "16px solid #ffffff",
-            },
-            "&::after": {
-              content: '""',
-              position: "absolute",
-              left: "-14px",
-              top: "2px",
-              width: 0,
-              height: 0,
-              borderTop: "18px solid transparent",
-              borderBottom: "18px solid transparent",
-              borderRight: "14px solid #3730a3",
-            },
+            fontSize: "14px",
+            fontWeight: 500,
+            color: "#6B7280",
+            mx: 0.5,
           }}
         >
-          Error Records
-        </Box>
-      </Box>
+          /
+        </Typography>
 
-
-      {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
-      >
-        <Typography variant="h5" fontWeight="bold">
+        {/* Current page */}
+        <Typography
+          sx={{
+            fontSize: "14px",
+            fontWeight: 500,
+            color: "#111827",
+          }}
+        >
           Error Records
         </Typography>
-        <Button
-          variant="outlined"
-          onClick={handleDownloadErrorRows}
-          disabled={errorRows.length === 0}
-        >
-          Download Error Rows
-        </Button>
       </Box>
+< ErrorTable
+  rows={errorRows}
+  page={page}
+  rowsPerPage={rowsPerPage}
+  onPageChange={handleChangePage}
+  onRowsPerPageChange={handleChangeRowsPerPage}
+  onEdit={(row) => {
+    setSelectedEmployee(row);
+    setPopupMessage("");
+    setPopupOpen(false);
+    setSaveError("");
+  }}
+  isHiddenField={isHiddenField}
+  headerMap={BACKEND_TO_FRONTEND}
+/>
 
-      {/* Table */}
-      <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
-        <Table stickyHeader>
-          <TableHead>
-            <TableRow
-              sx={{
-                backgroundColor: "#000",
-                "& th": {
-                  backgroundColor: "#000",
-                  color: "#fff",
-                  fontWeight: "bold",
-                  border: "1px solid #444",
-                },
-              }}
-            >
-              {Object.keys(errorRows[0] || {})
-                .filter((key) => !isHiddenField(key))
-                .map((key) => (
-                  <TableCell key={key} sx={{ fontWeight: "bold" }}>
-                    {BACKEND_TO_FRONTEND[key] || key.toUpperCase()}
-                  </TableCell>
-                ))}
-              <TableCell sx={{ fontWeight: "bold" }}>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {errorRows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={10} align="center">
-                  <Typography color="success.main" fontWeight="bold">
-                    All rows successfully edited
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
-              errorRows
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row, idx) => (
-                  <TableRow
-                    key={idx}
-                    hover
-                    sx={{
-                      "& td": {
-                        backgroundColor: "inherit",
-                      },
-                    }}
-                  >
-                    {Object.keys(row)
-                      .filter((key) => !isHiddenField(key))
-                      .map((key) => (
-                        <TableCell
-                          key={key}
-                          sx={{
-                            border: "1px solid #ddd",
-                            borderColor:
-                              row.reason && row.reason[key] ? "red" : "#ddd",
-                            color: row.reason && row.reason[key] ? "red" : "inherit",
-                            fontWeight:
-                              row.reason && row.reason[key] ? "bold" : "normal",
-                            backgroundColor:
-                              row.reason && row.reason[key]
-                                ? "rgba(255, 0, 0, 0.1)"
-                                : "inherit",
-                          }}
-                        >
-                          {row[key] ?? "-"}
-                        </TableCell>
-                      ))}
-                    <TableCell>
-                      <IconButton
-                        onClick={() => {
-                          setSelectedEmployee(row);
-                          setPopupMessage("");
-                          setPopupOpen(false);
-                          setSaveError("");
-                        }}
-                      >
-                        <Pen size={20} />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
 
-      <TablePagination
-        component="div"
-        count={errorRows.length}
-        page={page}
-        onPageChange={handleChangePage}
-        rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        rowsPerPageOptions={[5, 10, 25]}
-      />
+
+
+      
 
       {/* Modal for editing employee */}
       <Modal
@@ -437,11 +298,7 @@ const EmployeeEditPage = () => {
                         isValid = !isNaN(num) && num >= 0;
                       }
 
-                      // if (isValid && selectedEmployee?.reason?.[field]) {
-                      //   setSelectedEmployee((prev) => ({
-                      //     ...prev,
-                      //     reason: { ...prev.reason, [field]: undefined },
-                      //   }));
+
                       if (isValid) {
                         setClearedErrors((prev) => ({
                           ...prev,
@@ -449,8 +306,7 @@ const EmployeeEditPage = () => {
                         }));
                       }
                     }}
-                    // error={!!selectedEmployee?.reason?.[field]}
-                    // helperText={selectedEmployee?.reason?.[field] || ""}
+
                     error={
                       !!selectedEmployee?.reason?.[field] && !clearedErrors[field]
                     }

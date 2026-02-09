@@ -12,10 +12,18 @@ import {
 } from "@mui/material";
 
 import { X, Pencil } from "lucide-react";
-
+import arrow from "../assets/arrow.svg";
 import { useNavigate } from "react-router-dom";
+import ActionButton from "../component/buttons/ActionButton";
 
 import { useEmployeeData, UI_HEADERS } from "../hooks/useEmployeeData.jsx";
+import Breadcrumbs from "@mui/material/Breadcrumbs";
+import Link from "@mui/material/Link";
+// import success from "../assets/success.svg";
+import successIcon from "../assets/success.svg";
+
+
+
 
 const FileInput = () => {
   const navigate = useNavigate();
@@ -120,7 +128,7 @@ const FileInput = () => {
   const safeErrorRows = errorRows || [];
 
   return (
-    <Box sx={{ width: "100%", pt: 2, pb: 4, px: 2, position: "relative",overflowY:tableLoading?"hidden":"auto",height:tableLoading?"400":"100%" }}>
+    <Box sx={{ width: "100%", pt: 2, pb: 4, px: 2, position: "relative", overflowY: tableLoading ? "hidden" : "auto", height: tableLoading ? "400" : "100%" }}>
       {tableLoading && (
         <Box
           sx={{
@@ -131,8 +139,8 @@ const FileInput = () => {
             alignItems: "center",
             justifyContent: "center",
             backgroundColor: "rgba(0, 0, 0, 0.3)",
-      backdropFilter: "blur(8px)",
-      height:"100%"
+            backdropFilter: "blur(8px)",
+            height: "100%"
           }}
         >
           <Box
@@ -152,42 +160,100 @@ const FileInput = () => {
           </Box>
         </Box>
       )}
-      <Typography variant="h5" fontWeight={600} mb={2}>
-        Shift Allowance Data
-      </Typography>
 
-      <Stack
-        direction="row"
+      <Box
+        display="flex"
         alignItems="center"
-        mb={3}
-        sx={{ width: "100%" }}
         justifyContent="space-between"
+        mb={3}
       >
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Button variant="contained" component="label">
-            Upload Excel
-            <input
-              type="file"
-              hidden
-              onClick={(e) => (e.target.value = null)}
-              onChange={handleFileChange}
-            />
-          </Button>
-
-          {fileName && <Typography variant="body1">{fileName}</Typography>}
-        </Stack>
-
-        {/* <Button variant="outlined" onClick={downloadExcel}>
-          Download Template
-        </Button> */}
-        <Button
-          variant="outlined"
-          onClick={handleDownloadTemplate}
-          disabled={tableLoading}
+        {/* Left: Back Arrow + Title */}
+        <Box
+          display="flex"
+          alignItems="center"
+          gap={1}
+          onClick={() => navigate("/")}
+          sx={{ cursor: "pointer" }}
         >
-          Download Template
-        </Button>
-      </Stack>
+          <img src={arrow} alt="back" style={{ width: 16, height: 16 }} />
+          <Typography
+            sx={{
+              fontFamily: "Poppins, sans-serif",
+              fontWeight: 500,
+              fontSize: "16px",
+              lineHeight: 1,
+              letterSpacing: "0%",
+              color: "#000000",
+            }}
+          >
+            Shift Allowances Data
+          </Typography>
+        </Box>
+
+        {/* Right: Action Buttons */}
+        <Stack direction="row" spacing={1} alignItems="center">
+          <ActionButton
+            content={() => (
+              <Button
+                variant="contained"
+                component="label"
+                sx={{ backgroundColor: "#1C2F72",
+            width: 110,
+            height: 36,
+            padding: "8px 16px",
+            borderRadius: 1,
+            textTransform: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 1,
+            "&:hover": { backgroundColor: "#16235B" },}}
+              >
+                
+                Upload File
+                <input
+                  type="file"
+                  hidden
+                  onClick={(e) => (e.target.value = null)}
+                  onChange={handleFileChange}
+                />
+              </Button>
+            )}
+          />
+          <Button
+    //  onClick={handleExportData} 
+    sx={{
+      height: 36,
+      padding: "8px 16px",
+      borderRadius: 1,
+      textTransform: "none",
+      color: "#fff", 
+      backgroundColor: "#1C2F72", 
+      "&:hover": { backgroundColor: "#16235B" },
+    }}
+  >
+    Export Data
+  </Button>
+          
+
+          <Button
+            
+            onClick={handleDownloadTemplate}
+            disabled={tableLoading}
+            sx={{
+        height: 36,
+        padding: "8px 16px",
+        borderRadius: 1,
+        textTransform: "none",
+        color: "var(--Info-80, #0F3C70)",
+      }}
+          >
+            Download Templete
+
+          </Button>
+        </Stack>
+      </Box>
+
 
       <Modal
         open={errorModalOpen}
@@ -339,6 +405,8 @@ const FileInput = () => {
           </Box>
         </>
       )}
+      
+
     </Box>
   );
 };

@@ -1,7 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { DataGrid} from "@mui/x-data-grid";
 import Pagination from "@mui/material/Pagination";
+<<<<<<< Updated upstream
 // import { CircularProgress,Tooltip } from "@mui/material";
+=======
+import { CircularProgress } from "@mui/material";
+import KpiCard from "../component/kpicards/KpiCard";
+import ShiftKpiCard from "../component/kpicards/ShiftKpiCard";
+
+
+import {
+  FormControl,
+  InputLabel,
+  Checkbox,
+  ListItemText,
+  Tooltip,
+} from "@mui/material";
+import { formatRupees } from "../utils/utils";
+
+>>>>>>> Stashed changes
 import {
   IconButton,
   Portal,
@@ -445,65 +462,85 @@ const DataTable = ({ headers, setTableLoading }) => {
 
   return (
     <>
-      <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
-        {[
-          {
-            label: "Head Count",
-            value: shiftSummary?.head_count ?? 0,
-            bg: "#FF5722",
-          },
+     
 
-          {
-            label: `Shift A - ₹${shiftRates.shiftA}`,
-            value: formatINR(shiftSummary?.shiftA ?? 0),
-            bg: "#03A9F4",
-          },
-          {
-            label: `Shift B - ₹${shiftRates.shiftB}`,
-            value: formatINR(shiftSummary?.shiftB ?? 0),
-            bg: "#E91E63",
-          },
-          {
-            label: `Shift C - ₹${shiftRates.shiftC}`,
-            value: formatINR(shiftSummary?.shiftC ?? 0),
-            bg: "#FF9800",
-          },
-          {
-            label: `Prime - ₹${shiftRates.prime}`,
-            value: formatINR(shiftSummary?.prime ?? 0),
-            bg: "#9C27B0",
-          },
-          {
-            label: "Total Allowances",
-            value: formatINR(shiftSummary?.total ?? 0),
-            bg: "#4CAF50",
-          },
-        ].map(({ label, value, bg }) => (
-          <Box
-            key={label}
-            sx={{
-              flex: 1,
-              height: 100,
-              backgroundColor: bg,
-              borderRadius: 2,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#000",
-            }}
-          >
-            <Typography variant="subtitle1" fontWeight={600}>
-              {label}
-            </Typography>
+<Box
+  sx={{
+    display: "flex",
+    gap: 2,
+    mb: 3,
+    overflowX: "auto",
+    overflowY: "hidden",
+    flexWrap: "nowrap",
 
-            <Typography variant="h3" fontWeight={700} fontSize="26px" mt={1}>
-              {value}
-              {/* {label === "Head Count" ? value : formatRupees(value)} */}
-            </Typography>
-          </Box>
-        ))}
-      </Box>
+   
+    scrollbarWidth: "none",         
+    msOverflowStyle: "none",          
+    "&::-webkit-scrollbar": {
+      display: "none",               
+    },
+
+    "& > *": {
+      flexShrink: 0,
+    },
+  }}
+>
+  <ShiftKpiCard
+    loading={loading}
+    ShiftType="Head Count"
+    ShiftCount={shiftSummary?.head_count ?? 0}
+    ShiftCountry="Employees"
+  />
+
+  <ShiftKpiCard
+    loading={loading}
+    ShiftType="Shift A"
+    ShiftCount={formatINR(shiftSummary?.shiftA ?? 0)}
+    ShiftCountry={`₹${shiftRates.shiftA}`}
+  />
+
+  <ShiftKpiCard
+    loading={loading}
+    ShiftType="Shift B"
+    ShiftCount={formatINR(shiftSummary?.shiftB ?? 0)}
+    ShiftCountry={`₹${shiftRates.shiftB}`}
+  />
+
+  <ShiftKpiCard
+    loading={loading}
+    ShiftType="Shift C"
+    ShiftCount={formatINR(shiftSummary?.shiftC ?? 0)}
+    ShiftCountry={`₹${shiftRates.shiftC}`}
+  />
+
+  <ShiftKpiCard
+    loading={loading}
+    ShiftType="Prime"
+    ShiftCount={formatINR(shiftSummary?.prime ?? 0)}
+    ShiftCountry={`₹${shiftRates.prime}`}
+  />
+
+  <ShiftKpiCard
+    loading={loading}
+    ShiftType="Total Allowances"
+    ShiftCount={formatINR(shiftSummary?.total ?? 0)}
+    ShiftCountry="Overall"
+  />
+
+  <ShiftKpiCard
+    loading={loading}
+    ShiftType="Total Allowances"
+    ShiftCount={formatINR(shiftSummary?.total ?? 0)}
+    ShiftCountry="Overall"
+  />
+
+  <ShiftKpiCard
+    loading={loading}
+    ShiftType="Total Allowances"
+    ShiftCount={formatINR(shiftSummary?.total ?? 0)}
+    ShiftCountry="Overall"
+  />
+</Box>
       <Box
         sx={{
           width: "100%",
