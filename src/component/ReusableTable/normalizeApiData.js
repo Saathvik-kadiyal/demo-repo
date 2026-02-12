@@ -96,17 +96,124 @@ export function normalizeApiData(rawData) {
 export function normalizeDashboardData(raw) {
   if (!raw) return [];
 
-return Object.entries(raw.dashboard.clients).map(([clientName, data]) => {
-  return {
-    type: "client",
-    name: clientName,
-   department_count: data?.departments
-  ? Object.keys(data.departments).length
-  : 0,
-
-   head_count: data?.head_count,
-  total: data?.total_allowance ?? 0
-  };
-});
-
+  return Object.entries(raw.dashboard.clients).map(([clientName, data]) => {
+    return {
+      type: "client",
+      name: clientName,
+      department_count: data?.departments
+        ? Object.keys(data.departments).length
+        : 0,
+      head_count: data?.head_count,
+      total: data?.total_allowance ?? 0,
+    };
+  });
 }
+/**
+ * Normalizer for the Client Summary Detailed Page.
+ *
+ * The API shape for that page is:
+ * {
+ *   "2025-12": {
+ *     clients: {
+ *       "Client Name": {
+ *         client_head_count,
+ *         client_total,
+ *         departments: { ... }
+ *       },
+ *       ...
+ *     },
+ *     month_total: { ... }
+ *   },
+ *   "2026-01": { ... }
+ * }
+ *
+ * This helper converts either:
+ *  - the full response object (with month keys), or
+ *  - a single month object ({ clients, month_total })
+ * into a flat array of client rows compatible with `dashboardColumns`.
+ */
+export function normalizeClientSummaryData(raw) {
+  if (!raw || typeof raw !== "object") return [];
+
+  let monthObj = raw;
+
+  // If the object is keyed by month ("2025-12", "2026-01", etc.),
+  // pick the first month entry by default.
+  if (!monthObj.clients && !monthObj.month_total) {
+    const monthKey = Object.keys(raw).find((k) => raw[k]?.clients);
+    if (!monthKey) return [];
+    monthObj = raw[monthKey] || {};
+  }
+
+  const clientsObj = monthObj.clients || {};
+
+  // Map the client-summary fields (PST_MST, US_INDIA, SG, ANZ)
+  // into the generic `shifts` structure used by clientAnalytics* columns.
+  const buildShifts = (obj) => {
+    if (!obj || typeof obj !== "object") return {};
+
+    const get = (keys) =>
+      keys.reduce(
+        (val, key) => (val !== undefined ? val : obj[key]),
+        undefined
+      );
+
+    return {
+      SG: get(["client_SG", "dept_SG", "SG"]) ?? 0,
+      IND: get(["client_US_INDIA", "dept_US_INDIA", "US_INDIA"]) ?? 0,
+      US1: get(["client_PST_MST", "dept_PST_MST", "PST_MST"]) ?? 0,
+      US2: get(["client_ANZ", "dept_ANZ", "ANZ"]) ?? 0,
+      UK: 0,
+      US3: 0,
+    };
+  };
+
+  return Object.entries(clientsObj).map(([clientName, clientData]) => {
+    // Top-level client row
+    const clientRow = {
+      type: "client",
+      name: clientName,
+      department_count: clientData?.departments
+        ? Object.keys(clientData.departments).length
+        : 0,
+      head_count: clientData?.client_head_count ?? 0,
+      total: clientData?.client_total ?? 0,
+      shifts: buildShifts(clientData),
+    };
+
+    const departments = clientData.departments || {};
+
+    const deptRows = Object.entries(departments).map(([deptName, deptData]) => {
+      const deptRow = {
+        type: "department",
+        name: deptName,
+        head_count: deptData?.dept_head_count ?? 0,
+        total: deptData?.dept_total ?? 0,
+        shifts: buildShifts(deptData),
+      };
+
+      const empRows = (deptData.employees || []).map((emp, index) => ({
+        type: "employee",
+        name: emp.emp_name || `Employee ${index + 1}`,
+        emp_id: emp.emp_id,
+        head_count: 1,
+        total: emp.total ?? 0,
+        client_partner: emp.client_partner,
+        shifts: buildShifts(emp),
+      }));
+
+      if (empRows.length) {
+        deptRow.children = empRows;
+      }
+
+      return deptRow;
+    });
+
+    if (deptRows.length) {
+      clientRow.children = deptRows;
+    }
+
+    return clientRow;
+  });
+}
+

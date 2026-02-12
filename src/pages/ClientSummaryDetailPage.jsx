@@ -30,11 +30,15 @@ import {
   fetchClientDepartments,
   fetchClientSummary,
 } from "../utils/helper";
-import ClientSummaryTable from "../component/ClientSummaryTable";
+import ReusableTable from "../component/ReusableTable/ReusableTable";
 import DynamicSearchSelector from "../component/DynamicSearchSelector";
 import TimeRangeSelector from "../component/TimeRangeSelector";
 import calender from "../assets/calender.svg";
 import arrow from "../assets/arrow.svg";
+import { normalizeClientSummaryData } from "../component/ReusableTable/normalizeApiData";
+import { allowanceColumns, clientAnalyticsEmployeeColumns } from "../component/ReusableTable/columns";
+import FilterSidebar from "../component/filters/FilterSidebar";
+import FilterIcon from "../component/filters/FilterIcon";
 
 const ClientSummaryDetailedPage = () => {
   const [selectedClients, setSelectedClients] = useState([]);
@@ -113,6 +117,8 @@ const ClientSummaryDetailedPage = () => {
     }, 600),
     []
   );
+
+  const filters=[]
 
   useEffect(() => {
     const loadClientDepartments = async () => {
@@ -279,6 +285,9 @@ const ClientSummaryDetailedPage = () => {
       setLoading(false);
     }
   };
+  const handleFilters = () => {
+    console.log("hi");
+  };
 
   const formatMonthKey = (monthKey) => {
     if (!monthKey) return "";
@@ -411,7 +420,12 @@ const ClientSummaryDetailedPage = () => {
               style={{ cursor: "pointer" }}
               onClick={() => setClientDialogOpen(false)}
             />
+
+            
           </Box>
+
+          
+
 
           <Box
             sx={{
@@ -570,6 +584,12 @@ const ClientSummaryDetailedPage = () => {
           <Button variant="outlined" onClick={handleDownload}>
             Download Data
           </Button>
+          <div className="flex justify-end mb-6">
+        <FilterIcon
+          filters={filters}
+          onApply={handleFilters}
+        />
+      </div>
         </Box>
 
         <Box
@@ -788,7 +808,17 @@ const ClientSummaryDetailedPage = () => {
                   </Box>
                 ) : (
                   expandedMonth.includes(monthKey) && (
-                    <ClientSummaryTable
+                    <Box sx={{ p: 2 }}>
+                      <ReusableTable
+  data={normalizeClientSummaryData({
+    clients: clientsMap,
+    month_total: totals,
+  })}
+  columns={allowanceColumns}
+  nestedColumns={clientAnalyticsEmployeeColumns}
+/>
+
+{/* <ClientSummaryTable
                       clientsMap={clientsMap}
                       monthTotals={totals.total_allowance}
                       monthTotalA={totals.A}
@@ -796,7 +826,8 @@ const ClientSummaryDetailedPage = () => {
                       monthTotalC={totals.C}
                       monthTotalPRIME={totals.PRIME}
                       monthHeadCount={totals.total_head_count}
-                    />
+                    /> */}
+                    </Box>
                   )
                 )}
               </Box>

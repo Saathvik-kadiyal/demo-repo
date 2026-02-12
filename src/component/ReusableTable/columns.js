@@ -71,6 +71,11 @@ export const allowanceColumns = [
     sortable: true,
     sortFn: (a, b) => a.head_count - b.head_count,
   },
+  {
+    key: "client_partner",
+    header: "Client Partner",
+    sortable: true,
+  },
 
   ...buildShiftColumns(),
 
@@ -107,6 +112,11 @@ export const clientAnalyticsClientColumns = [
     header: "TotalAllowance",
     sortable: true,
     render: (v) => `₹ ${Number(v).toLocaleString()}`,
+  },
+  {
+    key: "action",
+    header: "Action",
+    type: "action",
   },
 ];
 

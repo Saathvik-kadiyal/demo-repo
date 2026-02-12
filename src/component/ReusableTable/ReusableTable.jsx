@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import Eye from "../../assets/eye.svg";
 
+function getNestedValue(obj, path) {
+  return path.split(".").reduce((acc, key) => acc?.[key], obj);
+}
+
 function isPrimitive(value) {
   return (
     value === null || ["string", "number", "boolean"].includes(typeof value)
@@ -10,13 +14,13 @@ function isPrimitive(value) {
 export default function ReusableTable({
   data,
   columns,
+  nestedColumns,
   nestedKey = "children",
   getRowKey,
   className,
-  style,
   rowClassName,
-  cellStyle,
-  headerStyle,
+  cellClassName,
+  headerClassName,
   noDataFallback = "No Data Available",
 }) {
   const [expanded, setExpanded] = useState(new Set());
@@ -39,20 +43,23 @@ export default function ReusableTable({
       const children = row?.[nestedKey] || [];
       const hasChildren = Array.isArray(children) && children.length > 0;
 
+      const childrenAreEmployees =
+        hasChildren && children.every((c) => c.type === "employee");
+
       const elements = [];
 
       elements.push(
         <tr key={rowKey} className={rowClassName?.(row)}>
           {columns.map((col, colIndex) => {
-            const value = row[col.key];
+            const value = getNestedValue(row, col.key);
 
             return (
               <td
                 key={col.key}
+                className={cellClassName}
                 style={{
-                  ...cellStyle,
                   paddingLeft:
-                    colIndex === 0 ? `${level * 20 + 8}px` : cellStyle?.padding,
+                    colIndex === 0 ? `${level * 20 + 8}px` : undefined,
                 }}
               >
                 {col.type === "action" ? (
@@ -79,7 +86,28 @@ export default function ReusableTable({
       );
 
       if (hasChildren && expanded.has(rowKey)) {
-        elements.push(...renderRows(children, level + 1, rowKey));
+        if (childrenAreEmployees && nestedColumns) {
+          console.log("children", children);
+          elements.push(
+            <tr key={`${rowKey}-employee-table`}>
+              <td colSpan={columns.length}>
+                <ReusableTable
+                  data={children}
+                  columns={nestedColumns}
+                  nestedColumns={nestedColumns}
+                  nestedKey={nestedKey}
+                  getRowKey={getRowKey}
+                  rowClassName={rowClassName}
+                  cellClassName={cellClassName}
+                  headerClassName={headerClassName}
+                />
+              </td>
+            </tr>
+          );
+        } else {
+          // ✅ children are departments — flat rows in same table
+          elements.push(...renderRows(children, level + 1, rowKey));
+        }
       }
 
       return elements;
@@ -87,17 +115,14 @@ export default function ReusableTable({
   };
 
   return (
-    <table className={`reusable-table ${className || ""}`} style={style}>
+    <table className={`reusable-table ${className || ""}`}>
       <thead>
         <tr>
           {columns.map((col) => (
             <th
               key={col.key}
-              style={{
-                textAlign: col.align || "left",
-                width: col.width,
-                ...headerStyle,
-              }}
+              className={headerClassName}
+              style={{ textAlign: col.align || "left", width: col.width }}
             >
               {col.header}
             </th>
