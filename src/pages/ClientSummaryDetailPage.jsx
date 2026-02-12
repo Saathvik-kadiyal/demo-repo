@@ -33,6 +33,8 @@ import {
 import ClientSummaryTable from "../component/ClientSummaryTable";
 import DynamicSearchSelector from "../component/DynamicSearchSelector";
 import TimeRangeSelector from "../component/TimeRangeSelector";
+import calender from "../assets/calender.svg";
+import arrow from "../assets/arrow.svg";
 
 const ClientSummaryDetailedPage = () => {
   const [selectedClients, setSelectedClients] = useState([]);
@@ -439,10 +441,11 @@ const ClientSummaryDetailedPage = () => {
                   onChange={() => setExpandedClient(isExpanded ? null : client)}
                   sx={{
                     mb: 1,
-                    backgroundColor: "transparent",
+                    backgroundColor: "white",
                     boxShadow: "none",
                     width: "100%",
                     transition: "backgroundColor 0.3s ease",
+                    border: "none",
                   }}
                   disableGutters
                 >
@@ -453,6 +456,7 @@ const ClientSummaryDetailedPage = () => {
                       alignItems: "center",
                       width: "100%",
                       transition: "transform 0.1s ease",
+                      border: "none",
                     }}
                   >
                     <span className="flex items-center w-[90%]">
@@ -491,7 +495,7 @@ const ClientSummaryDetailedPage = () => {
                           : "rotate(0deg)",
                       }}
                     >
-                      <ChevronDown size={20} />
+                      <img src={arrow} alt="dropdown-arrow" />
                     </span>
                   </AccordionSummary>
 
@@ -539,38 +543,34 @@ const ClientSummaryDetailedPage = () => {
         }}
       >
         <Box
-  sx={{
-    display: "flex",
-    alignItems: "center",
-    gap: 2,
-    justifyContent: "space-between",
-    width: "100%",
-    flexDirection: {
-      xs: "column",
-      md: "row",   
-    },
-  }}
->
-  <Box>
-    <Button
-      variant="outlined"
-      color="primary"
-      sx={{ py: 1, transition: "all 0.3s ease" }}
-      size="small"
-      onClick={() => setClientDialogOpen(true)}
-    >
-      Select Clients
-    </Button>
-  </Box>
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            justifyContent: "space-between",
+            width: "100%",
+            flexDirection: {
+              xs: "column",
+              md: "row",
+            },
+          }}
+        >
+          <Box>
+            <Button
+              variant="outlined"
+              color="primary"
+              sx={{ py: 1, transition: "all 0.3s ease" }}
+              size="small"
+              onClick={() => setClientDialogOpen(true)}
+            >
+              Select Clients
+            </Button>
+          </Box>
 
-  <Button
-    variant="outlined"
-    onClick={handleDownload}
-  >
-    Download Data
-  </Button>
-</Box>
-
+          <Button variant="outlined" onClick={handleDownload}>
+            Download Data
+          </Button>
+        </Box>
 
         <Box
           sx={{
@@ -586,41 +586,38 @@ const ClientSummaryDetailedPage = () => {
           }}
         >
           <DynamicSearchSelector
-  options={[
-    { value: "Emp ID", label: "Emp ID" },
-    { value: "Account Manager", label: "Client Partner" },
-  ]}
-  selectedOption={searchBy}
-  setSelectedOption={setSearchBy}
-  searchQuery={searchQuery}
-  setSearchQuery={setSearchQuery}
-  error={errorSearch}
-  setError={setErrorSearch}
-  pattern={pattern}
-/>
+            options={[
+              { value: "Emp ID", label: "Emp ID" },
+              { value: "Account Manager", label: "Client Partner" },
+            ]}
+            selectedOption={searchBy}
+            setSelectedOption={setSearchBy}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            error={errorSearch}
+            setError={setErrorSearch}
+            pattern={pattern}
+          />
 
-<TimeRangeSelector
-  timelineSelection={timelineSelection}
-  setTimelineSelection={setTimelineSelection}
-  timelines={timelines}
-  startMonth={startMonth}
-  setStartMonth={setStartMonth}
-  endMonth={endMonth}
-  setEndMonth={setEndMonth}
-  isStartMonthInvalid={isStartMonthInvalid}
-  isEndMonthInvalid={isEndMonthInvalid}
-  year={year}
-  setYear={setYear}
-  monthsList={monthsList}
-  multipleMonths={multipleMonths}
-  setMultipleMonths={setMultipleMonths}
-  quarterlyList={quarterlyList}
-  quarterlySelection={quarterlySelection}
-  setQuarterlySelection={setQuarterlySelection}
-/>
-
-
-          
+          <TimeRangeSelector
+            timelineSelection={timelineSelection}
+            setTimelineSelection={setTimelineSelection}
+            timelines={timelines}
+            startMonth={startMonth}
+            setStartMonth={setStartMonth}
+            endMonth={endMonth}
+            setEndMonth={setEndMonth}
+            isStartMonthInvalid={isStartMonthInvalid}
+            isEndMonthInvalid={isEndMonthInvalid}
+            year={year}
+            setYear={setYear}
+            monthsList={monthsList}
+            multipleMonths={multipleMonths}
+            setMultipleMonths={setMultipleMonths}
+            quarterlyList={quarterlyList}
+            quarterlySelection={quarterlySelection}
+            setQuarterlySelection={setQuarterlySelection}
+          />
 
           <Button
             variant="contained"
@@ -701,9 +698,12 @@ const ClientSummaryDetailedPage = () => {
             sx={{
               mb: 2,
               boxShadow: "none",
-              border: "1px solid #ddd",
+              border: "none",
               width: "100%",
               transition: "all 0.3s ease-in-out",
+              "&:before": {
+                display: "none",
+              },
             }}
           >
             <AccordionSummary
@@ -711,14 +711,19 @@ const ClientSummaryDetailedPage = () => {
                 position: "relative",
                 top: 0,
                 zIndex: 5,
-                backgroundColor: "#f5f5f5",
+                backgroundColor: "white",
                 px: 2,
+                py: 2,
                 "& .MuiAccordionSummary-content": {
                   margin: 0,
                   transition: "margin 0.3s ease",
                 },
                 transition: "all 0.3s ease",
                 width: "100%",
+                border: "none",
+                "&:before": {
+                  display: "none",
+                },
               }}
             >
               <Box
@@ -727,16 +732,28 @@ const ClientSummaryDetailedPage = () => {
                   alignItems: "center",
                   justifyContent: "space-between",
                   width: "100%",
+                  backgroundColor: "white",
+                  gap: 2,
                 }}
               >
-                <Typography fontWeight="bold">{formattedMonth}</Typography>
+                <Box sx={{
+                  display: "flex", alignItems: "center", gap: 4, backgroundColor: "white"
+                }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <img src={calender} />
+                  <Typography fontWeight={500} fontFamily="var(--font-display)" fontSize={12} lineHeight="100%" color="var(--content-color)">
+                    {formattedMonth}
+                  </Typography>
+                </Box>
 
-                <Typography fontWeight="bold" color={diffColor}>
-                  Headcount: {totals.total_head_count} — Total: ₹
-                  {totals.total_allowance}
-                  {diff !== 0 && ` (${diff > 0 ? "+" : ""}${diff})`}
+                <Typography fontWeight={500} fontFamily="var(--font-display)" fontSize={12} lineHeight="100%" color={diffColor} sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  Headcount <span className="font-bold text-[16px]"> {totals.total_head_count} </span> 
+                </Typography>
+                <Typography fontWeight={500} fontFamily="var(--font-display)" fontSize={12} lineHeight="100%" color={diffColor} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  Allowance <span className="font-bold text-[16px]"> ₹{totals.total_allowance.toLocaleString()} </span> 
                 </Typography>
 
+                </Box>
                 <Box
                   sx={{
                     transition: "transform 0.1s ease",
@@ -745,7 +762,7 @@ const ClientSummaryDetailedPage = () => {
                       : "rotate(0deg)",
                   }}
                 >
-                  <ChevronDown />
+                  <img src={arrow} alt="dropdown-arrow"/>
                 </Box>
               </Box>
             </AccordionSummary>
