@@ -395,3 +395,25 @@ export const fetchClients = async () => {
 export const getMonthString = (monthIndex) => {
   return dayjs().month(monthIndex).format("YYYY-MM");
 };
+
+
+
+
+
+
+export const fetchClientAllowanceSummary = async (body) => {
+  try {
+    const response = await axiosInstance.post(
+      "/dashboard/client-allowance-summary",
+      body // 👈 request body
+    );
+    return response.data;
+  } catch (err) {
+    throw new Error(
+      err?.response?.data?.detail ||
+      err?.response?.data?.message ||
+      err?.message ||
+      "Failed to fetch client allowance summary"
+    );
+  }
+};
