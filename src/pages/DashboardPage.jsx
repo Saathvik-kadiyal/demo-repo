@@ -1,15 +1,14 @@
 import { useState } from "react";
 import "../index.css";
-
 import ReusableTable from "../component/ReusableTable/ReusableTable";
 import ActionButton from "../component/buttons/ActionButton";
 import ShiftKpiCard from "../component/kpicards/ShiftKpiCard";
 
 import {normalizeDashboardData } from "../component/ReusableTable/normalizeApiData";
 import {  dashboardColumns } from "../component/ReusableTable/columns";
-
-// 👉 use any dataset here
-import { rawDataSet1 } from "./dummyData";
+import { rawDataSet1, rawDataSet2 } from "./dummyData";
+import ClientsOverviewChart from "../visuals/ClientOverviewChart";
+import { FilterDrawer, FilterLayout, filterTabs } from "../component/fliters";
 
 export default function DashboardPage() {
   const [clientDialogOpen, setClientDialogOpen] = useState(false);
@@ -47,12 +46,27 @@ export default function DashboardPage() {
         )}
       />
 
+      <div>
+          <FilterDrawer
+        onApply={(filters) => {
+          // Only API logic
+          console.log("Dashboard API:", filters);
+          // fetchDashboard(filters)
+        }}
+      />
+      </div>
+
       {/* TABLE */}
-      <div className="w-[60%] rounded-xl py-4 overflow-x-auto bg-white">
+      <div className="flex gap-4 mt-4">
+        <div className="w-[60%] rounded-xl py-4 overflow-x-auto bg-white">
         <ReusableTable
           data={tableData}
           columns={dashboardColumns}
         />
+      </div>
+      <div className="w-[35%] rounded-xl py-4 overflow-x-auto bg-white">
+<ClientsOverviewChart apiResponse={rawDataSet2} />
+      </div>
       </div>
     </div>
   );

@@ -36,7 +36,7 @@ import TimeRangeSelector from "../component/TimeRangeSelector";
 import calender from "../assets/calender.svg";
 import arrow from "../assets/arrow.svg";
 import { normalizeClientSummaryData } from "../component/ReusableTable/normalizeApiData";
-import { allowanceColumns, clientAnalyticsEmployeeColumns } from "../component/ReusableTable/columns";
+import { allowanceColumns, clientAnalyticsClientColumns, clientAnalyticsEmployeeColumns } from "../component/ReusableTable/columns";
 import FilterSidebar from "../component/filters/FilterSidebar";
 import FilterIcon from "../component/filters/FilterIcon";
 
@@ -814,9 +814,10 @@ const ClientSummaryDetailedPage = () => {
     clients: clientsMap,
     month_total: totals,
   })}
-  columns={allowanceColumns}
+  columns={clientAnalyticsClientColumns}
   nestedColumns={clientAnalyticsEmployeeColumns}
 />
+
 
 {/* <ClientSummaryTable
                       clientsMap={clientsMap}
