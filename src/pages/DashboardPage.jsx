@@ -1,137 +1,251 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import "../index.css";
+
 import ReusableTable from "../component/ReusableTable/ReusableTable";
 import ActionButton from "../component/buttons/ActionButton";
 import ShiftKpiCard from "../component/kpicards/ShiftKpiCard";
-
-import { normalizeDashboardData } from "../component/ReusableTable/normalizeApiData";
-import { dashboardColumns } from "../component/ReusableTable/columns";
-import { rawDataSet1, rawDataSet2 } from "./dummyData";
 import ClientsOverviewChart from "../visuals/ClientOverviewChart";
 import { FilterDrawer } from "../component/fliters";
-import { fetchClientAllowanceSummary } from "../api/dashboardApi"; // adjust path as needed
+
+import { dashboardColumns } from "../component/ReusableTable/columns";
+import { normalizeDashboardData } from "../component/ReusableTable/normalizeApiData";
+
+import {
+  fetchDashboardKpiSummary,
+  fetchDashboardClientGraph,
+  fetchDashboardTable,
+  debounce,
+} from "../utils/helper";
+import SearchInput from "../component/SearchInput";
+
+/* -------------------------------------------------------
+   FILTER NORMALIZER (single source of truth)
+------------------------------------------------------- */
+const normalizeFilters = (filters = {}) => {
+  const payload = {
+    clients: filters.client || "ALL",
+    departments: filters.departments || "ALL",
+    sort_by: "total_allowance",
+    sort_order: "default",
+    top: "ALL",
+  };
+
+  // years → only send if user selected
+  if (Array.isArray(filters.years) && filters.years.length > 0) {
+    const years = filters.years
+      .map(Number)
+      .filter((y) => Number.isInteger(y) && y >= 2000);
+
+    if (years.length > 0) {
+      payload.years = years;
+    }
+  }
+
+  // months → only send if user selected (1–12)
+  if (Array.isArray(filters.months) && filters.months.length > 0) {
+    const months = filters.months
+      .map(Number)
+      .filter((m) => m >= 1 && m <= 12);
+
+    if (months.length > 0) {
+      payload.months = months;
+    }
+  }
+
+  // optional filters
+  if (filters.headcounts && filters.headcounts !== "ALL") {
+    payload.headcounts = filters.headcounts;
+  }
+
+  if (filters.shifts && filters.shifts !== "ALL") {
+    payload.shifts = filters.shifts;
+  }
+
+  return payload;
+};
 
 export default function DashboardPage() {
-  const [clientDialogOpen, setClientDialogOpen] = useState(false);
-  const [tableData, setTableData] = useState([]);
-  const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Get current year and month
-  const getCurrentYearMonth = () => {
-    const now = new Date();
-    return {
-      year: [now.getFullYear()],
-      months: [now.getMonth() + 1], // JavaScript months are 0-indexed
-      client: ["All"],
-      departments: ["ALL"]
-    };
-  };
+  const [kpiData, setKpiData] = useState(null);
+  const [tableData, setTableData] = useState([]);
+  const [chartData, setChartData] = useState(null);
+  const [search, setSearch] = useState("");
 
-  // Fetch dashboard data
-  const fetchDashboardData = async (filters) => {
+
+  const debouncedTableFetch = useCallback(
+  debounce(async (payload) => {
     try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetchClientAllowanceSummary(filters);
-      if (response) {
-        setTableData(normalizeDashboardData(response.tableData || response));
-        setChartData(response.chartData || response);
-      }
+      const tableResponse = await fetchDashboardTable(payload, {
+        client_starts_with: search || undefined,
+      });
+
+      setTableData(
+        Array.isArray(tableResponse?.data)
+          ? normalizeDashboardData(tableResponse.data)
+          : []
+      );
     } catch (err) {
-      setError(err.message);
-      console.error("Error fetching dashboard data:", err);
-      setTableData(normalizeDashboardData(rawDataSet1));
-      setChartData(rawDataSet2);
-    } finally {
-      setLoading(false);
+      console.error("Table search error:", err);
     }
-  };
+  }, 500),
+  [search]
+);
 
+
+  /* -------------------------------------------------------
+     MAIN DASHBOARD FETCH
+  ------------------------------------------------------- */
+const fetchDashboard = useCallback(async (rawFilters = {}) => {
+  const payload = normalizeFilters(rawFilters);
+
+  try {
+    setLoading(true);
+    setError(null);
+
+    // KPI + CHART always load together
+    const [kpiResponse, chartResponse] = await Promise.all([
+      fetchDashboardKpiSummary(payload),
+      fetchDashboardClientGraph(payload),
+    ]);
+
+    // KPI
+    setKpiData(kpiResponse?.summary || null);
+
+    // CHART
+    setChartData(chartResponse?.data ?? null);
+
+    // TABLE (conditional)
+    if (search) {
+      // 🔍 debounced search table
+      debouncedTableFetch(payload);
+    } else {
+      // 📊 normal table load
+      const tableResponse = await fetchDashboardTable(payload);
+
+      setTableData(
+        Array.isArray(tableResponse?.data)
+          ? normalizeDashboardData(tableResponse.data)
+          : []
+      );
+    }
+
+  } catch (err) {
+    console.error("Dashboard error:", err);
+    setError(err.message || "Failed to load dashboard");
+    setKpiData(null);
+    setTableData([]);
+    setChartData(null);
+  } finally {
+    setLoading(false);
+  }
+}, [search, debouncedTableFetch]);
+
+
+  /* -------------------------------------------------------
+     INITIAL LOAD
+  ------------------------------------------------------- */
   useEffect(() => {
-    const initialFilters = getCurrentYearMonth();
-    fetchDashboardData(initialFilters);
-  }, []);
+    fetchDashboard();
+  }, [fetchDashboard]);
 
-  const handleUpload = () => {
-  };
-
+  /* -------------------------------------------------------
+     FILTER APPLY
+  ------------------------------------------------------- */
   const handleFilterApply = (filters) => {
-    const apiFilters = {
-      year: filters.years || [],
-      months: filters.months || [],
-      client: filters.client || [],
-      departments: filters.departments || []
-    };
-  
-    if (filters.employeeId) {
-      apiFilters.employeeId = filters.employeeId;
-    }
-    if (filters.allowance) {
-      apiFilters.allowance = filters.allowance;
-    }
-    if (filters.headcounts) {
-      apiFilters.headcounts = filters.headcounts;
-    }
-
-    fetchDashboardData(apiFilters);
+    fetchDashboard(filters);
   };
 
   return (
-    <div
-      className={`
-        relative w-full justify-center px-4 py-4 overflow-x-hidden
-        ${clientDialogOpen ? "overflow-y-hidden h-full" : "overflow-y-auto h-auto"}
-      `}
-    >
-      {/* Error Message */}
+    <div className="relative w-full px-4 py-4 overflow-x-hidden">
+
+      {/* ERROR */}
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
           {error}
         </div>
       )}
 
-      {/* KPI */}
-      <div className="flex flex-wrap gap-4">
-        <ShiftKpiCard
-          loading={loading}
-          ShiftType="USA"
-          ShiftCount={20}
-          ShiftCountry="USA/IND"
-          ShiftCountSize="2rem"
-          ShiftTypeSize="2rem"
-        />
-      </div>
+      {/* KPI SECTION */}
+      <div className="flex flex-wrap gap-4 mb-4">
+  <ShiftKpiCard
+    loading={loading}
+    ShiftType="Clients"
+    ShiftCount={kpiData?.total_clients ?? 0}
+    ShiftCountry={kpiData?.total_clients_last_month ?? ""}
+  />
+
+  <ShiftKpiCard
+    loading={loading}
+    ShiftType="Departments"
+    ShiftCount={kpiData?.total_departments ?? 0}
+    ShiftCountry={kpiData?.total_departments_last_month ?? ""}
+  />
+
+  <ShiftKpiCard
+    loading={loading}
+    ShiftType="Headcount"
+    ShiftCount={kpiData?.head_count ?? 0}
+    ShiftCountry={kpiData?.head_count_last_month ?? ""}
+  />
+
+  <ShiftKpiCard
+    loading={loading}
+    ShiftType="Allowance"
+    ShiftCount={`₹${Number(kpiData?.total_allowance ?? 0).toLocaleString()}`}
+    ShiftCountry={kpiData?.total_allowance_last_month ?? ""}
+  />
+</div>
+
 
       {/* ACTION */}
       <ActionButton
         content={() => (
-          <button className="actionBtn" onClick={handleUpload}>
+          <button className="actionBtn">
             <span>+</span>
             <p>Upload File</p>
           </button>
         )}
       />
 
-      <div>
-        <FilterDrawer onApply={handleFilterApply} />
-      </div>
+      {/* FILTERS */}
+      <FilterDrawer onApply={handleFilterApply} />
 
-      {/* TABLE */}
-      <div className="flex gap-4 mt-4">
-        <div className="w-[60%] rounded-xl py-4 overflow-x-auto bg-white">
-          {loading ? (
-            <div className="flex items-center justify-center h-64">
-              <p>Loading...</p>
-            </div>
+      {/* TABLE + CHART */}
+      <div className="mt-4 flex gap-4">
+        <div className="w-[60%] rounded-xl bg-white py-4" flex flex-col h-full>
+
+    <div className="px-4 flex justify-end">
+      <SearchInput
+        value={search}
+        onChange={setSearch}
+        placeholder="Search clients..."
+      />
+    </div>
+
+    <div>
+      {loading ? (
+      <div className="flex h-64 items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    ) : (
+      <ReusableTable
+        data={tableData}
+        columns={dashboardColumns}
+      />
+    )}
+    </div>
+  </div>
+
+        <div className="w-[35%] rounded-xl bg-white py-4">
+          {chartData ? (
+            <ClientsOverviewChart apiResponse={{ data: chartData }} />
           ) : (
-            <ReusableTable data={tableData} columns={dashboardColumns} />
+            <div className="flex h-64 items-center justify-center text-gray-400">
+              No chart data
+            </div>
           )}
-        </div>
-        <div className="w-[35%] rounded-xl py-4 overflow-x-auto bg-white">
-          <ClientsOverviewChart apiResponse={chartData || rawDataSet2} />
         </div>
       </div>
     </div>

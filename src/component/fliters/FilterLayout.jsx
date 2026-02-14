@@ -16,6 +16,7 @@ const initialState = {
 const FilterLayout = ({ tabs, onApply, onReset }) => {
   const [activeTab, setActiveTab] = useState(tabs[0].key);
   const [filters, setFilters] = useState(initialState);
+  console.log(filters)
 
   return (
     <div className="filter-layout">

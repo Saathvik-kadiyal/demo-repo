@@ -17,6 +17,10 @@ const SHORT_LABELS = {
   CLAIR_SOURCE: "Clair",
 };
 export function normalizeClientsApi(api) {
+  if (!api || !Array.isArray(api.data)) {
+    return { chartData: [], meta: {} };
+  }
+
   const meta = {};
 
   const chartData = api.data.map((c) => {
@@ -39,6 +43,7 @@ export function normalizeClientsApi(api) {
 
   return { chartData, meta };
 }
+
 
 // -----------------------------
 // Color Generator

@@ -95,7 +95,7 @@ export function normalizeApiData(rawData) {
 
 export function normalizeDashboardData(raw) {
   if (!raw) return [];
-
+if(!raw.dashboard||!raw.dashboard.clients) return [];
   return Object.entries(raw.dashboard.clients).map(([clientName, data]) => {
     return {
       type: "client",
@@ -137,8 +137,6 @@ export function normalizeClientSummaryData(raw) {
 
   let monthObj = raw;
 
-  // If the object is keyed by month ("2025-12", "2026-01", etc.),
-  // pick the first month entry by default.
   if (!monthObj.clients && !monthObj.month_total) {
     const monthKey = Object.keys(raw).find((k) => raw[k]?.clients);
     if (!monthKey) return [];
@@ -147,29 +145,24 @@ export function normalizeClientSummaryData(raw) {
 
   const clientsObj = monthObj.clients || {};
 
-  // Map the client-summary fields (PST_MST, US_INDIA, SG, ANZ)
-  // into the generic `shifts` structure used by clientAnalytics* columns.
   const buildShifts = (obj) => {
     if (!obj || typeof obj !== "object") return {};
-
     const get = (keys) =>
       keys.reduce(
         (val, key) => (val !== undefined ? val : obj[key]),
         undefined
       );
-
     return {
-      SG: get(["client_SG", "dept_SG", "SG"]) ?? 0,
-      IND: get(["client_US_INDIA", "dept_US_INDIA", "US_INDIA"]) ?? 0,
-      US1: get(["client_PST_MST", "dept_PST_MST", "PST_MST"]) ?? 0,
-      US2: get(["client_ANZ", "dept_ANZ", "ANZ"]) ?? 0,
+      SG: Number(get(["client_SG", "dept_SG", "SG"])) || 0,
+      IND: Number(get(["client_US_INDIA", "dept_US_INDIA", "US_INDIA"])) || 0,
+      US1: Number(get(["client_PST_MST", "dept_PST_MST", "PST_MST"])) || 0,
+      US2: Number(get(["client_ANZ", "dept_ANZ", "ANZ"])) || 0,
       UK: 0,
       US3: 0,
     };
   };
 
   return Object.entries(clientsObj).map(([clientName, clientData]) => {
-    // Top-level client row
     const clientRow = {
       type: "client",
       name: clientName,
@@ -179,20 +172,22 @@ export function normalizeClientSummaryData(raw) {
       head_count: clientData?.client_head_count ?? 0,
       total: clientData?.client_total ?? 0,
       shifts: buildShifts(clientData),
+      children: [], // always initialize as array
     };
 
     const departments = clientData.departments || {};
 
-    const deptRows = Object.entries(departments).map(([deptName, deptData]) => {
+    clientRow.children = Object.entries(departments).map(([deptName, deptData]) => {
       const deptRow = {
         type: "department",
         name: deptName,
         head_count: deptData?.dept_head_count ?? 0,
         total: deptData?.dept_total ?? 0,
         shifts: buildShifts(deptData),
+        children: [], // always initialize as array
       };
 
-      const empRows = (deptData.employees || []).map((emp, index) => ({
+      deptRow.children = (deptData.employees || []).map((emp, index) => ({
         type: "employee",
         name: emp.emp_name || `Employee ${index + 1}`,
         emp_id: emp.emp_id,
@@ -200,19 +195,12 @@ export function normalizeClientSummaryData(raw) {
         total: emp.total ?? 0,
         client_partner: emp.client_partner,
         shifts: buildShifts(emp),
+        children: [], // employees have no children, but safe to add empty array
       }));
-
-      if (empRows.length) {
-        deptRow.children = empRows;
-      }
 
       return deptRow;
     });
-
-    if (deptRows.length) {
-      clientRow.children = deptRows;
-    }
-
+console.log("Normalized client row:", clientRow);
     return clientRow;
   });
 }
