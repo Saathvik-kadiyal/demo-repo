@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from "react";
+import axiosInstance from "../../../utils/axiosInstance";
 
 const DepartmentsPanel = ({ filters, setFilters }) => {
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // ✅ safe fallback
+  const selectedDepartments = filters.departments ?? [];
+
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
         setLoading(true);
-        const res = await fetch("http://127.0.0.1:8000/client-departments");
-        const data = await res.json();
-        setDepartments(data || []);
+        const res = await axiosInstance.get("/client-departments", {
+          withCredentials: true,
+        });
+        setDepartments(res.data || []);
       } catch (err) {
         console.error("Failed to fetch departments:", err);
       } finally {
@@ -22,11 +27,22 @@ const DepartmentsPanel = ({ filters, setFilters }) => {
   }, []);
 
   const toggle = (dept) => {
-    const arr = filters.departments.includes(dept)
-      ? filters.departments.filter((d) => d !== dept)
-      : [...filters.departments, dept];
+    const next = selectedDepartments.includes(dept)
+      ? selectedDepartments.filter((d) => d !== dept)
+      : [...selectedDepartments, dept];
 
-    setFilters({ ...filters, departments: arr });
+    setFilters((prev) => {
+      if (next.length === 0) {
+        const copy = { ...prev };
+        delete copy.departments;
+        return copy;
+      }
+
+      return {
+        ...prev,
+        departments: next,
+      };
+    });
   };
 
   return (
@@ -35,28 +51,28 @@ const DepartmentsPanel = ({ filters, setFilters }) => {
 
       {loading && <p className="text-sm text-gray-400">Loading...</p>}
 
-      {departments.map((dept) => {
-        const selected = filters.departments.includes(dept);
+      {departments.length > 0 &&
+        departments.map((dept) => {
+          const selected = selectedDepartments.includes(dept);
 
-        return (
-          <div
-            key={dept}
-            onClick={() => toggle(dept)}
-            className="flex items-center gap-2 cursor-pointer py-1"
-          >
-            {/* Custom Tick */}
-            <span
-              className={`text-lg font-bold ${
-                selected ? "text-blue-600" : "text-gray-400"
-              }`}
+          return (
+            <div
+              key={dept}
+              onClick={() => toggle(dept)}
+              className="flex items-center gap-2 cursor-pointer py-1"
             >
-              ✓
-            </span>
+              <span
+                className={`text-lg font-bold ${
+                  selected ? "text-blue-600" : "text-gray-400"
+                }`}
+              >
+                ✓
+              </span>
 
-            <span className="text-sm">{dept}</span>
-          </div>
-        );
-      })}
+              <span className="text-sm">{dept}</span>
+            </div>
+          );
+        })}
     </div>
   );
 };

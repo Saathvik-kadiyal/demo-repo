@@ -200,7 +200,7 @@ export function normalizeClientSummaryData(raw) {
 
       return deptRow;
     });
-console.log("Normalized client row:", clientRow);
+
     return clientRow;
   });
 }

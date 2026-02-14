@@ -437,3 +437,21 @@ export const fetchDashboardTable = async (
     );
   }
 };
+
+export const fetchDashboardIndividualClientDetails = async (body) => {
+  console.log("Fetching individual client details with payload:", body);
+  try {
+    const res = await axiosInstance.post(
+      "/dashboard/client-Page-Graph",
+      body
+    );
+    console.log("Individual Client Details response:", res.data);
+    return res.data;
+  } catch (err) {
+    throw new Error(
+      err?.response?.data?.detail ||
+      err?.message ||
+      "Failed to fetch individual client details"
+    );
+  }
+}

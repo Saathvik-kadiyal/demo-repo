@@ -19,25 +19,25 @@ const buildShiftColumns = () =>
 
   export const dashboardColumns = [
   {
-    key: "name",
+    key: "company",
     header: "Client Name",
     sortable: true,
     sortFn: (a, b) => a.name.localeCompare(b.name),
   },
   {
-    key: "department_count",
+    key: "departments",
     header: "Department",
     sortable: true,
     sortFn: (a, b) => (a.department_count || 0) - (b.department_count || 0),
   },
   {
-    key: "head_count",
+    key: "headcount",
     header: "Headcount",
     sortable: true,
     sortFn: (a, b) => (a.head_count || 0) - (b.head_count || 0),
   },
   {
-    key: "total",
+    key: "total_allowance",
     header: "Allowance",
     sortable: true,
     sortFn: (a, b) => (a.total || 0) - (b.total || 0),

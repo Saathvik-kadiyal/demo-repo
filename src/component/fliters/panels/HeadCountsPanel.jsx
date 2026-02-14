@@ -1,19 +1,28 @@
-import React from "react";
-
 const HeadCountsPanel = ({ filters, setFilters }) => {
+  const options = [
+    "Highest to Lowest",
+    "Lowest to Highest",
+    "1-5",
+    "5-10",
+    "10-15",
+    "15-20"
+  ];
+
   return (
     <div>
       <h3>Headcounts</h3>
-      <input
-        type="number"
-        value={filters.headcounts.min}
-        onChange={(e) => setFilters({ ...filters, headcounts: { ...filters.headcounts, min: +e.target.value } })}
-      />
-      <input
-        type="number"
-        value={filters.headcounts.max}
-        onChange={(e) => setFilters({ ...filters, headcounts: { ...filters.headcounts, max: +e.target.value } })}
-    />
+      {options.map(opt => (
+        <label key={opt}>
+          <input
+            type="radio"
+            checked={filters.headcounts === opt}
+            onChange={() =>
+              setFilters({ ...filters, headcounts: opt })
+            }
+          />
+          {opt}
+        </label>
+      ))}
     </div>
   );
 };

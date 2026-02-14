@@ -1,19 +1,21 @@
-import React from "react";
-
 const AllowancePanel = ({ filters, setFilters }) => {
+  const options = ["100-200", "200-500", "500-1000"];
+
   return (
     <div>
-      <h3>Allowance Range</h3>
-      <input
-        type="number"
-        value={filters.allowance.min}
-        onChange={(e) => setFilters({ ...filters, allowance: { ...filters.allowance, min: +e.target.value } })}
-      />
-      <input
-        type="number"
-        value={filters.allowance.max}
-        onChange={(e) => setFilters({ ...filters, allowance: { ...filters.allowance, max: +e.target.value } })}
-      />
+      <h3>Allowance</h3>
+      {options.map(opt => (
+        <label key={opt}>
+          <input
+            type="radio"
+            checked={filters.allowance === opt}
+            onChange={() =>
+              setFilters({ ...filters, allowance: opt })
+            }
+          />
+          {opt}
+        </label>
+      ))}
     </div>
   );
 };

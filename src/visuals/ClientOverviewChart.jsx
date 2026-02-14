@@ -65,7 +65,8 @@ function generateColors(n) {
 // -----------------------------
 // Chart Component
 // -----------------------------
-export default function ClientsOverviewChart({ apiResponse }) {
+export default function ClientsOverviewChart({ apiResponse,onTopChange }) {
+  const [top, setTop] = useState("ALL");
   const { chartData, meta } = useMemo(
     () => normalizeClientsApi(apiResponse),
     [apiResponse]
@@ -90,14 +91,19 @@ export default function ClientsOverviewChart({ apiResponse }) {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Clients Overview</h2>
         <select
-          className="border rounded-md px-2 py-1 text-sm focus:outline-none"
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-        >
-          <option value="none">Sort By</option>
-          <option value="asc">Allowance Low → High</option>
-          <option value="desc">Allowance High → Low</option>
-        </select>
+  className="border rounded-md px-2 py-1 text-sm focus:outline-none"
+  value={top}
+  onChange={(e) => {
+    const value = e.target.value === "ALL" ? "ALL" : e.target.value;
+    setTop(value);
+    onTopChange?.(value);
+  }}
+>
+  <option value="ALL">All</option>
+  <option value="5">Top 5</option>
+  <option value="10">Top 10</option>
+</select>
+
       </div>
 
       <div className="w-full flex relative mt-12">

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import axiosInstance from "../../../utils/axiosInstance";
 
 const ClientPanel = ({ filters, setFilters }) => {
   const [clients, setClients] = useState([]);
@@ -8,9 +9,10 @@ const ClientPanel = ({ filters, setFilters }) => {
     const fetchClients = async () => {
       try {
         setLoading(true);
-        const res = await fetch("http://127.0.0.1:8000/dashboard/clients");
-        const data = await res.json();
-        setClients(data.clients || []);
+        const res = await axiosInstance.get("/dashboard/clients", {
+          withCredentials: true,
+        });
+        setClients(res.data.clients || []);
       } catch (err) {
         console.error("Failed to fetch clients:", err);
       } finally {
@@ -21,12 +23,29 @@ const ClientPanel = ({ filters, setFilters }) => {
     fetchClients();
   }, []);
 
-  const toggle = (client) => {
-    const list = filters.client.includes(client)
-      ? filters.client.filter((c) => c !== client)
-      : [...filters.client, client];
+  // Always fallback to empty array
+  const selectedClients = filters.client ?? [];
 
-    setFilters({ ...filters, client: list });
+  const toggle = (client) => {
+    const exists = selectedClients.includes(client);
+
+    const next = exists
+      ? selectedClients.filter((c) => c !== client)
+      : [...selectedClients, client];
+
+    setFilters((prev) => {
+      // remove key if empty
+      if (next.length === 0) {
+        const copy = { ...prev };
+        delete copy.client;
+        return copy;
+      }
+
+      return {
+        ...prev,
+        client: next,
+      };
+    });
   };
 
   return (
@@ -36,7 +55,7 @@ const ClientPanel = ({ filters, setFilters }) => {
       {loading && <p className="text-sm text-gray-400">Loading...</p>}
 
       {clients.map((client) => {
-        const selected = filters.client.includes(client);
+        const selected = selectedClients.includes(client);
 
         return (
           <div
@@ -44,7 +63,6 @@ const ClientPanel = ({ filters, setFilters }) => {
             onClick={() => toggle(client)}
             className="flex items-center gap-2 cursor-pointer py-1"
           >
-            {/* Custom Tick */}
             <span
               className={`text-lg font-bold ${
                 selected ? "text-blue-600" : "text-gray-400"
