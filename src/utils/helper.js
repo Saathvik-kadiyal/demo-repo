@@ -6,7 +6,7 @@ const backendApi = import.meta.env.VITE_BACKEND_API;
 const token = localStorage.getItem("access_token");
 
 
-export const debounce = (fn, delay) => {
+export const debounce = (fn, delay=500) => {
   let timer;
   return (...args) => {
     if (timer) clearTimeout(timer);
@@ -15,38 +15,11 @@ export const debounce = (fn, delay) => {
 };
 
 
-export const fetchDashboardClientSummary = async (
-  payload
-) => {
-
-
-  try {
-    const response = await axiosInstance.post(
-      "/dashboard/client-allowance-summary",
-      payload
-    );
-    return response.data;
-  } catch (err) {
-    throw new Error(
-      err?.response?.data?.detail ||
-      err?.message ||
-      "Unable to fetch summary data."
-    );
-  }
-};
-
-export const fetchEmployees = async ({
-  start = 0,
-  limit = 10,
-  params = {},
-}) => {
+export const fetchEmployees = async (payload) => {
   try {
     const requestBody = {
-      ...params,
-      start,
-      limit,
+  ...payload
     };
-
     const response = await axiosInstance.post(
       "/employee-details/search",
       requestBody
@@ -311,38 +284,38 @@ export const downloadClientSummary = async (payload) => {
 
 
 
-export const fetchClientComparison = async (
-  searchBy = "",
-  startMonth = "",
-  endMonth = "",
-  client = ""
-) => {
-  const token = localStorage.getItem("access_token");
-  if (!token) throw new Error("Not authenticated");
-  if (!client) throw new Error("Client is required");
+// export const fetchClientComparison = async (
+//   searchBy = "",
+//   startMonth = "",
+//   endMonth = "",
+//   client = ""
+// ) => {
+//   const token = localStorage.getItem("access_token");
+//   if (!token) throw new Error("Not authenticated");
+//   if (!client) throw new Error("Client is required");
 
-  const params = new URLSearchParams();
-  params.append("client", client);
+//   const params = new URLSearchParams();
+//   params.append("client", client);
 
-  if (startMonth) params.append("start_month", startMonth);
-  if (endMonth) params.append("end_month", endMonth);
-  if (searchBy) params.append("account_manager", searchBy);
+//   if (startMonth) params.append("start_month", startMonth);
+//   if (endMonth) params.append("end_month", endMonth);
+//   if (searchBy) params.append("account_manager", searchBy);
 
-  try {
-    const response = await axios.get(
-      `${backendApi}/client-comparison?${params.toString()}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+//   try {
+//     const response = await axios.get(
+//       `${backendApi}/client-comparison?${params.toString()}`,
+//       {
+//         headers: { Authorization: `Bearer ${token}` },
+//       }
+//     );
 
-    return response.data;
-  } catch (err) {
-    if (err?.response?.data?.detail) throw new Error(err.response.data.detail);
-    if (err?.message) throw new Error(err.message);
-    throw new Error("Unable to fetch client comparison data.");
-  }
-};
+//     return response.data;
+//   } catch (err) {
+//     if (err?.response?.data?.detail) throw new Error(err.response.data.detail);
+//     if (err?.message) throw new Error(err.message);
+//     throw new Error("Unable to fetch client comparison data.");
+//   }
+// };
 
 export const fetchClientDepartments = async () => {
   try {
@@ -395,3 +368,83 @@ export const fetchClients = async () => {
 export const getMonthString = (monthIndex) => {
   return dayjs().month(monthIndex).format("YYYY-MM");
 };
+
+
+
+
+// KPI SUMMARY
+export const fetchDashboardKpiSummary = async (body) => {
+  try {
+    const res = await axiosInstance.post(
+      "/dashboard/KPIS-summary",
+      body
+    );
+    console.log("KPI Summary response:", res.data);
+    return res.data;
+  } catch (err) {
+    throw new Error(
+      err?.response?.data?.detail ||
+      err?.message ||
+      "Failed to fetch KPI summary"
+    );
+  }
+};
+
+
+// GRAPH
+export const fetchDashboardClientGraph = async (body) => {
+  try {
+    const res = await axiosInstance.post(
+      "/client-total-allowances-piechart",
+      body
+    );
+    return res.data;
+  } catch (err) {
+    throw new Error(
+      err?.response?.data?.detail ||
+      err?.message ||
+      "Failed to fetch client graph"
+    );
+  }
+};
+
+
+// TABLE (BODY + QUERY PARAMS)
+export const fetchDashboardTable = async (
+  body,
+  params = {}
+) => {
+  try {
+    const res = await axiosInstance.post(
+      "/dashboard-Table",
+      body,
+      { params } // 👈 query params here
+    );
+    console.log("Dashboard Table response:", res);
+    return res.data;
+  } catch (err) {
+    throw new Error(
+      err?.response?.data?.detail ||
+      err?.message ||
+      "Failed to fetch dashboard table"
+    );
+  }
+};
+
+export const fetchDashboardIndividualClientDetails = async (body) => {
+  console.log("Fetching individual client details with payload:", body);
+  try {
+    const res = await axiosInstance.post(
+      "/dashboard/client-Page-Graph",
+      body
+    );
+    console.log("Individual Client Details response:", res.data);
+    return res.data;
+  } catch (err) {
+    throw new Error(
+      err?.response?.data?.detail ||
+      err?.message ||
+      "Failed to fetch individual client details"
+    );
+  }
+}
