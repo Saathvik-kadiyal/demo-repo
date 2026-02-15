@@ -68,30 +68,53 @@ export const allowanceColumns = [
     key: "emp_name",
     header: "Emp Name",
     sortable: true,
-    sortFn: (a, b) => a.name.localeCompare(b.name),
+    sortFn: (a, b) => a.emp_name.localeCompare(b.emp_name),
   },
   {
     key: "emp_id",
     header: "ID",
     sortable: true,
   },
-  // {
-  //   key: "head_count",
-  //   header: "Headcount",
-  //   sortable: true,
-  //   sortFn: (a, b) => a.head_count - b.head_count,
-  // },
+  {
+    key: "department",
+    header: "Department",
+    sortable: true,
+  },
+
+  {
+    key: "shift_details",
+    header: "Shift Details",
+    render: (_, row) => {
+      const shifts = row?.shift_days || {};
+
+      return Object.entries(shifts)
+        .filter(([_, value]) => value > 0)
+        .map(([key, value]) => `${key} - ${value}`)
+        .join(", ");
+    },
+  },
+
   {
     key: "client_partner",
     header: "Client Partner",
     sortable: true,
   },
-
-  ...buildAllowanceShiftColumns(),
-
+  {
+    key: "client",
+    header: "Client",
+    sortable: true,
+  },
+  {
+    key: "duration_month",
+    header: "Duration Month",
+  },
+  {
+    key: "payroll_month",
+    header: "Payroll Month",
+  },
   {
     key: "total",
-    header: "TotalAllowance",
+    header: "Total Allowance",
     sortable: true,
     sortFn: (a, b) => (a.total || 0) - (b.total || 0),
     render: (v) => `₹ ${Number(v).toLocaleString()}`,
@@ -102,6 +125,8 @@ export const allowanceColumns = [
     type: "action",
   },
 ];
+
+
 
 export const clientAnalyticsClientColumns = [
   {
