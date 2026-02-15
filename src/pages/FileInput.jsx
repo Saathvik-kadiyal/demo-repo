@@ -32,6 +32,10 @@ const FileInput = () => {
   const [searchText, setSearchText] = useState("");
   const [searchBy, setSearchBy] = useState("emp_id");
   const [currentPayload, setCurrentPayload] = useState({});
+  const [page, setPage] = useState(0);      // current page (0-based)
+const [limit, setLimit] = useState(10);   // rows per page
+const [totalCount, setTotalCount] = useState(0); // total rows from API
+
 
 
   const {
@@ -90,21 +94,25 @@ const runFetch = useCallback(
       }
 
       const payload = {
-        start: 0,
-        limit: 10,
-        sort_by: "total_allowance",
-        sort_order: "default",
-        ...normalized,
-      };
+  start: page * limit,
+  limit: limit,
+  sort_by: "total_allowance",
+  sort_order: "default",
+  ...normalized,
+};
+
 
       setCurrentPayload(payload); // <--- store the exact payload
 
       await getProcessedData(payload);
+      setTotalCount(rows?.total_records || 0);
+
+
     } finally {
       setTableLoading(false);
     }
   },
-  [getProcessedData, searchText, searchBy]
+  [getProcessedData, searchText, searchBy, page, limit]
 );
 
 
@@ -125,6 +133,7 @@ const runFetch = useCallback(
   ---------------------------------------------------- */
   const handleApplyFilters = (filtersObj) => {
     setFilters(filtersObj);
+    setPage(0);
     runFetch(buildPayload(filtersObj));
   };
 
@@ -199,6 +208,9 @@ const handleExportData = async () => {
 };
 
 
+useEffect(() => {
+  runFetch(filters);
+}, [page, limit]);
 
 
 
@@ -297,7 +309,7 @@ const handleExportData = async () => {
           delete payload.client_partner;
           delete payload.clients;
         }
-
+setPage(0);
         debouncedRunFetch(payload);
       }}
     />
@@ -336,6 +348,28 @@ const handleExportData = async () => {
           setShowModal(true);
         }}
       />
+      <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
+  <Typography variant="body2">
+    Page {page + 1}
+  </Typography>
+
+  <Stack direction="row" spacing={1}>
+    <Button
+      disabled={page === 0}
+      onClick={() => setPage((prev) => prev - 1)}
+    >
+      Previous
+    </Button>
+
+    <Button
+      disabled={(page + 1) * limit >= totalCount}
+      onClick={() => setPage((prev) => prev + 1)}
+    >
+      Next
+    </Button>
+  </Stack>
+</Box>
+
 
       {showModal && (
         <EmployeeModal employee={selectedEmployee} onClose={() => setShowModal(false)} />

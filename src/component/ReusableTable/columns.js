@@ -1,10 +1,4 @@
-export const SHIFT_HEADERS = [
-  "ANZ",
-  "PST_MST",
-  "US_IND",
-  "SG",
-  "US3",
-];
+export const SHIFT_HEADERS = ["ANZ", "PST_MST", "US_IND", "SG", "US3"];
 
 const buildShiftColumns = () =>
   SHIFT_HEADERS.map((key) => ({
@@ -15,14 +9,14 @@ const buildShiftColumns = () =>
     render: (val) => val ?? 0,
   }));
 
-  const buildAllowanceShiftColumns = () =>
+const buildAllowanceShiftColumns = () =>
   SHIFT_HEADERS.map((key) => ({
     key: `shift_days.${key}`,
     header: key,
     sortable: true,
-    sortFn: (a, b) => (a?.shifts_days?.[key] || 0) - (b?.shifts_days?.[key] || 0),
-    render: (val) =>
-      val??0
+    sortFn: (a, b) =>
+      (a?.shifts_days?.[key] || 0) - (b?.shifts_days?.[key] || 0),
+    render: (val) => val ?? 0,
   }));
 
 export const buildClientSummary = () =>
@@ -34,8 +28,7 @@ export const buildClientSummary = () =>
     render: (val) => `₹ ${Number(val ?? 0).toLocaleString()}`, // ensure a number, no object
   }));
 
-
-  export const dashboardColumns = [
+export const dashboardColumns = [
   {
     key: "company",
     header: "Client Name",
@@ -53,7 +46,7 @@ export const buildClientSummary = () =>
     header: "Headcount",
     sortable: true,
     sortFn: (a, b) => (a.head_count || 0) - (b.head_count || 0),
-      render: (v, row) => row.head_count ?? 1,
+    render: (v, row) => row.head_count ?? 1,
   },
   {
     key: "total_allowance",
@@ -62,16 +55,13 @@ export const buildClientSummary = () =>
     sortFn: (a, b) => (a.total || 0) - (b.total || 0),
     render: (v) => `₹ ${Number(v).toLocaleString()}`,
   },
- 
-{
-  key: "action",
-  header: "Action",
-  type: "action"
-}
 
+  {
+    key: "action",
+    header: "Action",
+    type: "action",
+  },
 ];
-
-
 
 export const allowanceColumns = [
   {
@@ -85,12 +75,12 @@ export const allowanceColumns = [
     header: "ID",
     sortable: true,
   },
-  {
-    key: "head_count",
-    header: "Headcount",
-    sortable: true,
-    sortFn: (a, b) => a.head_count - b.head_count,
-  },
+  // {
+  //   key: "head_count",
+  //   header: "Headcount",
+  //   sortable: true,
+  //   sortFn: (a, b) => a.head_count - b.head_count,
+  // },
   {
     key: "client_partner",
     header: "Client Partner",
@@ -107,10 +97,10 @@ export const allowanceColumns = [
     render: (v) => `₹ ${Number(v).toLocaleString()}`,
   },
   {
-  key: "action",
-  header: "Action",
-  type: "action"
-}
+    key: "action",
+    header: "Action",
+    type: "action",
+  },
 ];
 
 export const clientAnalyticsClientColumns = [
@@ -140,7 +130,6 @@ export const clientAnalyticsClientColumns = [
   },
 ];
 
-
 export const clientAnalyticsEmployeeColumns = [
   {
     key: "name",
@@ -167,7 +156,6 @@ export const clientAnalyticsEmployeeColumns = [
     render: (v) => `₹ ${Number(v).toLocaleString()}`,
   },
 ];
-
 
 export const clientDetailClientPartnersColumns = [
   {
@@ -221,4 +209,4 @@ export const clientDetailEmployeesColumns = [
     sortable: true,
     render: (v) => `₹ ${Number(v).toLocaleString()}`,
   },
-];  
+];
