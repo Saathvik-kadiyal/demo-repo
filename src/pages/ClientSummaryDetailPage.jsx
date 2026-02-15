@@ -32,6 +32,7 @@ const ClientSummaryDetailedPage = () => {
     try {
       const payload = normalizeFilters(filters);
       const res = await fetchClientSummary(payload);
+      console.log(payload)
       setData(res);
     } catch (err) {
       setError(err?.message || "Unable to fetch data");
@@ -44,7 +45,7 @@ const ClientSummaryDetailedPage = () => {
   // Fetch data on page load
   useEffect(() => {
     runFetch(filters);
-  }, [runFetch]);
+  }, [filters,runFetch]);
 
   const handleDownload = async () => {
     setLoading(true);
@@ -67,37 +68,38 @@ const ClientSummaryDetailedPage = () => {
     }
   };
 
-  const monthSummaries = useMemo(() => {
-    let prev = null;
-    return monthKeys.map((monthKey) => {
-      const monthObj = data?.[monthKey] || {};
-      const totals = monthObj.month_total || {
-        total_head_count: 0,
-        total_allowance: 0,
-      };
-      const diff = prev !== null ? totals.total_allowance - prev : 0;
-      prev = totals.total_allowance;
+ const monthSummaries = useMemo(() => {
+  const periods = data.periods || {};
+  let prev = null;
+  return Object.keys(periods).map((monthKey) => {
+    const monthObj = periods[monthKey] || {};
+    const totals = monthObj.month_total || {
+      total_head_count: 0,
+      total_allowance: 0,
+    };
+    const diff = prev !== null ? totals.total_allowance - prev : 0;
+    prev = totals.total_allowance;
 
-      return {
-        monthKey,
-        totals,
-        diff,
-        diffColor: diff > 0 ? "red" : diff < 0 ? "green" : "black",
-        clientsMap: monthObj.clients || {},
-      };
-    });
-  }, [data, monthKeys]);
+    return {
+      monthKey,
+      totals,
+      diff,
+      diffColor: diff > 0 ? "red" : diff < 0 ? "green" : "black",
+      clientsMap: monthObj.clients || {},
+    };
+  });
+}, [data]);
 
   return (
     <Box sx={{ position: "relative", py: 2, px: 4, height: "100%", overflow: "auto" }}>
       {/* Filter & Download */}
       <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 4 }}>
         <FilterDrawer
-          onApply={(filters) => {
-            setFilters(filters);
-            runFetch(filters);
-          }}
-        />
+  onApply={(filters) => {
+    setFilters(filters);
+  }}
+/>
+
         <Button variant="outlined" onClick={handleDownload}>Download Data</Button>
       </Box>
 

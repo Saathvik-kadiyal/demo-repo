@@ -1,56 +1,111 @@
-import { useEffect, useState } from "react";
-import DataTable from "../component/DataTable.jsx";
-import {
-  Box,
-  Button,
-  Typography,
-  Stack,
-  Modal,
-  Paper,
-  IconButton,
-  CircularProgress,
-} from "@mui/material";
-
-import { X, Pencil } from "lucide-react";
-
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { Box, Button, Stack, Typography, CircularProgress } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-import { useEmployeeData, UI_HEADERS } from "../hooks/useEmployeeData.jsx";
+import ReusableTable from "../component/ReusableTable/ReusableTable.jsx";
+import EmployeeModal from "../component/EmployeeModel.jsx";
+import KpiCard from "../component/kpicards/KpiCard";
+import ShiftKpiCard from "../component/kpicards/ShiftKpiCard";
+import PopupMessage from "../component/popupMessages/PopupMessage";
+import { allowanceColumns } from "../component/ReusableTable/columns.js";
+import { mapEmployeeForTable } from "../component/ReusableTable/normalizeApiData.js";
+import { normalizeFilters } from "../utils/normalizeFilters";
+import FilterDrawer from "../component/fliters/FilterDrawer.jsx";
+import arrow from "../assets/arrow.svg";
+import ActionButton from "../component/buttons/ActionButton";
+import allowanceIcon from "../assets/allowance.svg";
+
+import { useEmployeeData } from "../hooks/useEmployeeData.jsx";
 
 const FileInput = () => {
   const navigate = useNavigate();
-  const [fileName, setFileName] = useState("");
-  const [errorModalOpen, setErrorModalOpen] = useState(false);
-  const [tableLoading, setTableLoading] = useState(false);
 
+  const [fileName, setFileName] = useState("");
+  const [tableLoading, setTableLoading] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
   const [popupSeverity, setPopupSeverity] = useState("success");
+  const [showModal, setShowModal] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+
+  const [filters, setFilters] = useState({});
+  const [searchText, setSearchText] = useState("");
+  const [searchBy, setSearchBy] = useState("emp_id");
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
 
   const {
     rows,
-    setRows,
-    error,
     errorFileLink,
-    setErrorFileLink,
     errorRows,
-    totalRecords,
     getProcessedData,
     fetchDataFromBackend,
     downloadExcel,
     downloadErrorExcel,
     success,
+    error,
+    shiftSummary
   } = useEmployeeData();
 
-  // const handleFileChange = (e) => {
-  //   const file = e.target.files[0];
-  //   if (!file) return;
-  //   setFileName(file.name);
-  //   const token = localStorage.getItem("access_token");
-  //   fetchDataFromBackend(file, token);
-  //   setTimeout(() => setFileName(null), 3000);
-  // };
+  const safeErrorRows = errorRows || [];
+  const tableData = mapEmployeeForTable(rows);
+  
 
+
+
+  // -------------------
+  // 🔹 Fetch data
+  // -------------------
+  const runFetch = useCallback(async (payloadFilters) => {
+    setTableLoading(true);
+    try {
+      const payload = normalizeFilters(payloadFilters);
+      console.log("Fetching data with payload:", payload);
+      await getProcessedData(payload);
+    } finally {
+      setTableLoading(false);
+    }
+  }, [getProcessedData]);
+
+  useEffect(() => {
+    runFetch({ start: 0, limit: 10 });
+  }, [runFetch]);
+
+  // -------------------
+  // 🔹 Apply Filters
+  // -------------------
+  const handleApplyFilters = (filtersObj) => {
+    setFilters(filtersObj);
+
+    const payload = { ...filtersObj };
+
+    // Search overrides
+    if (searchText) {
+      if (searchBy === "emp_id") payload.emp_id = [searchText];
+      else if (searchBy === "clients") payload.clients = [searchText];
+      else if (searchBy === "client_partner") payload.client_partner = [searchText];
+    }
+
+    runFetch(payload);
+  };
+
+  // -------------------
+  // 🔹 Search input
+  // -------------------
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchText(value);
+
+    const payload = { ...filters };
+    if (searchBy === "emp_id") payload.emp_id = [value];
+    else if (searchBy === "clients") payload.clients = [value];
+    else if (searchBy === "client_partner") payload.client_partner = [value];
+
+    runFetch(payload);
+  };
+
+  // -------------------
+  // 🔹 File Upload
+  // -------------------
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -67,60 +122,82 @@ const FileInput = () => {
     }
   };
 
-  const handleFetchPage = async (filters) => {
-    setTableLoading(true);
-    try {
-      await getProcessedData(filters);
-    } finally {
-      setTableLoading(false);
-    }
+  // -------------------
+  // 🔹 Employee Modal
+  // -------------------
+  const handleOpenEmployeeModal = (employee) => {
+    console.log("Opening modal for employee:", employee);
+    setSelectedEmployee(employee);
+    setShowModal(true);
   };
 
+  // -------------------
+  // 🔹 Download Template
+  // -------------------
   const handleDownloadTemplate = async () => {
+    setTableLoading(true);
     try {
-      setTableLoading(true);
       await downloadExcel();
     } finally {
       setTableLoading(false);
     }
   };
 
+  // -------------------
+  // 🔹 Popups
+  // -------------------
   useEffect(() => {
     if (errorFileLink) {
-      // setPopupMessage("File uploaded with errors. Please review.");
-      //  setPopupSeverity("error");
-      //  setPopupOpen(true);
-
-      setErrorModalOpen(true);
-    }
-  }, [errorFileLink]);
-
-  // 🔹 Success popup
-  useEffect(() => {
-    if (success) {
+      setPopupMessage("File processed with errors. Please review.");
+      setPopupSeverity("error");
+      setPopupOpen(true);
+    } else if (error) {
+      setPopupMessage(error);
+      setPopupSeverity("error");
+      setPopupOpen(true);
+    } else if (success) {
       setPopupMessage(success);
       setPopupSeverity("success");
       setPopupOpen(true);
     }
-  }, [success]);
+  }, [errorFileLink, error, success]);
 
-  // 🔹 Error popup
+
   useEffect(() => {
-    if (error && !errorFileLink) {
-      setPopupMessage(error);
-      setPopupSeverity("error");
-      setPopupOpen(true);
-    }
-  }, [error]);
+  if (popupMessage) {
+    setPopupOpen(true);
+    const timer = setTimeout(() => setPopupOpen(false), 4000);
+    return () => clearTimeout(timer);
+  }
+}, [popupMessage]);
 
-  // useEffect(() => {
-  //   getProcessedData();
-  // }, []);
+  // -------------------
+  // 🔹 KPI Cards
+  // -------------------
 
-  const safeErrorRows = errorRows || [];
+  // rows is your table data
+const totalAllowance = shiftSummary?.total||0;
+console.log("Total Allowance:", shiftSummary);
+
+const shiftTotals = Object.fromEntries(
+  Object.entries(shiftSummary || {}).filter(
+    ([key]) => !["total", "head_count", "headcount"].includes(key)
+  )
+);
+
+
+const shiftKpiCards = Object.entries(shiftTotals).map(([shiftKey, value]) => ({
+  ShiftType: shiftKey,
+  ShiftCount: value,
+  ShiftCountSize: "2rem",
+  ShiftTypeSize: "1rem",
+}));
+
+
+
 
   return (
-    <Box sx={{ width: "100%", pt: 2, pb: 4, px: 2, position: "relative",overflowY:tableLoading?"hidden":"auto",height:tableLoading?"400":"100%" }}>
+    <Box sx={{ width: "100%", pt: 2, pb: 4, px: 2, position: "relative" }}>
       {tableLoading && (
         <Box
           sx={{
@@ -130,215 +207,118 @@ const FileInput = () => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "rgba(0, 0, 0, 0.3)",
-      backdropFilter: "blur(8px)",
-      height:"100%"
+            backgroundColor: "rgba(0,0,0,0.3)",
+            backdropFilter: "blur(8px)",
           }}
         >
-          <Box
-            sx={{
-              padding: 4,
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 2,
-              minWidth: 200,
-            }}
-          >
-            <CircularProgress size={40} />
-            <Typography variant="body1" fontWeight={500} color="white">
-              Loading...
-            </Typography>
-          </Box>
+          <CircularProgress size={40} />
         </Box>
       )}
-      <Typography variant="h5" fontWeight={600} mb={2}>
-        Shift Allowance Data
-      </Typography>
 
-      <Stack
-        direction="row"
-        alignItems="center"
-        mb={3}
-        sx={{ width: "100%" }}
-        justifyContent="space-between"
-      >
+      {/* Header */}
+      <Box display="flex" justifyContent="space-between" mb={3}>
+        <Box display="flex" alignItems="center" gap={1} onClick={() => navigate("/")} sx={{ cursor: "pointer" }}>
+          <img src={arrow} alt="back" style={{ width: 16, height: 16 }} />
+          <Typography fontWeight={500} fontSize={16}>Shift Allowances Data</Typography>
+        </Box>
+
         <Stack direction="row" spacing={1} alignItems="center">
-          <Button variant="contained" component="label">
-            Upload Excel
-            <input
-              type="file"
-              hidden
-              onClick={(e) => (e.target.value = null)}
-              onChange={handleFileChange}
-            />
-          </Button>
-
-          {fileName && <Typography variant="body1">{fileName}</Typography>}
-        </Stack>
-
-        {/* <Button variant="outlined" onClick={downloadExcel}>
-          Download Template
-        </Button> */}
-        <Button
-          variant="outlined"
-          onClick={handleDownloadTemplate}
-          disabled={tableLoading}
-        >
-          Download Template
-        </Button>
-      </Stack>
-
-      <Modal
-        open={errorModalOpen}
-        onClose={(event, reason) => {
-          if (reason === "backdropClick") return;
-
-          setErrorModalOpen(false);
-          setErrorFileLink && setErrorFileLink(null);
-        }}
-      >
-        <Paper
-          sx={{
-            width: "60%",
-            maxWidth: 600,
-            p: 3,
-            mx: "auto",
-            mt: "10vh",
-            overflow: "auto",
-            position: "relative",
-            borderRadius: 2,
-            border: "2px solid #000",
-            boxShadow: "none",
-            backgroundColor: "#fff",
-          }}
-        >
-          <IconButton
-            sx={{ position: "absolute", right: 12, top: 12 }}
-            onClick={() => {
-              setErrorModalOpen(false);
-              setErrorFileLink && setErrorFileLink(null);
-            }}
-          >
-            <X size={20} />
-          </IconButton>
-
-          <Typography
-            variant="h6"
-            mb={2}
-            sx={{ color: "red", fontWeight: 600 }}
-          >
-            File Processed with Errors
-          </Typography>
-
-          <Stack direction="column" spacing={2} mb={2}>
-            {safeErrorRows.length > 0 && (
-              <Stack direction="row" spacing={2}>
-                <Button
-                  variant="contained"
-                  startIcon={<Pencil size={18} />}
-                  onClick={() => {
-                    navigate("/shift-allowance/edit", {
-                      state: { errorRows: safeErrorRows },
-                    });
-                    setErrorModalOpen(false);
-                  }}
-                  sx={{ textTransform: "none" }}
-                >
-                  Edit
-                </Button>
-
-                {errorFileLink && (
-                  <Button
-                    variant="outlined"
-                    onClick={() => downloadErrorExcel(errorFileLink)}
-                    sx={{ textTransform: "none" }}
-                  >
-                    Download Error File
-                  </Button>
-                )}
-              </Stack>
+          <ActionButton
+            content={() => (
+              <Button variant="contained" component="label" sx={{ backgroundColor: "#1C2F72" }}>
+                Upload File
+                <input type="file" hidden onClick={e => (e.target.value = null)} onChange={handleFileChange} />
+              </Button>
             )}
-          </Stack>
-        </Paper>
-      </Modal>
-
-      {/* 🔹 Data Table */}
-      {/* <DataTable
-        headers={UI_HEADERS}
-        rows={rows || []}
-        totalRecords={totalRecords || 0}
-        fetchPage={getProcessedData}
-      /> */}
-
-      <Box sx={{ position: "relative" }}>
-        <DataTable headers={UI_HEADERS} setTableLoading={setTableLoading} />
+          />
+          <Button sx={{ backgroundColor: "#1C2F72", color: "#fff" }} onClick={handleDownloadTemplate}>
+            Download Template
+          </Button>
+        </Stack>
       </Box>
 
-      {popupOpen && (
-        <>
-          <Box
-            sx={{
-              position: "fixed",
-              inset: 0,
-              backdropFilter: "blur(4px)",
-              backgroundColor: "rgba(0,0,0,0.2)",
-              zIndex: 2500,
-            }}
-          />
+      {/* KPI Cards */}
+      <Box sx={{ display: "flex", gap: 2, mb: 6, flexWrap: "wrap" }}>
+<KpiCard HeaderIcon={allowanceIcon} HeaderText="Total Allowance" BodyNumber={totalAllowance} />
+{shiftKpiCards.map((card, idx) => (
+  <ShiftKpiCard
+    key={idx}
+    ShiftType={card.ShiftType}
+    ShiftCount={card.ShiftCount}
+    ShiftCountSize={card.ShiftCountSize}
+    ShiftTypeSize={card.ShiftTypeSize}
+  />
+))}
 
-          {/* Centered Popup */}
-          <Box
-            sx={{
-              position: "fixed",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              p: 3,
-              minWidth: 300,
-              maxWidth: 400,
-              borderRadius: 2,
-              backgroundColor: "#fff",
-              color: popupSeverity === "error" ? "red" : "green",
-              border:
-                popupSeverity === "error"
-                  ? "2px solid #ef4444"
-                  : "2px solid #22c55e",
+</Box>
 
-              boxShadow:
-                popupSeverity === "error"
-                  ? "0 0 12px rgba(239,68,68,0.45)"
-                  : "0 0 12px rgba(34,197,94,0.45)",
-              zIndex: 3000,
-              // boxShadow: 5,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 2,
-            }}
-          >
-            <Typography sx={{ fontWeight: 600, textAlign: "center" }}>
-              {popupMessage}
-            </Typography>
 
-            <button
-              onClick={() => setPopupOpen(false)}
-              style={{
-                marginTop: "8px",
-                background: "#1E3A8A",
-                color: "#fff",
-                border: "none",
-                borderRadius: "4px",
-                padding: "6px 16px",
-                cursor: "pointer",
-                fontWeight: 600,
-              }}
+      {/* Search + Filter */}
+      <Box display="flex" gap={2} mb={3} alignItems="center" justifyContent="flex-end">
+        <input
+          type="text"
+          placeholder="Search..."
+          value={searchText}
+          onChange={handleSearchChange}
+          style={{ padding: "8px 12px", borderRadius: 6, border: "1px solid #d1d5db" }}
+        />
+        <select value={searchBy} onChange={e => setSearchBy(e.target.value)} style={{ padding: "9px 15px", borderRadius: 7 }}>
+          <option value="emp_id">Employee ID</option>
+          <option value="clients">Clients</option>
+          <option value="client_partner">Client Partner</option>
+        </select>
+
+ <FilterDrawer
+        onApply={handleApplyFilters}
+        filters={filters}
+      />
+      </Box>
+
+     
+
+      {/* Data Table */}
+      <ReusableTable
+        data={tableData}
+        columns={allowanceColumns}
+        getRowKey={row => row.emp_id}
+        onActionClick={handleOpenEmployeeModal}
+      />
+
+      {showModal && selectedEmployee && (
+  <EmployeeModal
+    employee={selectedEmployee}
+    onClose={() => setShowModal(false)}
+    setPopupMessage={setPopupMessage}
+    setPopupType={setPopupSeverity}
+  />
+)}
+
+
+      {/* Popup */}
+      <PopupMessage
+        open={popupOpen}
+        message={popupMessage}
+        severity={popupSeverity}
+        onClose={() => setPopupOpen(false)}
+        actions={popupSeverity === "error" && errorFileLink ? (
+          <>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => navigate("/shift-allowance/edit", { state: { errorRows: safeErrorRows } })}
             >
-              Close
-            </button>
-          </Box>
-        </>
-      )}
+              Edit
+            </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => downloadErrorExcel(errorFileLink)}
+            >
+              Download Error File
+            </Button>
+          </>
+        ) : null}
+      />
     </Box>
   );
 };

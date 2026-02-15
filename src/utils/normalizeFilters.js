@@ -1,45 +1,40 @@
+// utils/normalizeFilters.js
 export const normalizeFilters = (filters = {}) => {
   const payload = {
-    clients: filters.clients || "ALL",
+    clients: filters.client || "ALL",
     departments: filters.departments || "ALL",
-    shifts: filters.shifts || "ALL",
-    headcounts: filters.headcounts || "ALL",
-    sort_by: filters.sort_by || "total_allowance",
-    sort_order: filters.sort_order || "default",
+    sort_by: "total_allowance",
+    sort_order: "default",
+    top: "ALL",
   };
 
-  /* -------------------------
-     Years
-  ------------------------- */
+  // YEARS
   if (Array.isArray(filters.years) && filters.years.length > 0) {
-    payload.years = filters.years
+    const years = filters.years
       .map(Number)
-      .filter((y) => Number.isInteger(y));
+      .filter((y) => Number.isInteger(y) && y >= 2000);
+    if (years.length > 0) payload.years = years;
   }
 
-  /* -------------------------
-     Months
-  ------------------------- */
+  // MONTHS
   if (Array.isArray(filters.months) && filters.months.length > 0) {
-    payload.months = filters.months
-      .map(Number)
-      .filter((m) => m >= 1 && m <= 12);
+    const months = filters.months.map(Number).filter((m) => m >= 1 && m <= 12);
+    if (months.length > 0) payload.months = months;
   }
 
-  /* -------------------------
-     OPTIONAL / EXTRA KEYS
-     (pass-through safely)
-  ------------------------- */
-  if (filters.emp_id) {
-    payload.emp_id = Array.isArray(filters.emp_id)
-      ? filters.emp_id
-      : [filters.emp_id];
+  // HEADCOUNT
+  if (filters.headcount && filters.headcount !== "ALL") {
+    payload.headcount = filters.headcount;
   }
 
-  if (filters.client_partner) {
-    payload.client_partner = Array.isArray(filters.client_partner)
-      ? filters.client_partner
-      : [filters.client_partner];
+  // TOP
+  if (filters.top && filters.top !== "ALL") {
+    payload.top = filters.top;
+  }
+
+  // ALLOWANCE RANGE (optional)
+  if (Array.isArray(filters.allowance) && filters.allowance.length > 0) {
+    payload.allowance = filters.allowance;
   }
 
   return payload;

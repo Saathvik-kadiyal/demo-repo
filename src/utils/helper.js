@@ -15,18 +15,11 @@ export const debounce = (fn, delay=500) => {
 };
 
 
-export const fetchEmployees = async ({
-  start = 0,
-  limit = 10,
-  params = {},
-}) => {
+export const fetchEmployees = async (payload) => {
   try {
     const requestBody = {
-      ...params,
-      start,
-      limit,
+  ...payload
     };
-
     const response = await axiosInstance.post(
       "/employee-details/search",
       requestBody

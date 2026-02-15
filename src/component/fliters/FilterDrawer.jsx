@@ -20,14 +20,15 @@ const FilterDrawer = ({ onApply }) => {
             className="filter-drawer"
             onClick={(e) => e.stopPropagation()}
           >
-            <FilterLayout
-              tabs={filterTabs}
-              onApply={(filters) => {
-                onApply(filters);
-                setOpen(false);
-              }}
-              onReset={() => {}}
-            />
+           <FilterLayout
+  tabs={filterTabs}
+  onApply={(filters) => {
+    console.log("FILTERS FROM DRAWER:", filters); 
+    onApply(filters);
+    setOpen(false);
+  }}
+/>
+
           </div>
         </div>
       )}

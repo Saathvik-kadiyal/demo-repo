@@ -25,8 +25,6 @@ export default function ReusableTable({
    onActionClick, 
 }) {
   const [expanded, setExpanded] = useState(new Set());
-  console.log("Rendering ReusableTable with data:", data);
-
   if (!data?.length) return <div>{noDataFallback}</div>;
 
   const toggle = (key) => {
@@ -89,7 +87,6 @@ export default function ReusableTable({
 
       if (hasChildren && expanded.has(rowKey)) {
         if (childrenAreEmployees && nestedColumns) {
-          console.log("children", children);
           elements.push(
             <tr key={`${rowKey}-employee-table`}>
               <td colSpan={columns.length}>
@@ -102,6 +99,7 @@ export default function ReusableTable({
                   rowClassName={rowClassName}
                   cellClassName={cellClassName}
                   headerClassName={headerClassName}
+                  onActionClick={onActionClick} 
                 />
               </td>
             </tr>

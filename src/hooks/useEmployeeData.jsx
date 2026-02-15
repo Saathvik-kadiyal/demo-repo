@@ -48,11 +48,11 @@ const FIELD_MAP = {
   emp_id: "Emp ID",
   emp_name: "Emp Name",
   department: "Department",
-  account_manager: "Client Partner",
+  client_partner: "Client Partner",
   client: "Client",
   duration_month: "Duration Month",
   payroll_month: "Payroll Month",
-  shift_details: "Shift Details",
+  shift_days: "Shift Details",
   total_allowance: "Total Allowances",
 };
 
@@ -97,12 +97,22 @@ const backendApi = import.meta.env.VITE_BACKEND_API;
 
 
 const mapBackendToUI = (row) => {
+
   const uiRow = {};
   Object.entries(FIELD_MAP).forEach(([key, label]) => {
-    uiRow[label] = row[key] ?? "";
+    // Use shift_days if key is shift_days
+    if (key === "shift_days") {
+      uiRow[label] = row.shift_days ?? {};
+    } else if (key === "client_partner") {
+      // map Account Manager → Client Partner if client_partner is empty
+      uiRow[label] = row.client_partner || row.account_manager || "";
+    } else {
+      uiRow[label] = row[key] ?? "";
+    }
   });
   return uiRow;
 };
+
 
 const buildSearchParams = (filters) => {
   const params = {};
@@ -164,65 +174,65 @@ export const useEmployeeData = () => {
 
   // const getProcessedData = useCallback(
   //   async (start = 0, limit = 10, params = {}) => {
-  const getProcessedData = useCallback(
-    async (start = 0, limit = 10, params = filters) => {
+const getProcessedData = useCallback(
+  async (payload) => {
+    try {
+      setLoading(true);
 
-      try {
-        setLoading(true);
-        const res = await fetchEmployees({start, limit, params });
+      const res = await fetchEmployees(payload);
 
-        const employees = Array.isArray(res?.data?.employees)
-          ? res.data.employees
-          : [];
+      const employees = Array.isArray(res?.data?.employees)
+        ? res.data.employees
+        : [];
 
-        const shiftDetails = res?.shift_details || {};
+      const mapped = employees.map((item, idx) => ({
+        id: `${item.emp_id}-${idx}`,
+        ...mapBackendToUI(item),
+        head_count: item.head_count ?? 1,
+        __fullEmployee: item,
+      }));
 
-        const mapped = employees.map((item, idx) => ({
-          id: `${item.emp_id}-${idx}`,
-          ...mapBackendToUI(item),
-          __fullEmployee: item,
-        }));
+      setRows(mapped);
+      setDisplayRows(mapped);
 
-        setRows(mapped);
-        setDisplayRows(mapped);
-        const total = res?.total_records ?? 0;
+      const total = res?.total_records ?? 0;
+      setTotalRecords(total);
+      setTotalPages(total === 0 ? 0 : Math.ceil(total / (payload.limit || 10)));
 
-        setTotalRecords(total);
-        setTotalPages(total === 0 ? 0 : Math.ceil(total / limit));
+      // Aggregate shift_days across all employees
+   // rows = mapped employees
+const shiftTotals = res.shift_details?.[0] ?? {};
+const totalAllowance = res.shift_details?.[1]?.total_allowance ?? 0;
 
-        setShiftSummary({
-          shiftA: shiftDetails["A(9PM to 6AM)"] ?? 0,
-          shiftB: shiftDetails["B(4PM to 1AM)"] ?? 0,
-          shiftC: shiftDetails["C(6AM to 3PM)"] ?? 0,
-          prime: shiftDetails["PRIME(12AM to 9AM)"] ?? 0,
-          total: shiftDetails["total_allowance"] ?? 0,
-          head_count: shiftDetails["headcount"] ?? 0,
-        });
 
-        if ((res?.total_records ?? 0) === 0) {
-          setError("No data found");
-        } else {
-          setError("");
-        }
+      // Headcount is total employees
+      const headCount = employees.length;
+      console.log(res.shift_details)
 
-      } catch (error) {
-        const message =
-          error?.response?.data?.detail ||error.message|| "Failed to fetch data";
-          console.log(message)
+      setShiftSummary({
+        ...shiftTotals,
+        total: totalAllowance,
+        head_count: headCount,
+      });
 
-        setError(message);
-        setRows([]);
-        setDisplayRows([]);
-        setShiftSummary(null);
-        setTotalRecords(0);
-        setTotalPages(0);
-      }
-      finally {
-        setLoading(false);
-      }
-    },
-    [token]
-  );
+      setError(total === 0 ? "No data found" : "");
+    } catch (error) {
+      const message =
+        error?.response?.data?.detail || error.message || "Failed to fetch data";
+
+      setError(message);
+      setRows([]);
+      setDisplayRows([]);
+      setShiftSummary(null);
+      setTotalRecords(0);
+      setTotalPages(0);
+    } finally {
+      setLoading(false);
+    }
+  },
+  []
+);
+
 
 
   const applyFilters = useCallback(

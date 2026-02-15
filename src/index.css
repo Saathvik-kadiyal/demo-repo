@@ -39,6 +39,7 @@ body {
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 4px;
+  justify-items: normal;
 }
 
 .kpiHeader,
@@ -194,6 +195,8 @@ body {
 .reusable-table {
   width: 100%;
   border-collapse: collapse;
+padding: 0;
+margin: 0;
 }
 
 .reusable-table thead tr {
@@ -216,13 +219,14 @@ body {
 
 .reusable-table tbody td {
   font-family: var(--font-display);
-  padding: 12px 14px;
+  padding: 12px 0px;
   font-size: 14px;
   font-weight: medium;
   color: var(--content-color);
   border-bottom: 1px solid #edf2f7;
   vertical-align: middle;
   font-variant: uppercase;
+  margin: 0;
 }
 
 .client-name {

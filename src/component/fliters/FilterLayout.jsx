@@ -3,9 +3,19 @@ import LeftTabs from "./LeftTabs";
 import RightPanels from "./RightPanels";
 import "./filter.styles.css";
 
+const initialState = {
+  client: [],
+  years: [],
+  months: [],
+  employeeId: "",
+  allowance: "",      // single string: "100-200"
+  departments: [],
+  headcounts: ""      // single string: "1-5" or "Highest to Lowest"
+};
+
 const FilterLayout = ({ tabs, onApply, onReset }) => {
   const [activeTab, setActiveTab] = useState(tabs[0].key);
-  const [filters, setFilters] = useState({}); // 🔑 empty by default
+  const [filters, setFilters] = useState(initialState);
 
   return (
     <div className="filter-layout">
@@ -17,7 +27,6 @@ const FilterLayout = ({ tabs, onApply, onReset }) => {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
         />
-
         <RightPanels
           tabs={tabs}
           activeTab={activeTab}
@@ -29,7 +38,7 @@ const FilterLayout = ({ tabs, onApply, onReset }) => {
       <div className="filter-footer">
         <button
           onClick={() => {
-            setFilters({});
+            setFilters(initialState);
             onReset?.();
           }}
         >
@@ -38,8 +47,20 @@ const FilterLayout = ({ tabs, onApply, onReset }) => {
 
         <button
           onClick={() => {
-            // filters already contains ONLY selected values
-            onApply(filters);
+            const cleanedFilters = {};
+
+            Object.entries(filters).forEach(([key, value]) => {
+              // Arrays: client, years, months, departments
+              if (Array.isArray(value) && value.length > 0) {
+                cleanedFilters[key] = value;
+              }
+              // Strings: allowance, headcounts, employeeId
+              else if (typeof value === "string" && value.trim() !== "") {
+                cleanedFilters[key] = value;
+              }
+            });
+
+            onApply(cleanedFilters);
           }}
         >
           Apply

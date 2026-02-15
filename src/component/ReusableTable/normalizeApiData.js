@@ -205,3 +205,40 @@ export function normalizeClientSummaryData(raw) {
   });
 }
 
+
+
+
+export const mapEmployeeForTable = (employees = []) => {
+  if (!Array.isArray(employees)) return [];
+
+  return employees.map((emp) => {
+    const shiftDays = emp["Shift Days"] || {}; // your API field for days
+    const flattenedShifts = {};
+    return {
+      emp_id: emp["Emp ID"],
+      emp_name: emp["Emp Name"],
+      department: emp["Department"],
+      client_partner: emp["Client Partner"],
+      client: emp["Client"],
+      duration_month: emp["Duration Month"],
+      payroll_month: emp["Payroll Month"],
+      shift_days: emp["Shift Details"] || {}, // optional if you still need money
+      total: emp["Total Allowances"] ?? 0,
+    };
+  });
+};
+
+ 
+ 
+export const mapSummaryForCards = (response) => {
+  console.log("Mapping summary for cards with response:", response);
+  const summary = response?.shift_details || {};
+ 
+  return {
+    headcount: summary.headcount || 0,
+    total_allowance: summary.total_allowance || 0,
+    shifts: Object.entries(summary).filter(
+      ([key]) => key !== "headcount" && key !== "total_allowance"
+    ),
+  };
+};

@@ -3,6 +3,7 @@ import { Suspense, lazy } from "react";
 import Layout from "../Layout/Layout.jsx";
 import PrivateRoute from "./PrivateRoute.jsx";
 import LoginPage from "../pages/LoginPage.jsx";
+import ClientRouteWrapper from "./ClientRouteWrapper.jsx";
 
 const DashboardPage = lazy(() => import("../pages/DashboardPage.jsx"));
 const ClientSummaryDetailedPage = lazy(
@@ -44,7 +45,7 @@ const AppRoutes = () => {
           path="client"
           element={
             <Suspense fallback={<div className="p-6">Loading Client...</div>}>
-              <ClientDetailsPage />
+              <ClientRouteWrapper />
             </Suspense>
           }
         />

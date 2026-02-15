@@ -1,9 +1,8 @@
 export const SHIFT_HEADERS = [
+  "ANZ",
+  "PST_MST",
+  "US_INDIA",
   "SG",
-  "UK",
-  "IND",
-  "US1",
-  "US2",
   "US3",
 ];
 
@@ -14,6 +13,16 @@ const buildShiftColumns = () =>
     sortable: true,
     sortFn: (a, b) => (a?.shifts?.[key] || 0) - (b?.shifts?.[key] || 0),
     render: (val) => val ?? 0,
+  }));
+
+
+export const buildAllowanceShiftColumns = () =>
+  SHIFT_HEADERS.map((key) => ({
+    key: `shift_days.${key}`, // nested path is correct
+    header: key,
+    sortable: true,
+    sortFn: (a, b) => (a.shift_days?.[key] || 0) - (b.shift_days?.[key] || 0),
+    render: (val) => (typeof val === "number" ? val : 0), // ensure a number, no object
   }));
 
 
@@ -53,9 +62,10 @@ const buildShiftColumns = () =>
 ];
 
 
+
 export const allowanceColumns = [
   {
-    key: "name",
+    key: "emp_name",
     header: "Emp Name",
     sortable: true,
     sortFn: (a, b) => a.name.localeCompare(b.name),
@@ -77,7 +87,7 @@ export const allowanceColumns = [
     sortable: true,
   },
 
-  ...buildShiftColumns(),
+  ...buildAllowanceShiftColumns(),
 
   {
     key: "total",
@@ -105,7 +115,7 @@ export const clientAnalyticsClientColumns = [
     sortable: true,
   },
 
-  ...buildShiftColumns(),
+  ...buildAllowanceShiftColumns(),
 
   {
     key: "total",
@@ -147,3 +157,58 @@ export const clientAnalyticsEmployeeColumns = [
     render: (v) => `₹ ${Number(v).toLocaleString()}`,
   },
 ];
+
+
+export const clientDetailClientPartnersColumns = [
+  {
+    key: "name",
+    header: "Client Partner Name",
+    sortable: true,
+  },
+  {
+    key: "head_count",
+    header: "Headcount",
+    sortable: true,
+  },
+
+  ...buildShiftColumns(),
+
+  {
+    key: "total",
+    header: "Total Allowance",
+    sortable: true,
+    render: (v) => `₹ ${Number(v).toLocaleString()}`,
+  },
+  {
+    key: "action",
+    header: "Action",
+    type: "action",
+  },
+];
+
+export const clientDetailEmployeesColumns = [
+  {
+    key: "name",
+    header: "Emp Name",
+    sortable: true,
+  },
+  {
+    key: "emp_id",
+    header: "ID",
+    sortable: true,
+  },
+  {
+    key: "department",
+    header: "Department",
+    sortable: true,
+  },
+
+  ...buildShiftColumns(),
+
+  {
+    key: "total",
+    header: "Total Allowance",
+    sortable: true,
+    render: (v) => `₹ ${Number(v).toLocaleString()}`,
+  },
+];  

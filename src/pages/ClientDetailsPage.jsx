@@ -1,68 +1,77 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import "../index.css";
-
-import ShiftKpiCard from "../component/kpicards/ShiftKpiCard";
+import allowanceIcon from "../assets/allowance.svg"
+import departmentsIcon from "../assets/departments.svg"
+import peopleIcon from "../assets/people.svg"
+import clientsIcon from "../assets/clients.svg"
+import KpiCard from "../component/kpicards/KpiCard";
 import ReusableTable from "../component/ReusableTable/ReusableTable";
-import ClientsOverviewChart from "../visuals/ClientOverviewChart";
+
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 import { fetchDashboardIndividualClientDetails } from "../utils/helper";
+import {
+  clientDetailClientPartnersColumns,
+  clientDetailEmployeesColumns,
+} from "../component/ReusableTable/columns";
+import { all } from "axios";
 
 /* -------------------------
-   PAYLOAD NORMALIZER
+   PAYLOAD BUILDER
 ------------------------- */
-const normalizePayload = ({ clientName, years, months }) => {
+const buildPayload = ({ clientName, years, months }) => {
   const payload = {
-    client_name: clientName,
+    clients: Array.isArray(clientName)
+      ? clientName
+      : clientName
+      ? [clientName]
+      : [],
   };
 
   if (Array.isArray(years) && years.length > 0) {
-    payload.years = years.map(Number);
+    payload.years = years;
   }
 
   if (Array.isArray(months) && months.length > 0) {
-    payload.months = months.map(Number);
+    payload.months = months;
   }
 
   return payload;
 };
 
-/* -------------------------
-   CLIENT DETAILS PAGE
-------------------------- */
 export default function ClientDetailsPage({
   clientName,
   years = [],
   months = [],
 }) {
   const [loading, setLoading] = useState(true);
-  const [kpiData, setKpiData] = useState(null);
-  const [tableData, setTableData] = useState([]);
-  const [chartData, setChartData] = useState(null);
+  const [summary, setSummary] = useState(null);
+  const [clientData, setClientData] = useState(null);
+  const [activeChartTab, setActiveChartTab] = useState("shifts");
 
+  /* -------------------------
+     FETCH CLIENT DETAILS
+  ------------------------- */
   const fetchClientDetails = useCallback(async () => {
-    if (!clientName) return;
-
     try {
       setLoading(true);
 
-      const payload = normalizePayload({ clientName, years, months });
-      const response = await fetchDashboardIndividualClientDetails(payload);
+      const payload = buildPayload({ clientName, years, months });
+      const res = await fetchDashboardIndividualClientDetails(payload);
 
-      setKpiData(response.summary ?? null);
-
-      const rows = response.clients
-        ? Object.entries(response.clients).map(([name, info]) => ({
-            company: name,
-            ...info,
-          }))
-        : [];
-
-      setTableData(rows);
-      setChartData(rows);
+      setSummary(res?.summary ?? null);
+      setClientData(res?.clients?.[clientName] ?? null);
     } catch (err) {
       console.error("Client details error:", err);
-      setTableData([]);
-      setChartData(null);
+      setSummary(null);
+      setClientData(null);
     } finally {
       setLoading(false);
     }
@@ -72,68 +81,211 @@ export default function ClientDetailsPage({
     fetchClientDetails();
   }, [fetchClientDetails]);
 
+  /* -------------------------
+     TABLE DATA (Partner → Employees)
+  ------------------------- */
+const tableData = useMemo(() => {
+  if (!clientData?.client_partners) return [];
+
+  return Object.entries(clientData.client_partners).map(
+    ([partnerName, partner]) => {
+      const shifts = partner.shifts_summary || {};
+
+      return {
+        name: partnerName,
+        head_count: partner.headcount ?? 0,
+        total: partner.total_allowance ?? 0,
+
+        shifts: {
+          ANZ: shifts.ANZ ?? 0,
+          PST_MST: shifts.PST_MST ?? 0,
+          US_INDIA: shifts.US_INDIA ?? 0,
+          SG: shifts.SG ?? 0,
+          US3: shifts.US3 ?? 0,
+        },
+
+        children: (partner.employees || []).map((emp) => {
+          const empShifts = emp.shifts_summary || {};
+console.log("Employee data:", empShifts);
+          return {
+            type: "employee",  
+            name: emp.emp_name,
+            emp_id: emp.emp_id,
+            department: emp.department,
+            total: emp.total_allowance ?? 0,
+
+            shifts: {
+              ANZ: emp.ANZ ?? 0,
+              PST_MST: emp.PST_MST ?? 0,
+              US_INDIA: emp.US_INDIA ?? 0,
+              SG: emp.SG ?? 0,
+              US3: emp.US3 ?? 0,
+            },
+          };
+        }),
+      };
+    }
+  );
+}, [clientData]);
+
+
+
+
+  /* -------------------------
+     CHART DATA
+  ------------------------- */
+  const chartData = useMemo(() => {
+  if (!clientData) return [];
+
+  const source =
+    activeChartTab === "shifts"
+      ? clientData.shifts_summary
+      : clientData.department_summary;
+
+  if (!source) return [];
+
+  return Object.entries(source).map(([key, value]) => ({
+    name: key,
+    amount: value,
+  }));
+}, [clientData, activeChartTab]);
+
+
   return (
     <div className="relative w-full px-4 py-4 overflow-x-hidden">
       {/* TITLE */}
       <h2 className="text-xl font-semibold mb-4">{clientName}</h2>
 
-      {/* KPI SECTION */}
-      <div className="flex flex-wrap gap-4 mb-4">
-        <ShiftKpiCard
+      {/* KPI CARDS */}
+      <div className="flex flex-wrap gap-4 mb-6">
+        <KpiCard
           loading={loading}
-          ShiftType="Departments"
-          ShiftCount={kpiData?.departments ?? 0}
-        />
-        <ShiftKpiCard
-          loading={loading}
-          ShiftType="Headcount"
-          ShiftCount={kpiData?.headcount ?? 0}
-        />
-        <ShiftKpiCard
-          loading={loading}
-          ShiftType="Allowance"
-          ShiftCount={`₹${Number(
-            kpiData?.total_allowance ?? 0
+          HeaderIcon={allowanceIcon}
+          HeaderText="Total Allowance"
+          BodyNumber={`₹${Number(
+            summary?.total_allowance ?? 0
           ).toLocaleString()}`}
+          BodyComparisionNumber=""
+        />
+
+        <KpiCard
+          loading={loading}
+          HeaderIcon={departmentsIcon}
+          HeaderText="Departments"
+          BodyNumber={summary?.departments ?? 0}
+          BodyComparisionNumber=""
+        />
+
+        <KpiCard
+          loading={loading}
+          HeaderIcon={peopleIcon}
+          HeaderText="Account Managers"
+     BodyNumber={clientData?.client_partner_count ?? 0}
+          BodyComparisionNumber=""
+        />
+         <KpiCard
+          loading={loading}
+          HeaderIcon={peopleIcon}
+          HeaderText="Headcount"
+          BodyNumber={summary?.headcount ?? 0}
+          BodyComparisionNumber=""
         />
       </div>
 
       {/* TABLE + CHART */}
-      <div className="mt-4 flex gap-4">
+      <div className="flex gap-6 flex-col">
         {/* TABLE */}
-        <div className="w-[60%] rounded-xl bg-white py-4">
+        <div className="rounded-xl bg-white py-4">
           {loading ? (
             <div className="flex h-64 items-center justify-center">
-              <p>Loading...</p>
+              Loading...
             </div>
           ) : (
             <ReusableTable
               data={tableData}
               message="No data found"
-              columns={[
-                { label: "Departments", key: "departments" },
-                { label: "Headcount", key: "headcount" },
-                {
-                  label: "Total Allowance",
-                  key: "total_allowance",
-                  render: (row) =>
-                    `₹${Number(row.total_allowance ?? 0).toLocaleString()}`,
-                },
-              ]}
+              columns={clientDetailClientPartnersColumns}
+              nestedColumns={clientDetailEmployeesColumns}
             />
           )}
         </div>
 
-        {/* CHART */}
-        <div className="w-[35%] rounded-xl bg-white py-4">
-          {chartData ? (
-            <ClientsOverviewChart apiResponse={{ data: chartData }} />
-          ) : (
-            <div className="flex h-64 items-center justify-center text-gray-400">
-              No chart data
-            </div>
-          )}
-        </div>
+        {/* BAR CHART */}
+       {/* BAR CHART */}
+<div className="rounded-xl bg-white p-4">
+  <div className="flex items-center justify-between mb-4">
+    <p className="text-sm font-medium">
+      {activeChartTab === "shifts"
+        ? "Shift Allowance Distribution"
+        : "Department Allowance Distribution"}
+    </p>
+
+    {/* TABS */}
+    <div className="flex bg-gray-100 rounded-lg p-1">
+      <button
+        onClick={() => setActiveChartTab("shifts")}
+        className={`px-3 py-1 text-sm rounded-md transition ${
+          activeChartTab === "shifts"
+            ? "bg-white shadow text-black"
+            : "text-gray-500"
+        }`}
+      >
+        Shifts
+      </button>
+
+      <button
+        onClick={() => setActiveChartTab("departments")}
+        className={`px-3 py-1 text-sm rounded-md transition ${
+          activeChartTab === "departments"
+            ? "bg-white shadow text-black"
+            : "text-gray-500"
+        }`}
+      >
+        Departments
+      </button>
+    </div>
+  </div>
+
+  {chartData.length > 0 ? (
+  <ResponsiveContainer width="100%" height={260}>
+  <BarChart
+    data={chartData}
+    barCategoryGap="40%"
+  >
+    <XAxis dataKey="name" />
+    <YAxis />
+    <Tooltip />
+    <Bar
+      dataKey="amount"
+      barSize={25}
+      radius={[6, 6, 0, 0]}
+      shape={(props) => {
+        const { x, y, width, height, index } = props;
+        const fillColor = index % 2 === 0 ? "#15549D" : "#3585E4";
+
+        return (
+          <rect
+            x={x}
+            y={y}
+            width={width}
+            height={height}
+            fill={fillColor}
+            rx={6}
+          />
+        );
+      }}
+    />
+  </BarChart>
+</ResponsiveContainer>
+
+
+  ) : (
+    <div className="flex h-64 items-center justify-center text-gray-400">
+      No chart data
+    </div>
+  )}
+</div>
+
       </div>
     </div>
   );

@@ -8,7 +8,10 @@ import ActionButton from "../component/buttons/ActionButton";
 import ShiftKpiCard from "../component/kpicards/ShiftKpiCard";
 import ClientsOverviewChart from "../visuals/ClientOverviewChart";
 import { FilterDrawer } from "../component/fliters";
-
+import allowanceIcon from "../assets/allowance.svg"
+import departmentsIcom from "../assets/departments.svg"
+import peopleIcon from "../assets/people.svg"
+import clientsIcon from "../assets/clients.svg"
 import { dashboardColumns } from "../component/ReusableTable/columns";
 
 import {
@@ -19,6 +22,7 @@ import {
   fetchDashboardIndividualClientDetails,
 } from "../utils/helper";
 import SearchInput from "../component/SearchInput";
+import KpiCard from "../component/kpicards/KpiCard";
 
 /* -------------------------
    FILTER NORMALIZER
@@ -148,16 +152,20 @@ export default function DashboardPage() {
 
 
 const handleDashboardAction = (row) => {
-  const payload = normalizeFilters({ clients: row.company });
+  const payload = normalizeFilters({ client: row.company });
 
-  navigate("/client-details", {
-    state: {
-      clientName: row.company,
-      years: payload.years ?? [],
-      months: payload.months ?? [],
-    },
-  });
+  navigate("/client", {
+  state: {
+    clientName: row.company,
+    years: payload.years ?? [],
+    months: payload.months ?? [],
+  },
+});
+
 };
+
+
+
 
 
   return (
@@ -172,41 +180,43 @@ const handleDashboardAction = (row) => {
 
       {/* KPI SECTION */}
       <div className="flex flex-wrap gap-4 mb-4">
-        <ShiftKpiCard
-          loading={loading}
-          ShiftType="Clients"
-          ShiftCount={kpiData?.total_clients ?? 0}
-          ShiftCountry={kpiData?.total_clients_last_month ?? ""}
-        />
-        <ShiftKpiCard
-          loading={loading}
-          ShiftType="Departments"
-          ShiftCount={kpiData?.total_departments ?? 0}
-          ShiftCountry={kpiData?.total_departments_last_month ?? ""}
-        />
-        <ShiftKpiCard
-          loading={loading}
-          ShiftType="Headcount"
-          ShiftCount={kpiData?.head_count ?? 0}
-          ShiftCountry={kpiData?.head_count_last_month ?? ""}
-        />
-        <ShiftKpiCard
-          loading={loading}
-          ShiftType="Allowance"
-          ShiftCount={`₹${Number(kpiData?.total_allowance ?? 0).toLocaleString()}`}
-          ShiftCountry={kpiData?.total_allowance_last_month ?? ""}
-        />
+    <KpiCard
+  loading={loading}
+  HeaderIcon={clientsIcon}
+  HeaderText="Clients"
+  BodyNumber={kpiData?.total_clients ?? 0}
+  BodyComparisionNumber={kpiData?.total_clients_last_month ?? ""}
+  width="444px"
+/>
+
+<KpiCard
+  loading={loading}
+  HeaderIcon={departmentsIcom}
+  HeaderText="Departments"
+  BodyNumber={kpiData?.total_departments ?? 0}
+  BodyComparisionNumber={kpiData?.total_departments_last_month ?? ""}
+/>
+
+<KpiCard
+  loading={loading}
+  HeaderIcon={peopleIcon}
+  HeaderText="Headcount"
+  BodyNumber={kpiData?.headcount ?? 0}
+  BodyComparisionNumber={kpiData?.headcount_last_month ?? ""}
+/>
+
+<KpiCard
+  loading={loading}
+  HeaderIcon={allowanceIcon}
+
+  HeaderText="Allowance"
+  BodyNumber={`₹${Number(kpiData?.total_allowance ?? 0).toLocaleString()}`}
+  BodyComparisionNumber={kpiData?.total_allowance_last_month ?? ""}
+/>
+
       </div>
 
       {/* ACTION */}
-      <ActionButton
-        content={() => (
-          <button className="actionBtn">
-            <span>+</span>
-            <p>Upload File</p>
-          </button>
-        )}
-      />
 
       {/* FILTERS */}
       <FilterDrawer onApply={handleFilterApply} />
@@ -214,7 +224,7 @@ const handleDashboardAction = (row) => {
       {/* TABLE + CHART */}
       <div className="mt-4 flex gap-4">
         {/* TABLE */}
-        <div className="w-[60%] rounded-xl bg-white py-4 flex flex-col h-full">
+        <div className="w-[60%] rounded-xl bg-white py-4 flex flex-col gap-2 h-full">
           <div className="px-4 flex justify-end">
             <SearchInput
               value={search}
