@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Box, Button, Stack, Typography, CircularProgress } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
@@ -14,13 +14,13 @@ import FilterDrawer from "../component/fliters/FilterDrawer.jsx";
 import arrow from "../assets/arrow.svg";
 import ActionButton from "../component/buttons/ActionButton";
 import allowanceIcon from "../assets/allowance.svg";
-
 import { useEmployeeData } from "../hooks/useEmployeeData.jsx";
+import SearchInput from "../component/SearchInput.jsx";
+import { debounce, downloadFilteredExcel } from "../utils/helper.js";
 
 const FileInput = () => {
   const navigate = useNavigate();
 
-  const [fileName, setFileName] = useState("");
   const [tableLoading, setTableLoading] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
@@ -31,7 +31,8 @@ const FileInput = () => {
   const [filters, setFilters] = useState({});
   const [searchText, setSearchText] = useState("");
   const [searchBy, setSearchBy] = useState("emp_id");
-  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  const [currentPayload, setCurrentPayload] = useState({});
+
 
   const {
     rows,
@@ -46,279 +47,332 @@ const FileInput = () => {
     shiftSummary
   } = useEmployeeData();
 
-  const safeErrorRows = errorRows || [];
   const tableData = mapEmployeeForTable(rows);
-  
+  const safeErrorRows = errorRows || [];
+  console.log(rows)
 
 
 
-  // -------------------
-  // 🔹 Fetch data
-  // -------------------
-  const runFetch = useCallback(async (payloadFilters) => {
+
+
+  /* ----------------------------------------------------
+     🔹 SINGLE SOURCE OF TRUTH FOR PAYLOAD
+  ---------------------------------------------------- */
+  const buildPayload = (baseFilters = {}, searchValue = searchText, searchKey = searchBy) => {
+    const payload = { ...baseFilters };
+
+    if (searchValue?.trim()) {
+      const value = searchValue.trim();
+
+      if (searchKey === "emp_id") payload.emp_id = value;
+      else if (searchKey === "client_partner") payload.client_partner = value;
+      else if (searchKey === "clients") payload.clients = [value];
+    }
+
+    return payload;
+  };
+
+  /* ----------------------------------------------------
+     🔹 Fetch
+  ---------------------------------------------------- */
+const runFetch = useCallback(
+  async (payloadFilters = {}) => {
     setTableLoading(true);
     try {
-      const payload = normalizeFilters(payloadFilters);
-      console.log("Fetching data with payload:", payload);
+      const normalized = normalizeFilters(payloadFilters);
+
+      if (searchText?.trim()) {
+        const value = searchText.trim();
+
+        if (searchBy === "emp_id") normalized.emp_id = value;
+        else if (searchBy === "client_partner") normalized.client_partner = value;
+        else if (searchBy === "clients") normalized.clients = [value];
+      }
+
+      const payload = {
+        start: 0,
+        limit: 10,
+        sort_by: "total_allowance",
+        sort_order: "default",
+        ...normalized,
+      };
+
+      setCurrentPayload(payload); // <--- store the exact payload
+
       await getProcessedData(payload);
     } finally {
       setTableLoading(false);
     }
-  }, [getProcessedData]);
+  },
+  [getProcessedData, searchText, searchBy]
+);
+
+
+
+  const debouncedRunFetch = useCallback(
+  debounce((payload) => {
+    runFetch(payload);
+  }, 800),
+  [runFetch]
+);
 
   useEffect(() => {
-    runFetch({ start: 0, limit: 10 });
+    runFetch({});
   }, [runFetch]);
 
-  // -------------------
-  // 🔹 Apply Filters
-  // -------------------
+  /* ----------------------------------------------------
+     🔹 Filters
+  ---------------------------------------------------- */
   const handleApplyFilters = (filtersObj) => {
     setFilters(filtersObj);
-
-    const payload = { ...filtersObj };
-
-    // Search overrides
-    if (searchText) {
-      if (searchBy === "emp_id") payload.emp_id = [searchText];
-      else if (searchBy === "clients") payload.clients = [searchText];
-      else if (searchBy === "client_partner") payload.client_partner = [searchText];
-    }
-
-    runFetch(payload);
+    runFetch(buildPayload(filtersObj));
   };
 
-  // -------------------
-  // 🔹 Search input
-  // -------------------
+  /* ----------------------------------------------------
+     🔹 Search
+  ---------------------------------------------------- */
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchText(value);
-
-    const payload = { ...filters };
-    if (searchBy === "emp_id") payload.emp_id = [value];
-    else if (searchBy === "clients") payload.clients = [value];
-    else if (searchBy === "client_partner") payload.client_partner = [value];
-
-    runFetch(payload);
+    runFetch(buildPayload(filters, value));
   };
 
-  // -------------------
-  // 🔹 File Upload
-  // -------------------
+  /* ----------------------------------------------------
+     🔹 File Upload
+  ---------------------------------------------------- */
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    setFileName(file.name);
-    setTableLoading(true);
-    const token = localStorage.getItem("access_token");
-
-    try {
-      await fetchDataFromBackend(file, token);
-    } finally {
-      setTableLoading(false);
-      setTimeout(() => setFileName(null), 3000);
-    }
-  };
-
-  // -------------------
-  // 🔹 Employee Modal
-  // -------------------
-  const handleOpenEmployeeModal = (employee) => {
-    console.log("Opening modal for employee:", employee);
-    setSelectedEmployee(employee);
-    setShowModal(true);
-  };
-
-  // -------------------
-  // 🔹 Download Template
-  // -------------------
-  const handleDownloadTemplate = async () => {
     setTableLoading(true);
     try {
-      await downloadExcel();
+      await fetchDataFromBackend(file, localStorage.getItem("access_token"));
     } finally {
       setTableLoading(false);
     }
   };
 
-  // -------------------
-  // 🔹 Popups
-  // -------------------
+  /* ----------------------------------------------------
+     🔹 KPI
+  ---------------------------------------------------- */
+  const totalAllowance = shiftSummary?.total || 0;
+
+  const shiftKpiCards = Object.entries(shiftSummary || {})
+    .filter(([k]) => !["total", "headcount", "head_count"].includes(k))
+    .map(([ShiftType, ShiftCount]) => ({
+      ShiftType,
+      ShiftCount,
+      ShiftCountSize: "2rem",
+      ShiftTypeSize: "1rem",
+    }));
+
+  /* ----------------------------------------------------
+     🔹 Popups
+  ---------------------------------------------------- */
   useEffect(() => {
-    if (errorFileLink) {
-      setPopupMessage("File processed with errors. Please review.");
-      setPopupSeverity("error");
-      setPopupOpen(true);
-    } else if (error) {
-      setPopupMessage(error);
-      setPopupSeverity("error");
-      setPopupOpen(true);
-    } else if (success) {
-      setPopupMessage(success);
-      setPopupSeverity("success");
+    if (errorFileLink || error || success) {
+      setPopupMessage(errorFileLink ? "File processed with errors." : error || success);
+      setPopupSeverity(errorFileLink || error ? "error" : "success");
       setPopupOpen(true);
     }
   }, [errorFileLink, error, success]);
 
 
-  useEffect(() => {
-  if (popupMessage) {
+const handleExportData = async () => {
+  try {
+    setTableLoading(true);
+
+    if (!currentPayload) return;
+
+    // remove pagination before sending
+    const { start, limit, ...exportPayload } = currentPayload;
+
+    await downloadFilteredExcel(exportPayload);
+
+  } catch (err) {
+    setPopupMessage("Failed to export data");
+    setPopupSeverity("error");
     setPopupOpen(true);
-    const timer = setTimeout(() => setPopupOpen(false), 4000);
-    return () => clearTimeout(timer);
+  } finally {
+    setTableLoading(false);
   }
-}, [popupMessage]);
-
-  // -------------------
-  // 🔹 KPI Cards
-  // -------------------
-
-  // rows is your table data
-const totalAllowance = shiftSummary?.total||0;
-console.log("Total Allowance:", shiftSummary);
-
-const shiftTotals = Object.fromEntries(
-  Object.entries(shiftSummary || {}).filter(
-    ([key]) => !["total", "head_count", "headcount"].includes(key)
-  )
-);
-
-
-const shiftKpiCards = Object.entries(shiftTotals).map(([shiftKey, value]) => ({
-  ShiftType: shiftKey,
-  ShiftCount: value,
-  ShiftCountSize: "2rem",
-  ShiftTypeSize: "1rem",
-}));
+};
 
 
 
 
+
+
+
+  /* ----------------------------------------------------
+     🔹 UI
+  ---------------------------------------------------- */
   return (
-    <Box sx={{ width: "100%", pt: 2, pb: 4, px: 2, position: "relative" }}>
+    <Box sx={{ width: "100%", p: 2, position: "relative" }}>
       {tableLoading && (
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "rgba(0,0,0,0.3)",
-            backdropFilter: "blur(8px)",
-          }}
-        >
-          <CircularProgress size={40} />
+        <Box sx={{ position: "absolute", inset: 0, zIndex: 9, display: "flex", justifyContent: "center", alignItems: "center", background: "rgba(0,0,0,0.3)" }}>
+          <CircularProgress />
         </Box>
       )}
 
       {/* Header */}
       <Box display="flex" justifyContent="space-between" mb={3}>
-        <Box display="flex" alignItems="center" gap={1} onClick={() => navigate("/")} sx={{ cursor: "pointer" }}>
-          <img src={arrow} alt="back" style={{ width: 16, height: 16 }} />
-          <Typography fontWeight={500} fontSize={16}>Shift Allowances Data</Typography>
+        <Box display="flex" alignItems="center" gap={1} onClick={() => navigate("/")}>
+          <img src={arrow} alt="back" />
+          <Typography>Shift Allowances Data</Typography>
         </Box>
 
-        <Stack direction="row" spacing={1} alignItems="center">
-          <ActionButton
-            content={() => (
-              <Button variant="contained" component="label" sx={{ backgroundColor: "#1C2F72" }}>
-                Upload File
-                <input type="file" hidden onClick={e => (e.target.value = null)} onChange={handleFileChange} />
-              </Button>
-            )}
-          />
-          <Button sx={{ backgroundColor: "#1C2F72", color: "#fff" }} onClick={handleDownloadTemplate}>
+        <Stack direction="row" spacing={1}>
+          <Button variant="contained" component="label" sx={{
+            backgroundColor:"#1C2F72",
+            textTransform: 'none'
+          }}>
+            Upload File
+            <input hidden type="file" onChange={handleFileChange} />
+          </Button>
+          <Button variant="outlined" sx={{
+            backgroundColor:"white",
+            color:"#1C2F72",
+            textTransform: 'none',
+            border:"1px solid #1C2F72"
+          }} onClick={handleExportData}
+>
+            Export Data
+          </Button>
+          <Button variant="contained" onClick={downloadExcel} sx={{
+            border:"none",
+            background:"transparent",
+            boxShadow:"none",
+            color:"#0F3C70",
+            textTransform: 'none'
+          }}>
             Download Template
           </Button>
         </Stack>
       </Box>
 
-      {/* KPI Cards */}
-      <Box sx={{ display: "flex", gap: 2, mb: 6, flexWrap: "wrap" }}>
-<KpiCard HeaderIcon={allowanceIcon} HeaderText="Total Allowance" BodyNumber={totalAllowance} />
-{shiftKpiCards.map((card, idx) => (
-  <ShiftKpiCard
-    key={idx}
-    ShiftType={card.ShiftType}
-    ShiftCount={card.ShiftCount}
-    ShiftCountSize={card.ShiftCountSize}
-    ShiftTypeSize={card.ShiftTypeSize}
-  />
-))}
-
-</Box>
-
-
-      {/* Search + Filter */}
-      <Box display="flex" gap={2} mb={3} alignItems="center" justifyContent="flex-end">
-        <input
-          type="text"
-          placeholder="Search..."
-          value={searchText}
-          onChange={handleSearchChange}
-          style={{ padding: "8px 12px", borderRadius: 6, border: "1px solid #d1d5db" }}
-        />
-        <select value={searchBy} onChange={e => setSearchBy(e.target.value)} style={{ padding: "9px 15px", borderRadius: 7 }}>
-          <option value="emp_id">Employee ID</option>
-          <option value="clients">Clients</option>
-          <option value="client_partner">Client Partner</option>
-        </select>
-
- <FilterDrawer
-        onApply={handleApplyFilters}
-        filters={filters}
-      />
+      {/* KPI */}
+      <Box display="flex" gap={2} mb={4} flexWrap="wrap">
+        <KpiCard HeaderIcon={allowanceIcon} HeaderText="Total Allowance" BodyNumber={totalAllowance} />
+        {shiftKpiCards.map((kpi, i) => (
+          <ShiftKpiCard key={i} {...kpi} />
+        ))}
       </Box>
 
-     
+      {/* Search + Filter */}
+     <div className="flex items-center justify-between gap-4 mb-3">
+  {/* Left */}
+  <div>
+    <p className="text-sm font-semibold text-gray-800">
+      Employee Details
+    </p>
+  </div>
 
-      {/* Data Table */}
+  {/* Right */}
+  <div className="flex items-center gap-2">
+    <SearchInput
+      value={searchText}
+      placeholder={
+        searchBy === "emp_id"
+          ? "Search Employee ID"
+          : searchBy === "clients"
+          ? "Search Client"
+          : "Search Client Partner"
+      }
+      onChange={(value) => {
+        setSearchText(value);
+
+        const payload = { ...filters };
+
+        if (value.trim()) {
+          if (searchBy === "emp_id") {
+            payload.emp_id = value.trim();
+          } else if (searchBy === "client_partner") {
+            payload.client_partner = value.trim();
+          } else if (searchBy === "clients") {
+            payload.clients = [value.trim()];
+          }
+        } else {
+          delete payload.emp_id;
+          delete payload.client_partner;
+          delete payload.clients;
+        }
+
+        debouncedRunFetch(payload);
+      }}
+    />
+
+    <select
+      value={searchBy}
+      onChange={(e) => setSearchBy(e.target.value)}
+      className="
+      custom-select
+        border border-[#E0E0E0]
+        rounded-sm px-2 py-2
+        text-sm bg-white
+        focus:outline-none
+        text-gray-400
+        max-w-sm
+        w-[212px]
+      "
+    >
+      <option value="emp_id">Employee ID</option>
+      <option value="clients">Clients</option>
+      <option value="client_partner">Client Partner</option>
+    </select>
+
+    <FilterDrawer onApply={handleApplyFilters} filters={filters} />
+  </div>
+</div>
+
+
+      {/* Table */}
       <ReusableTable
         data={tableData}
         columns={allowanceColumns}
-        getRowKey={row => row.emp_id}
-        onActionClick={handleOpenEmployeeModal}
+        getRowKey={(row) => row.emp_id}
+        onActionClick={(emp) => {
+          setSelectedEmployee(emp);
+          setShowModal(true);
+        }}
       />
 
-      {showModal && selectedEmployee && (
-  <EmployeeModal
-    employee={selectedEmployee}
-    onClose={() => setShowModal(false)}
-    setPopupMessage={setPopupMessage}
-    setPopupType={setPopupSeverity}
-  />
-)}
+      {showModal && (
+        <EmployeeModal employee={selectedEmployee} onClose={() => setShowModal(false)} />
+      )}
 
-
-      {/* Popup */}
       <PopupMessage
-        open={popupOpen}
-        message={popupMessage}
-        severity={popupSeverity}
-        onClose={() => setPopupOpen(false)}
-        actions={popupSeverity === "error" && errorFileLink ? (
-          <>
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => navigate("/shift-allowance/edit", { state: { errorRows: safeErrorRows } })}
-            >
-              Edit
-            </Button>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => downloadErrorExcel(errorFileLink)}
-            >
-              Download Error File
-            </Button>
-          </>
-        ) : null}
-      />
+  open={popupOpen}
+  message={popupMessage}
+  severity={popupSeverity}
+  onClose={() => setPopupOpen(false)}
+  actions={
+    popupSeverity === "error" && errorFileLink ? (
+      <>
+        <Button
+          variant="contained"
+          size="small"
+          onClick={() =>
+            navigate("/shift-allowance/edit", {
+              state: { errorRows: safeErrorRows },
+            })
+          }
+        >
+          Edit
+        </Button>
+
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => downloadErrorExcel(errorFileLink)}
+        >
+          Download Error File
+        </Button>
+      </>
+    ) : null
+  }
+/>
+
     </Box>
   );
 };

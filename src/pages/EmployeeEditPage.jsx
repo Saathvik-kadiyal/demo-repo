@@ -56,6 +56,17 @@ const EmployeeEditPage = () => {
  
  
   const TEXT_FIELDS = ["payroll_month", "duration_month"];
+  const NUMBER_FIELDS = [
+  "PST_MST",
+  "US_INDIA",
+  "SG",
+  "ANZ",
+  "total_days",
+  "Timesheet Billable Days",
+  "Timesheet Non Billable Days",
+  "Final Total Days",
+];
+
  
   const isFieldInvalid = (field, value) => {
     if (selectedEmployee?.reason?.[field]) return true;
@@ -80,45 +91,123 @@ const EmployeeEditPage = () => {
     }
   }, [selectedEmployee]);
  
-  const handleSave = async () => {
-    if (!selectedEmployee) return;
- 
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      setPopupMessage("You are not authenticated. Please login again.");
-      setPopupType("error");
-      setPopupOpen(true);
+const handleSave = async () => {
+  if (!selectedEmployee) return;
+
+  const token = localStorage.getItem("access_token");
+  if (!token) {
+    setPopupMessage("You are not authenticated. Please login again.");
+    setPopupType("error");
+    setPopupOpen(true);
+    return;
+  }
+
+  try {
+    // 🧩 Merge base + edited values
+    const row = {
+      ...selectedEmployee,
+      ...editedFields,
+    };
+
+    // 🔢 Shift days (MANDATORY)
+    const shiftDays = {
+      PST_MST: Number(row.PST_MST) || 0,
+      US_INDIA: Number(row.US_INDIA) || 0,
+      SG: Number(row.SG) || 0,
+      ANZ: Number(row.ANZ) || 0,
+    };
+
+    const totalDays =
+      shiftDays.PST_MST +
+      shiftDays.US_INDIA +
+      shiftDays.SG +
+      shiftDays.ANZ;
+
+    if (totalDays <= 0) {
+      setSaveError("At least one shift day must be greater than 0");
       return;
     }
- 
-    try {
-      const correctedRow = { ...selectedEmployee, ...editedFields };
-      delete correctedRow.reason;
-      console.log(correctedRow)
- 
-      const data = await correctEmployeeRows([correctedRow]);
-      console.log(data)
- 
- 
-      if (data?.message) {
-        setPopupMessage(`EMP ID: ${correctedRow.emp_id} - ${data.message}`);
-        setPopupType("success");
-        setPopupOpen(true);
- 
-        const updatedErrors = errorRows.filter(
-          (r) => r.emp_id !== correctedRow.emp_id
-        );
-        setErrorRows(updatedErrors);
- 
-        setTimeout(() => setSelectedEmployee(null), 1000);
-        setSaveError("");
-      }
-    } catch (err) {
-      const errorMsg =
-        err?.detail?.failed_rows?.[0]?.reason || err?.message || "Unknown error";
-      setSaveError(`Failed to save EMP ID: ${selectedEmployee.emp_id} - ${errorMsg}`);
-    }
-  };
+
+    // 💰 Shift allowances (map exactly what backend expects)
+    const shiftAllowances = {
+      PST_MST_ALLOWANCE: Number(row["PST/ MST  Allowances"]) || 0,
+      US_INDIA_ALLOWANCE: Number(row["US/India\nAllowances"]) || 0,
+      SG_ALLOWANCE: Number(row["SG – Singapore Allowances"]) || 0,
+      ANZ_ALLOWANCE:
+        Number(row["ANZ – Australia New Zealand\n Allowances"]) || 0,
+    };
+
+    // 📦 FINAL BACKEND PAYLOAD
+    const payload = {
+      corrected_rows: [
+        {
+          emp_id: row.emp_id,
+          emp_name: row.emp_name,
+          grade: row.grade,
+          "Current Status(e)": row.current_status,
+          department: row.department,
+          client: row.client,
+          project: row.project,
+          project_code: row.project_code,
+          client_partner: row.client_partner,
+          practice_lead: row.practice_lead,
+          delivery_manager: Number(row.delivery_manager) || 0,
+          duration_month: row.duration_month,
+          payroll_month: row.payroll_month,
+
+          shift_days: shiftDays,
+          shift_allowances: shiftAllowances,
+
+          total_days: totalDays,
+          total_days_allowances:
+            Object.values(shiftAllowances).reduce((a, b) => a + b, 0),
+
+          timesheet_billable_days:
+            Number(row["Timesheet Billable Days"]) || 0,
+          timesheet_non_billable_days:
+            Number(row["Timesheet Non Billable Days"]) || 0,
+
+          diff: Number(row.Diff) || 0,
+          final_total_days: totalDays,
+          billability_status: row.billability_status,
+
+          practice_remarks: Number(row.practice_remarks) || 0,
+          rmg_comments: Number(row.rmg_comments) || 0,
+          amar_approval: Number(row["Amar Approval"]) || 0,
+          am_email_attempt: row["AM Email Attempt(e)"],
+          am_approval_status: Number(row["AM Approval Status(e)"]) || 0,
+        },
+      ],
+    };
+
+    console.log("🚀 Final backend payload:", payload);
+
+    const data = await correctEmployeeRows(payload);
+
+    setPopupMessage(`EMP ID: ${row.emp_id} - ${data.message}`);
+    setPopupType("success");
+    setPopupOpen(true);
+
+    setErrorRows((prev) =>
+      prev.filter((r) => r.emp_id !== row.emp_id)
+    );
+
+    setTimeout(() => setSelectedEmployee(null), 1000);
+  } catch (err) {
+    const errorMsg =
+      err?.detail?.failed_rows?.[0]?.reason ||
+      err?.message ||
+      "Unknown error";
+
+    setSaveError(
+      `Failed to save EMP ID: ${selectedEmployee.emp_id} - ${errorMsg}`
+    );
+  }
+};
+
+
+
+
  
   const handleDownloadErrorRows = () => {
     if (!errorRows || errorRows.length === 0) return;
@@ -406,6 +495,7 @@ const EmployeeEditPage = () => {
 };
  
 export default EmployeeEditPage;
+ 
  
  
  

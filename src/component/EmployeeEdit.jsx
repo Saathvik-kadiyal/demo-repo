@@ -3,12 +3,14 @@ import { Box, Typography, Paper, TextField, Button } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { correctEmployeeRows } from "../utils/helper.js";
 
-const EDITABLE_FIELDS = ["shift_a_days", "shift_b_days", "shift_c_days", "prime_days"];
+const EDITABLE_FIELDS = ["PST_MST", "US_INDIA", "SG", "ANZ"];
+console.log("EmployeeEdit rendered");
+
 const FIELD_LABEL_MAP = {
-  shift_a_days: "Shift A",
-  shift_b_days: "Shift B",
-  shift_c_days: "Shift C",
-  prime_days: "Prime",
+  PST_MST: "PST / MST",
+  US_INDIA: "US / India",
+  SG: "Singapore",
+  ANZ: "Australia / New Zealand",
 };
 
 const BACKEND_TO_FRONTEND = {
@@ -38,17 +40,33 @@ const EmployeeEdit = () => {
   }
 
   const handleSave = async () => {
+    console.log("Save button clicked");
     const token = localStorage.getItem("access_token");
     if (!token) return;
 
+    // 🔒 FINAL SANITIZATION
+    const payload = {
+      ...editRow,
+      PST_MST: Number(editRow.PST_MST) || 0,
+      US_INDIA: Number(editRow.US_INDIA) || 0,
+      SG: Number(editRow.SG) || 0,
+      ANZ: Number(editRow.ANZ) || 0,
+    };
+    console.log("Prepared payload for backend:", payload);
     try {
-      const data = await correctEmployeeRows([editRow]);
+      const data = await correctEmployeeRows([payload]);
       let message = "";
 
-      if (data && (data.success === true || (data.message && data.message.toLowerCase().includes("success")))) {
+      if (
+        data &&
+        (data.success === true ||
+          (data.message && data.message.toLowerCase().includes("success")))
+      ) {
         message = `EMP ID: ${editRow.emp_id} - ${data.message}`;
       } else {
-        message = `EMP ID: ${editRow.emp_id} update failed: ${data.message || "Unknown error"}`;
+        message = `EMP ID: ${editRow.emp_id} update failed: ${
+          data.message || "Unknown error"
+        }`;
       }
 
       setSaveSuccess(message);
@@ -62,15 +80,24 @@ const EmployeeEdit = () => {
   return (
     <Box p={3}>
       <Typography variant="h5" mb={3}>
-        Employee Details – EMP ID: {editRow.emp_id}
+        Employee Details dddd– EMP ID: {editRow.emp_id}
       </Typography>
 
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 3 }}>
         {Object.entries(editRow).map(([key, value]) => {
           if (!EDITABLE_FIELDS.includes(key)) {
             return (
-              <Paper key={key} sx={{ p: 2, flex: "1 1 calc(30% - 16px)", backgroundColor: "#fafafa" }}>
-                <Typography fontWeight={600}>{BACKEND_TO_FRONTEND[key] || key.toUpperCase()}</Typography>
+              <Paper
+                key={key}
+                sx={{
+                  p: 2,
+                  flex: "1 1 calc(30% - 16px)",
+                  backgroundColor: "#fafafa",
+                }}
+              >
+                <Typography fontWeight={600}>
+                  {BACKEND_TO_FRONTEND[key] || key.toUpperCase()}
+                </Typography>
                 <Typography>{value ?? "-"}</Typography>
               </Paper>
             );
@@ -82,31 +109,45 @@ const EmployeeEdit = () => {
       <Typography variant="h6" mb={1}>
         Edit Shift Days
       </Typography>
+
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-        {EDITABLE_FIELDS.map((field) => {
-          const errorMessage = editRow.reason?.[field];
-          return (
-            <Paper key={field} sx={{ p: 2, flex: "1 1 calc(25% - 16px)" }}>
-              <Typography fontWeight={600}>{FIELD_LABEL_MAP[field]}</Typography>
-              <TextField
-                fullWidth
-                size="small"
-                value={editRow[field] ?? ""}
-                onChange={(e) => setEditRow((prev) => ({ ...prev, [field]: e.target.value }))}
-                error={Boolean(errorMessage)}
-                helperText={errorMessage}
-              />
-            </Paper>
-          );
-        })}
+        {EDITABLE_FIELDS.map((field) => (
+          <Paper key={field} sx={{ p: 2, flex: "1 1 calc(25% - 16px)" }}>
+            <Typography fontWeight={600}>{FIELD_LABEL_MAP[field]}</Typography>
+            <TextField
+              fullWidth
+              size="small"
+              type="number"
+              value={editRow[field] ?? 0}
+              onChange={(e) => {
+                const raw = e.target.value;
+
+                setEditRow((prev) => ({
+                  ...prev,
+                  [field]: raw === "" ? 0 : parseInt(raw, 10),
+                }));
+              }}
+            />
+          </Paper>
+        ))}
       </Box>
 
-      <Button variant="contained" sx={{ mt: 3 }} onClick={handleSave}>
+      <Button
+        variant="contained"
+        onClick={() =>
+          alert("This will trigger the save functionality in the future.")
+        }
+      >
         Save
       </Button>
 
       {saveSuccess && (
-        <Typography color={saveSuccess.includes("successfully") ? "success.main" : "error"} sx={{ mt: 1 }}>
+        <Typography
+          color={
+            saveSuccess.includes("successfully") ? "success.main" : "error"
+          }
+          sx={{ mt: 1 }}
+        >
           {saveSuccess}
         </Typography>
       )}
@@ -119,5 +160,3 @@ const EmployeeEdit = () => {
 };
 
 export default EmployeeEdit;
-
-

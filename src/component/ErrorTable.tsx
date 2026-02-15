@@ -14,7 +14,8 @@ import {
   Tooltip,
 } from "@mui/material";
 import { Pen, ChevronRight } from "lucide-react";
- 
+import infoIcon from "../assets/info.svg"
+import arrowright from "../assets/arrowright.svg"
 type EditTableProps = {
   rows: any[];
   page: number;
@@ -25,7 +26,7 @@ type EditTableProps = {
   isHiddenField: (key: string) => boolean;
   headerMap: Record<string, string>;
 };
- 
+
 const ErrorTable: React.FC<EditTableProps> = ({
   rows,
   page,
@@ -37,7 +38,7 @@ const ErrorTable: React.FC<EditTableProps> = ({
   headerMap,
 }) => {
   const [expandedRowIdx, setExpandedRowIdx] = useState<number | null>(null);
- 
+
   return (
     <>
       <Box>
@@ -55,7 +56,9 @@ const ErrorTable: React.FC<EditTableProps> = ({
             sx={{
               position: "sticky",
               top: 0,
-              zIndex: 4,
+              zIndex: 10,
+              left: 0,
+              right: 0,
               px: 2,
               py: 1.5,
               borderBottom: "1px solid #e5e7eb",
@@ -66,7 +69,7 @@ const ErrorTable: React.FC<EditTableProps> = ({
               Error Records
             </Typography>
           </Box>
- 
+
           <Table stickyHeader>
             <TableHead>
               <TableRow
@@ -85,7 +88,7 @@ const ErrorTable: React.FC<EditTableProps> = ({
                 <TableCell sx={{ width: 50, textAlign: "center" }}>
                   Info
                 </TableCell>
- 
+
                 {Object.keys(rows[0] || {})
                   .filter((key) => !isHiddenField(key))
                   .map((key) => (
@@ -93,11 +96,11 @@ const ErrorTable: React.FC<EditTableProps> = ({
                       {headerMap[key] || key.toUpperCase()}
                     </TableCell>
                   ))}
- 
+
                 <TableCell>Action</TableCell>
               </TableRow>
             </TableHead>
- 
+
             <TableBody>
               {rows.length === 0 ? (
                 <TableRow>
@@ -114,79 +117,105 @@ const ErrorTable: React.FC<EditTableProps> = ({
                     const actualIndex = page * rowsPerPage + idx;
                     const hasErrors =
                       row.reason && Object.keys(row.reason).length > 0;
- 
+
                     return (
                       <TableRow key={idx}>
-                        {/* Info Icon */}
-                        <TableCell sx={{ textAlign: "center" }}>
+
+
+                        <TableCell sx={{ textAlign: "center", position: "relative" }}>
                           {hasErrors && (
-                            <Tooltip
-                              open={expandedRowIdx === actualIndex}
-                              onClose={() => setExpandedRowIdx(null)}
-                              disableFocusListener
-                              disableHoverListener
-                              disableTouchListener
-                              placement="right"
-                              arrow
-                              disablePortal
-                              title={
-                                <Box>
-                                  <Typography sx={{ fontSize: 12 }}>
+                            <>
+                              {/* Info icon */}
+                              <Box
+                                component="img"
+                                src={infoIcon}
+                                alt="info"
+                                sx={{ width: 18, height: 18, cursor: "pointer" }}
+                                onClick={() =>
+                                  setExpandedRowIdx(expandedRowIdx === actualIndex ? null : actualIndex)
+                                }
+                              />
+
+
+                              {expandedRowIdx === actualIndex && (
+                                <Box
+                                  sx={{
+                                    position: "absolute",
+                                    top: "50%",
+                                    left: "110%",
+                                    transform: "translateY(-50%)",
+                                    width: 454,
+                                    height: 40,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 0, // 8px
+                                    background: "#FCE8E8",
+                                    borderLeft: "4px solid var(--Design-System-Error, #EB5757)",
+                                    borderRadius: "8px",
+                                    padding: "8px 12px ",
+                                    boxShadow: "0px 2px 16px 0px #68B0DA0A",
+                                    zIndex: 1000,
+                                    cursor: "default",
+                                  }}
+                                >
+
+                                  <Typography
+                                    sx={{
+                                      fontSize: 12,
+                                      color: "#000000",
+                                      whiteSpace: "nowrap",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      flex: 1,
+                                    }}
+                                  >
                                     {Object.entries(row.reason)
-                                      .map(
-                                        ([key, val]) =>
-                                          `${key}: ${val}`
-                                      )
+                                      .map(([key, val]) => `${key}: ${val}`)
                                       .join(", ")}
                                   </Typography>
- 
+
                                   <Typography
                                     sx={{
                                       color: "#253D8D",
                                       cursor: "pointer",
                                       fontWeight: 500,
                                       fontSize: 12,
-                                      mt: 0.5,
                                     }}
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      const firstErrorKey =
-                                        Object.keys(row.reason)[0];
-                                      const cell =
-                                        document.getElementById(
-                                          `cell-${row.emp_id}-${firstErrorKey}`
-                                        );
+                                      const firstErrorKey = Object.keys(row.reason)[0];
+                                      const cell = document.getElementById(
+                                        `cell-${row.emp_id}-${firstErrorKey}`
+                                      );
                                       if (cell) {
-                                        cell.scrollIntoView({
-                                          behavior: "smooth",
-                                          block: "center",
-                                        });
+                                        cell.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                                        cell.style.backgroundColor = "#FFE5E5";
+                                        setTimeout(() => (cell.style.backgroundColor = ""), 1200);
                                       }
                                       setExpandedRowIdx(null);
                                     }}
                                   >
-                                    Check Details →
+                                    <span> Check Details</span>
+                                    <Box
+                                      component="img"
+                                      src={arrowright}
+                                      alt="arrow"
+                                      sx={{
+                                        wifth: 14,
+                                        height: 14,
+                                        ml: 0.5,
+                                        display: "inline-block"
+                                      }}
+                                    />
+
                                   </Typography>
                                 </Box>
-                              }
-                            >
-                              <ChevronRight
-                                size={18}
-                                style={{
-                                  cursor: "pointer",
-                                }}
-                                onClick={() =>
-                                  setExpandedRowIdx(
-                                    expandedRowIdx === actualIndex
-                                      ? null
-                                      : actualIndex
-                                  )
-                                }
-                              />
-                            </Tooltip>
+                              )}
+                            </>
                           )}
                         </TableCell>
- 
+
+
                         {/* Data Cells */}
                         {Object.keys(row)
                           .filter((key) => !isHiddenField(key))
@@ -194,12 +223,12 @@ const ErrorTable: React.FC<EditTableProps> = ({
                             const isActive =
                               key === "Current_Status" &&
                               row[key] === "Active";
- 
+
                             const isError =
                               !isActive &&
                               row.reason &&
                               row.reason[key];
- 
+
                             return (
                               <TableCell
                                 key={key}
@@ -210,8 +239,8 @@ const ErrorTable: React.FC<EditTableProps> = ({
                                   color: isError
                                     ? "#E53935"
                                     : isActive
-                                    ? "#3183E3"
-                                    : "#1A1A1A",
+                                      ? "#3183E3"
+                                      : "#1A1A1A",
                                   fontWeight:
                                     isError || isActive ? 500 : 400,
                                 }}
@@ -234,13 +263,15 @@ const ErrorTable: React.FC<EditTableProps> = ({
                                   >
                                     Active
                                   </Box>
+                                ) : isError ? (
+                                  row.reason[key]
                                 ) : (
                                   row[key] ?? "-"
                                 )}
                               </TableCell>
                             );
                           })}
- 
+
                         {/* Edit */}
                         <TableCell>
                           <IconButton
@@ -257,7 +288,7 @@ const ErrorTable: React.FC<EditTableProps> = ({
             </TableBody>
           </Table>
         </TableContainer>
- 
+
         <TablePagination
           component="div"
           count={rows.length}
@@ -271,7 +302,7 @@ const ErrorTable: React.FC<EditTableProps> = ({
     </>
   );
 };
- 
+
 export default ErrorTable;
- 
- 
+
+

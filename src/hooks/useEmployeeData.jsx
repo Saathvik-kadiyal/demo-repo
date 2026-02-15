@@ -176,6 +176,7 @@ export const useEmployeeData = () => {
   //   async (start = 0, limit = 10, params = {}) => {
 const getProcessedData = useCallback(
   async (payload) => {
+    console.log("Fetching with payload:", payload);
     try {
       setLoading(true);
 

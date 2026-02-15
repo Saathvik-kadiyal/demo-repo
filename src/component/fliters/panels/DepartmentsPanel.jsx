@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../../utils/axiosInstance";
+import selectIcon from "../../../assets/select.svg";
+import unselectIcon from "../../../assets/unselect.svg";
 
 const DepartmentsPanel = ({ filters, setFilters }) => {
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // ✅ safe fallback
   const selectedDepartments = filters.departments ?? [];
 
   useEffect(() => {
@@ -51,28 +52,24 @@ const DepartmentsPanel = ({ filters, setFilters }) => {
 
       {loading && <p className="text-sm text-gray-400">Loading...</p>}
 
-      {departments.length > 0 &&
-        departments.map((dept) => {
-          const selected = selectedDepartments.includes(dept);
+      {departments.map((dept) => {
+        const selected = selectedDepartments.includes(dept);
 
-          return (
-            <div
-              key={dept}
-              onClick={() => toggle(dept)}
-              className="flex items-center gap-2 cursor-pointer py-1"
-            >
-              <span
-                className={`text-lg font-bold ${
-                  selected ? "text-blue-600" : "text-gray-400"
-                }`}
-              >
-                ✓
-              </span>
-
-              <span className="text-sm">{dept}</span>
-            </div>
-          );
-        })}
+        return (
+          <div
+            key={dept}
+            onClick={() => toggle(dept)}
+            className="flex items-center gap-2 cursor-pointer py-4 px-2 border-b border-[#C6C8CA] hover:bg-gray-50"
+          >
+            <img
+              src={selected ? selectIcon : unselectIcon}
+              alt={selected ? "selected" : "unselected"}
+              className="w-4 h-4"
+            />
+            <span className="text-sm">{dept}</span>
+          </div>
+        );
+      })}
     </div>
   );
 };

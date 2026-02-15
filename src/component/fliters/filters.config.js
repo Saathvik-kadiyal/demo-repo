@@ -3,7 +3,7 @@ import EmployeeIdPanel from "./panels/EmployeeIdPanel";
 import AllowancePanel from "./panels/AllowancePanel";
 import DepartmentsPanel from "./panels/DepartmentsPanel";
 import HeadcountsPanel from "./panels/HeadCountsPanel.jsx";
-import PeriodPanel from "./panels/PEriodPanel.jsx";
+import PeriodPanel from "./panels/PeriodPanel.jsx";
 
 export const filterTabs = [
   { key: "client", label: "Client", component: ClientPanel },
