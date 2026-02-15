@@ -53,6 +53,7 @@ export const buildClientSummary = () =>
     header: "Headcount",
     sortable: true,
     sortFn: (a, b) => (a.head_count || 0) - (b.head_count || 0),
+      render: (v, row) => row.head_count ?? 1,
   },
   {
     key: "total_allowance",
