@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../../utils/axiosInstance";
+import selectIcon from "../../../assets/select.svg";
+import unselectIcon from "../../../assets/unselect.svg";
 
 const ClientPanel = ({ filters, setFilters }) => {
   const [clients, setClients] = useState([]);
@@ -23,8 +25,7 @@ const ClientPanel = ({ filters, setFilters }) => {
     fetchClients();
   }, []);
 
-  // Always fallback to empty array
-  const selectedClients = filters.client ?? [];
+  const selectedClients = filters.clients ?? [];
 
   const toggle = (client) => {
     const exists = selectedClients.includes(client);
@@ -34,7 +35,6 @@ const ClientPanel = ({ filters, setFilters }) => {
       : [...selectedClients, client];
 
     setFilters((prev) => {
-      // remove key if empty
       if (next.length === 0) {
         const copy = { ...prev };
         delete copy.client;
@@ -43,7 +43,7 @@ const ClientPanel = ({ filters, setFilters }) => {
 
       return {
         ...prev,
-        client: next,
+        clients: next,
       };
     });
   };
@@ -61,15 +61,13 @@ const ClientPanel = ({ filters, setFilters }) => {
           <div
             key={client}
             onClick={() => toggle(client)}
-            className="flex items-center gap-2 cursor-pointer py-1"
+            className="flex items-center gap-2 cursor-pointer py-4 px-2 border-b border-[#C6C8CA]"
           >
-            <span
-              className={`text-lg font-bold ${
-                selected ? "text-blue-600" : "text-gray-400"
-              }`}
-            >
-              ✓
-            </span>
+            <img
+              src={selected ? selectIcon : unselectIcon}
+              alt={selected ? "selected" : "unselected"}
+              className="w-4 h-4"
+            />
 
             <span className="text-sm">{client}</span>
           </div>

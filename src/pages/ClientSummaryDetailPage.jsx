@@ -1,109 +1,166 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Box, Button, Typography, CircularProgress } from "@mui/material";
-import { downloadClientSummary, fetchClientSummary } from "../utils/helper";
+import {
+  fetchClientSummary,
+  downloadClientSummary,
+} from "../utils/helper";
+import { normalizeFilters } from "../utils/normalizeFilters";
 import ReusableTable from "../component/ReusableTable/ReusableTable";
-import { normalizeClientSummaryData } from "../component/ReusableTable/normalizeApiData";
 import {
   clientAnalyticsClientColumns,
   clientAnalyticsEmployeeColumns,
 } from "../component/ReusableTable/columns";
-import { normalizeFilters } from "../utils/normalizeFilters";
+import { normalizeClientSummaryData } from "../component/ReusableTable/normalizeApiData";
 import FilterDrawer from "../component/fliters/FilterDrawer";
 import calender from "../assets/calender.svg";
 import arrow from "../assets/arrow.svg";
 
 const ClientSummaryDetailedPage = () => {
   const [data, setData] = useState({});
+  const [filters, setFilters] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [expandedMonth, setExpandedMonth] = useState([]);
-  const [filters, setFilters] = useState({});
+  const [currentPayload, setCurrentPayload] = useState({});
 
-  const monthKeys = useMemo(() => {
-    return Object.keys(data)
-      .filter((k) => k !== "total" && k !== "horizontal_total")
-      .sort();
-  }, [data]);
 
-  // Function to fetch data
-  const runFetch = useCallback(async (filters) => {
-    setLoading(true);
-    setError("");
-    try {
-      const payload = normalizeFilters(filters);
-      const res = await fetchClientSummary(payload);
-      console.log(payload)
-      setData(res);
-    } catch (err) {
-      setError(err?.message || "Unable to fetch data");
-      setData({});
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+const runFetch = useCallback(async (filters) => {
+  setLoading(true);
+  setError("");
+console.log(filters)
+  try {
+    const payload = {};
 
-  // Fetch data on page load
+    // Optional filters – only include if user selected
+    if (filters.years?.length) payload.years = filters.years;
+    if (filters.months?.length) payload.months = filters.months;
+    if (filters.emp_id?.length) payload.emp_id = filters.emp_id;
+    if (filters.client_partner?.length) payload.client_partner = filters.client_partner;
+    if (filters.shifts && filters.shifts !== "ALL") payload.shifts = filters.shifts;
+    if (filters.headcounts && filters.headcounts !== "ALL") payload.headcounts = filters.headcounts;
+
+    // Always include clients and departments
+    payload.clients = filters.clients || "ALL";
+    payload.departments = filters.departments || "ALL";
+
+    // Sorting
+    payload.sort_by = "total_allowance";
+    payload.sort_order = "desc";
+
+    // Store payload for download
+    setCurrentPayload(payload);
+
+    const res = await fetchClientSummary(payload);
+    setData(res);
+  } catch (err) {
+    setError(err?.message || "Unable to fetch data");
+    setData({});
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
+
+
+
   useEffect(() => {
     runFetch(filters);
-  }, [filters,runFetch]);
+  }, [filters, runFetch]);
 
-  const handleDownload = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const payload = normalizeFilters(filters);
-      const blob = await downloadClientSummary(payload);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "client_summary.xlsx";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      setError(err.message || "Download failed");
-    } finally {
-      setLoading(false);
-    }
-  };
+const handleDownload = async () => {
+  if (!currentPayload) return;
 
- const monthSummaries = useMemo(() => {
-  const periods = data.periods || {};
+  setLoading(true);
+  setError("");
+  try {
+    const blob = await downloadClientSummary(currentPayload);
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "client_summary.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    setError(err?.message || "Download failed");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+const monthSummaries = useMemo(() => {
+  // Use the data object itself as periods
+  const periods = data || {};
   let prev = null;
+
   return Object.keys(periods).map((monthKey) => {
     const monthObj = periods[monthKey] || {};
-    const totals = monthObj.month_total || {
-      total_head_count: 0,
-      total_allowance: 0,
-    };
+    const clients = monthObj.clients || {};
+
+    // calculate totals dynamically
+    let total_head_count = 0;
+    let total_allowance = 0;
+
+    Object.values(clients).forEach((client) => {
+      total_head_count += client.client_head_count || 0;
+      total_allowance += client.client_total || 0;
+    });
+
+    const totals = { total_head_count, total_allowance };
+
     const diff = prev !== null ? totals.total_allowance - prev : 0;
     prev = totals.total_allowance;
 
     return {
       monthKey,
       totals,
-      diff,
       diffColor: diff > 0 ? "red" : diff < 0 ? "green" : "black",
-      clientsMap: monthObj.clients || {},
+      clientsMap: clients,
     };
   });
 }, [data]);
 
-  return (
-    <Box sx={{ position: "relative", py: 2, px: 4, height: "100%", overflow: "auto" }}>
-      {/* Filter & Download */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 4 }}>
-        <FilterDrawer
-  onApply={(filters) => {
-    setFilters(filters);
-  }}
-/>
 
-        <Button variant="outlined" onClick={handleDownload}>Download Data</Button>
+
+  /* ---------------------------------- UI ---------------------------------- */
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        py: 2,
+        px: 4,
+        height: "100%",
+        overflow: "auto",
+      }}
+    >
+      {/* FILTER + DOWNLOAD */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          mb: 4,
+          gap: 2,
+        }}
+      >
+        <FilterDrawer
+          onApply={(appliedFilters) => setFilters(appliedFilters)}
+        />
+
+        <Button variant="outlined" onClick={handleDownload} sx={{
+           backgroundColor:"white",
+            color:"#1C2F72",
+            textTransform: 'none',
+            border:"1px solid #1C2F72"
+        }}>
+          Export Data
+        </Button>
       </Box>
 
-      {/* Loading Overlay */}
+      {/* LOADING OVERLAY */}
       {loading && (
         <Box
           sx={{
@@ -113,81 +170,105 @@ const ClientSummaryDetailedPage = () => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "rgba(0, 0, 0, 0.3)",
+            backgroundColor: "rgba(0,0,0,0.3)",
+            backdropFilter: "blur(6px)",
           }}
         >
           <CircularProgress size={40} />
         </Box>
       )}
 
-      {/* Error */}
-      {error && <Typography color="error">{error}</Typography>}
+      {/* ERROR */}
+      {error && (
+        <Typography color="error" sx={{ mb: 2 }}>
+          {error}
+        </Typography>
+      )}
 
-      {/* Month Summaries */}
-      {monthSummaries.length === 0 && !loading && (
+      {/* EMPTY STATE */}
+      {!loading && monthSummaries.length === 0 && (
         <Typography>No data available</Typography>
       )}
 
-      {monthSummaries.map(({ monthKey, totals, diffColor, clientsMap }) => (
-        <Box key={monthKey} sx={{ mb: 2 }}>
-          {/* Month Header */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              backgroundColor: "white",
-              px: 2,
-              py: 1,
-              cursor: "pointer",
-            }}
-            onClick={() =>
-              setExpandedMonth((prev) =>
-                prev.includes(monthKey)
-                  ? prev.filter((k) => k !== monthKey)
-                  : [...prev, monthKey]
-              )
-            }
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <img src={calender} alt="calendar" />
-              <Typography fontSize={12} fontWeight={500}>{monthKey}</Typography>
-            </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <Typography fontSize={12} color={diffColor}>
-                Headcount: {totals.total_head_count}
-              </Typography>
-              <Typography fontSize={12} color={diffColor}>
-                Allowance: ₹{totals.total_allowance.toLocaleString()}
-              </Typography>
-              <img
-                src={arrow}
-                alt="arrow"
-                style={{
-                  transform: expandedMonth.includes(monthKey)
-                    ? "rotate(180deg)"
-                    : "rotate(0deg)",
-                  transition: "0.3s",
-                }}
-              />
-            </Box>
-          </Box>
+      {/* MONTH ACCORDIONS (OLD STYLE) */}
+      {monthSummaries.map(
+        ({ monthKey, totals, diffColor, clientsMap }) => (
+          <Box key={monthKey}>
+            {/* HEADER */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                backgroundColor: "white",
+                px: 2,
+                py: 1.5,
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+              onClick={() =>
+                setExpandedMonth((prev) =>
+                  prev.includes(monthKey)
+                    ? prev.filter((k) => k !== monthKey)
+                    : [...prev, monthKey]
+                )
+              }
+            >
+              {/* LEFT */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <img src={calender} alt="calendar" />
+                <Typography fontSize={12} fontWeight={500}>
+                  {monthKey}
+                </Typography>
+                <Typography fontSize={12} color={diffColor}>
+                  Headcount{" "}
+                  <span style={{ fontWeight: 600 }}>
+                    {totals.total_head_count}
+                  </span>
+                </Typography>
 
-          {/* Expanded Table */}
-          {expandedMonth.includes(monthKey) && (
-            <Box sx={{ p: 2 }}>
-              <ReusableTable
-                data={normalizeClientSummaryData({
-                  clients: clientsMap,
-                  month_total: totals,
-                })}
-                columns={clientAnalyticsClientColumns}
-                nestedColumns={clientAnalyticsEmployeeColumns}
-              />
+                <Typography fontSize={12} color={diffColor}>
+                  Allowance{" "}
+                  <span style={{ fontWeight: 600 }}>
+                    ₹{totals.total_allowance.toLocaleString()}
+                  </span>
+                </Typography>
+              </Box>
+
+              {/* RIGHT */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 4 }}>
+                
+
+                <img
+                  src={arrow}
+                  alt="arrow"
+                  style={{
+                    transform: expandedMonth.includes(monthKey)
+                      ? "rotate(180deg)"
+                      : "rotate(0deg)",
+                    transition: "0.3s ease",
+                  }}
+                />
+              </Box>
             </Box>
-          )}
-        </Box>
-      ))}
+
+            {/* EXPANDED CONTENT */}
+            {expandedMonth.includes(monthKey) && (
+              <Box>
+                <ReusableTable
+  data={normalizeClientSummaryData({
+    clients: clientsMap,
+    month_total: totals, // optional, can ignore inside normalize function
+  })}
+  columns={clientAnalyticsClientColumns}
+  nestedColumns={clientAnalyticsEmployeeColumns}
+/>
+
+              </Box>
+            )}
+          </Box>
+        )
+      )}
     </Box>
   );
 };

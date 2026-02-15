@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Eye from "../../assets/eye.svg";
+import dropDownIcon from "../../assets/arrow.svg";
 
 function getNestedValue(obj, path) {
   return path.split(".").reduce((acc, key) => acc?.[key], obj);
@@ -26,6 +27,7 @@ export default function ReusableTable({
 }) {
   const [expanded, setExpanded] = useState(new Set());
   if (!data?.length) return <div>{noDataFallback}</div>;
+  console.log(data)
 
   const toggle = (key) => {
     setExpanded((prev) => {
@@ -49,7 +51,15 @@ export default function ReusableTable({
       const elements = [];
 
       elements.push(
-        <tr key={rowKey} className={rowClassName?.(row)}>
+     <tr
+  key={rowKey}
+  className={rowClassName?.(row)}
+  style={{
+    backgroundColor:
+      row.type === "department" ? "#EAF2FB" : undefined,
+  }}
+>
+
           {columns.map((col, colIndex) => {
             const value = getNestedValue(row, col.key);
 
@@ -65,20 +75,46 @@ export default function ReusableTable({
                 {col.type === "action" ? (
                   hasChildren ? (
                     <button onClick={() => toggle(rowKey)}>
-                      {expanded.has(rowKey) ? "▼" : "▶"}
-                    </button>
+  {/* {expanded.has(rowKey) ? (
+    <span className="toggle-icon rotate-18"><img src={dropDownIcon} alt="dropdown-arrow"/></span>
+  ) : (
+    <span className="toggle-icon"><img src={dropDownIcon} alt="dropdown-arrow"/></span>
+  )} */}
+
+ <span
+  className={`toggle-icon inline-block transition-transform duration-200 ${
+    expanded.has(rowKey) ? "rotate-180" : "rotate-0"
+  }`}
+>
+
+
+  <img src={dropDownIcon} alt="dropdown-arrow" />
+</span>
+
+</button>
+
                   ) : (
                     <button onClick={() => onActionClick?.(row)}>
                       <img src={Eye} alt="view" />
                     </button>
                   )
-                ) : col.render ? (
-                  col.render(value, row, { hasChildren, toggle, expanded })
-                ) : isPrimitive(value) ? (
-                  value
-                ) : (
-                  ""
-                )}
+                ) : colIndex === 0 && row.type === "department" ? (
+  <div>
+    <div style={{ fontSize: 12, color: "#6B7280" }}>
+      Department
+    </div>
+    <div style={{ fontWeight: 500 }}>
+      {value}
+    </div>
+  </div>
+) : col.render ? (
+  col.render(value, row, { hasChildren, toggle, expanded })
+) : isPrimitive(value) ? (
+  value
+) : (
+  ""
+)}
+
               </td>
             );
           })}

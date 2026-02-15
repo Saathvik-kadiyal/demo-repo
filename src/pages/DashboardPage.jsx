@@ -177,8 +177,16 @@ const handleDashboardAction = (row) => {
           {error}
         </div>
       )}
+    <div className="flex flex-col gap-2 ">
+         <div className="flex justify-end">
+        <FilterDrawer onApply={handleFilterApply} />
+       </div>
 
-      {/* KPI SECTION */}
+     
+
+    </div>
+
+     {/* KPI SECTION */}
       <div className="flex flex-wrap gap-4 mb-4">
     <KpiCard
   loading={loading}
@@ -201,8 +209,8 @@ const handleDashboardAction = (row) => {
   loading={loading}
   HeaderIcon={peopleIcon}
   HeaderText="Headcount"
-  BodyNumber={kpiData?.headcount ?? 0}
-  BodyComparisionNumber={kpiData?.headcount_last_month ?? ""}
+  BodyNumber={kpiData?.head_count ?? 0}
+  BodyComparisionNumber={kpiData?.head_count_last_month ?? ""}
 />
 
 <KpiCard
@@ -215,11 +223,7 @@ const handleDashboardAction = (row) => {
 />
 
       </div>
-
-      {/* ACTION */}
-
-      {/* FILTERS */}
-      <FilterDrawer onApply={handleFilterApply} />
+     
 
       {/* TABLE + CHART */}
       <div className="mt-4 flex gap-4">
@@ -250,7 +254,7 @@ const handleDashboardAction = (row) => {
         </div>
 
         {/* CHART */}
-        <div className="w-[35%] rounded-xl bg-white py-4">
+        <div className="flex-1 rounded-xl bg-white ">
           {chartData ? (
             <ClientsOverviewChart apiResponse={{ data: chartData }}   onTopChange={(top) => {
     fetchDashboard({ top });

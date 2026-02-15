@@ -1,4 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
+import selectIcon from "../../../assets/select.svg";
+import unselectIcon from "../../../assets/unselect.svg";
+import dropdownArrow from "../../../assets/sort-drop.svg";
 
 const currentYear = new Date().getFullYear();
 
@@ -8,25 +11,24 @@ const yearsList = Array.from(
 );
 
 const monthsList = [
-  { label: "Jan", value: "1" },
-  { label: "Feb", value: "2" },
-  { label: "Mar", value: "3" },
-  { label: "Apr", value: "4" },
+  { label: "January", value: "1" },
+  { label: "February", value: "2" },
+  { label: "March", value: "3" },
+  { label: "April", value: "4" },
   { label: "May", value: "5" },
-  { label: "Jun", value: "6" },
-  { label: "Jul", value: "7" },
-  { label: "Aug", value: "8" },
-  { label: "Sep", value: "9" },
-  { label: "Oct", value: "10" },
-  { label: "Nov", value: "11" },
-  { label: "Dec", value: "12" }
+  { label: "June", value: "6" },
+  { label: "July", value: "7" },
+  { label: "August", value: "8" },
+  { label: "September", value: "9" },
+  { label: "October", value: "10" },
+  { label: "November", value: "11" },
+  { label: "December", value: "12" },
 ];
 
 const PeriodPanel = ({ filters, setFilters }) => {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // ✅ Safe fallbacks
   const years = filters.years ?? [];
   const months = filters.months ?? [];
 
@@ -85,28 +87,35 @@ const PeriodPanel = ({ filters, setFilters }) => {
             bg-white cursor-pointer
           "
         >
-          <span className="text-gray-700">
+          <span className="text-gray-700 truncate">
             {years.length > 0 ? years.join(", ") : "Select years"}
           </span>
-          <span className="text-gray-400">▾</span>
+
+          <img
+            src={dropdownArrow}
+            alt="dropdown"
+            className={`w-4 h-4 transition-transform ${
+              open ? "rotate-180" : ""
+            }`}
+          />
         </div>
 
         {open && (
           <div className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto rounded-lg border bg-white shadow-md">
             {yearsList.map((year) => {
-              const checked = years.includes(year);
+              const selected = years.includes(year);
               return (
                 <div
                   key={year}
                   onClick={() => toggleYear(year)}
-                  className={`
-                    flex items-center justify-between
-                    px-3 py-2 cursor-pointer text-sm
-                    ${checked ? "bg-blue-50 text-blue-700" : "hover:bg-gray-50"}
-                  `}
+                  className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-gray-50"
                 >
-                  <span>{year}</span>
-                  {checked && <span>✓</span>}
+                  <span className="text-sm">{year}</span>
+                  <img
+                    src={selected ? selectIcon : unselectIcon}
+                    alt="status"
+                    className="w-4 h-4"
+                  />
                 </div>
               );
             })}
@@ -115,31 +124,37 @@ const PeriodPanel = ({ filters, setFilters }) => {
       </div>
 
       {/* MONTHS */}
-      <div>
-        <h3 className="mb-2 text-sm font-semibold text-gray-700">Months</h3>
-        <div className="divide-y rounded-lg border">
-          {monthsList.map(({ label, value }) => {
-            const checked = months.includes(value);
-            return (
-              <label
-                key={value}
-                className={`
-                  flex items-center justify-between
-                  px-3 py-2 cursor-pointer
-                  ${checked ? "bg-blue-50" : "hover:bg-gray-50"}
-                `}
-              >
-                <span className="text-sm">{label}</span>
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => toggleMonth(value)}
-                />
-              </label>
-            );
-          })}
+    {/* MONTHS */}
+<div>
+  <h3 className="font-semibold mb-2">Months</h3>
+
+  <div className="overflow-hidden">
+    {monthsList.map(({ label, value }, index) => {
+      const selected = months.includes(value);
+      const isLast = index === monthsList.length - 1;
+
+      return (
+        <div
+          key={value}
+          onClick={() => toggleMonth(value)}
+          className={`
+            flex items-center gap-2 cursor-pointer py-4 px-2
+           border-b border-[#C6C8CA]
+          `}
+        >
+          <img
+            src={selected ? selectIcon : unselectIcon}
+            alt={selected ? "selected" : "unselected"}
+            className="w-4 h-4"
+          />
+
+          <span className="text-sm">{label}</span>
         </div>
-      </div>
+      );
+    })}
+  </div>
+</div>
+
     </div>
   );
 };

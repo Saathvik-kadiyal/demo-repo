@@ -1,7 +1,7 @@
 export const SHIFT_HEADERS = [
   "ANZ",
   "PST_MST",
-  "US_INDIA",
+  "US_IND",
   "SG",
   "US3",
 ];
@@ -15,14 +15,23 @@ const buildShiftColumns = () =>
     render: (val) => val ?? 0,
   }));
 
-
-export const buildAllowanceShiftColumns = () =>
+  const buildAllowanceShiftColumns = () =>
   SHIFT_HEADERS.map((key) => ({
-    key: `shift_days.${key}`, // nested path is correct
+    key: `shift_days.${key}`,
     header: key,
     sortable: true,
-    sortFn: (a, b) => (a.shift_days?.[key] || 0) - (b.shift_days?.[key] || 0),
-    render: (val) => (typeof val === "number" ? val : 0), // ensure a number, no object
+    sortFn: (a, b) => (a?.shifts_days?.[key] || 0) - (b?.shifts_days?.[key] || 0),
+    render: (val) =>
+      val??0
+  }));
+
+export const buildClientSummary = () =>
+  SHIFT_HEADERS.map((key) => ({
+    key: `shifts.${key}`, // nested path is correct
+    header: key,
+    sortable: true,
+    sortFn: (a, b) => (a.shifts?.[key] || 0) - (b.shifts?.[key] || 0),
+    render: (val) => `₹ ${Number(val ?? 0).toLocaleString()}`, // ensure a number, no object
   }));
 
 
@@ -115,7 +124,7 @@ export const clientAnalyticsClientColumns = [
     sortable: true,
   },
 
-  ...buildAllowanceShiftColumns(),
+  ...buildClientSummary(),
 
   {
     key: "total",
@@ -148,7 +157,7 @@ export const clientAnalyticsEmployeeColumns = [
     sortable: true,
   },
 
-  ...buildShiftColumns(),
+  ...buildClientSummary(),
 
   {
     key: "total",

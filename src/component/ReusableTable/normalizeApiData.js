@@ -31,7 +31,7 @@ function normalizeEmployees(employees) {
   if (!Array.isArray(employees)) return [];
 
   return employees.map((emp, i) =>
-    normalizeEntity(emp.name || "Employee", emp, "employee", `emp-${i}`)
+    normalizeEntity(emp.name || "Employee", emp, "employee", `emp-${i}`),
   );
 }
 
@@ -44,7 +44,12 @@ function normalizeDepartments(deptsObj) {
   if (typeof deptsObj !== "object") return [];
 
   return Object.entries(deptsObj).map(([deptName, deptData]) => {
-    const deptRow = normalizeEntity(deptName, deptData, "department", `dept-${deptName}`);
+    const deptRow = normalizeEntity(
+      deptName,
+      deptData,
+      "department",
+      `dept-${deptName}`,
+    );
 
     const empRows = normalizeEmployees(deptData?.employees);
     if (empRows.length) deptRow.children = empRows;
@@ -57,7 +62,12 @@ function normalizeClients(clientsObj) {
   if (!clientsObj || typeof clientsObj !== "object") return [];
 
   return Object.entries(clientsObj).map(([clientName, clientData]) => {
-    const clientRow = normalizeEntity(clientName, clientData, "client", `client-${clientName}`);
+    const clientRow = normalizeEntity(
+      clientName,
+      clientData,
+      "client",
+      `client-${clientName}`,
+    );
 
     const deptRows = normalizeDepartments(clientData?.departments);
     if (deptRows.length) clientRow.children = deptRows;
@@ -70,7 +80,12 @@ function normalizePartners(partnersObj) {
   if (!partnersObj || typeof partnersObj !== "object") return [];
 
   return Object.entries(partnersObj).map(([partnerName, partnerData]) => {
-    const partnerRow = normalizeEntity(partnerName, partnerData, "partner", `partner-${partnerName}`);
+    const partnerRow = normalizeEntity(
+      partnerName,
+      partnerData,
+      "partner",
+      `partner-${partnerName}`,
+    );
 
     const clientRows = normalizeClients(partnerData?.clients);
     if (clientRows.length) partnerRow.children = clientRows;
@@ -86,7 +101,8 @@ export function normalizeApiData(rawData) {
   if (!dashboard) return [];
 
   if (dashboard.clients) return normalizeClients(dashboard.clients);
-  if (dashboard.client_partner) return normalizePartners(dashboard.client_partner);
+  if (dashboard.client_partner)
+    return normalizePartners(dashboard.client_partner);
   if (dashboard.departments) return normalizeDepartments(dashboard.departments);
   if (dashboard.employees) return normalizeEmployees(dashboard.employees);
 
@@ -95,7 +111,7 @@ export function normalizeApiData(rawData) {
 
 export function normalizeDashboardData(raw) {
   if (!raw) return [];
-if(!raw.dashboard||!raw.dashboard.clients) return [];
+  if (!raw.dashboard || !raw.dashboard.clients) return [];
   return Object.entries(raw.dashboard.clients).map(([clientName, data]) => {
     return {
       type: "client",
@@ -150,15 +166,15 @@ export function normalizeClientSummaryData(raw) {
     const get = (keys) =>
       keys.reduce(
         (val, key) => (val !== undefined ? val : obj[key]),
-        undefined
+        undefined,
       );
     return {
       SG: Number(get(["client_SG", "dept_SG", "SG"])) || 0,
-      IND: Number(get(["client_US_INDIA", "dept_US_INDIA", "US_INDIA"])) || 0,
-      US1: Number(get(["client_PST_MST", "dept_PST_MST", "PST_MST"])) || 0,
-      US2: Number(get(["client_ANZ", "dept_ANZ", "ANZ"])) || 0,
-      UK: 0,
-      US3: 0,
+      US_IND:
+        Number(get(["client_US_IND", "dept_US_IND", "US_IND"])) || 0,
+      PST_MST: Number(get(["client_PST_MST", "dept_PST_MST", "PST_MST"])) || 0,
+      ANZ: Number(get(["client_ANZ", "dept_ANZ", "ANZ"])) || 0,
+      US3: Number(get(["client_US3", "dept_US3", "US3"])) || 0,
     };
   };
 
@@ -177,36 +193,35 @@ export function normalizeClientSummaryData(raw) {
 
     const departments = clientData.departments || {};
 
-    clientRow.children = Object.entries(departments).map(([deptName, deptData]) => {
-      const deptRow = {
-        type: "department",
-        name: deptName,
-        head_count: deptData?.dept_head_count ?? 0,
-        total: deptData?.dept_total ?? 0,
-        shifts: buildShifts(deptData),
-        children: [], // always initialize as array
-      };
+    clientRow.children = Object.entries(departments).map(
+      ([deptName, deptData]) => {
+        const deptRow = {
+          type: "department",
+          name: deptName,
+          head_count: deptData?.dept_head_count ?? 0,
+          total: deptData?.dept_total ?? 0,
+          shifts: buildShifts(deptData),
+          children: [], // always initialize as array
+        };
 
-      deptRow.children = (deptData.employees || []).map((emp, index) => ({
-        type: "employee",
-        name: emp.emp_name || `Employee ${index + 1}`,
-        emp_id: emp.emp_id,
-        head_count: 1,
-        total: emp.total ?? 0,
-        client_partner: emp.client_partner,
-        shifts: buildShifts(emp),
-        children: [], // employees have no children, but safe to add empty array
-      }));
+        deptRow.children = (deptData.employees || []).map((emp, index) => ({
+          type: "employee",
+          name: emp.emp_name || `Employee ${index + 1}`,
+          emp_id: emp.emp_id,
+          head_count: 1,
+          total: emp.total ?? 0,
+          client_partner: emp.client_partner,
+          shifts: buildShifts(emp),
+          children: [], // employees have no children, but safe to add empty array
+        }));
 
-      return deptRow;
-    });
+        return deptRow;
+      },
+    );
 
     return clientRow;
   });
 }
-
-
-
 
 export const mapEmployeeForTable = (employees = []) => {
   if (!Array.isArray(employees)) return [];
@@ -214,6 +229,7 @@ export const mapEmployeeForTable = (employees = []) => {
   return employees.map((emp) => {
     const shiftDays = emp["Shift Days"] || {}; // your API field for days
     const flattenedShifts = {};
+    console.log("Mapping employee:", emp);
     return {
       emp_id: emp["Emp ID"],
       emp_name: emp["Emp Name"],
@@ -228,17 +244,15 @@ export const mapEmployeeForTable = (employees = []) => {
   });
 };
 
- 
- 
 export const mapSummaryForCards = (response) => {
   console.log("Mapping summary for cards with response:", response);
   const summary = response?.shift_details || {};
- 
+
   return {
     headcount: summary.headcount || 0,
     total_allowance: summary.total_allowance || 0,
     shifts: Object.entries(summary).filter(
-      ([key]) => key !== "headcount" && key !== "total_allowance"
+      ([key]) => key !== "headcount" && key !== "total_allowance",
     ),
   };
 };

@@ -1,11 +1,11 @@
 // utils/normalizeFilters.js
 export const normalizeFilters = (filters = {}) => {
+  console.log("NORMALIZING FILTERS:", filters);
   const payload = {
     clients: filters.client || "ALL",
     departments: filters.departments || "ALL",
     sort_by: "total_allowance",
     sort_order: "default",
-    top: "ALL",
   };
 
   // YEARS
@@ -33,7 +33,7 @@ export const normalizeFilters = (filters = {}) => {
   }
 
   // ALLOWANCE RANGE (optional)
-  if (Array.isArray(filters.allowance) && filters.allowance.length > 0) {
+  if (filters.allowance && filters.allowance.length > 0) {
     payload.allowance = filters.allowance;
   }
 

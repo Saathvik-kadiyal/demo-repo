@@ -143,6 +143,34 @@ export const updateEmployeeShift = async (
   }
 };
 
+
+export const downloadFilteredExcel = async (filters = {}) => {
+  const token = localStorage.getItem("access_token");
+
+  try {
+    // POST request with payload in body
+    const res = await axios.post(`${backendApi}/excel/download`, filters, {
+      responseType: "blob", // important for file downloads
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    // Trigger download
+    const blobUrl = URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = "Allowance_Data.xlsx";
+    link.click();
+    URL.revokeObjectURL(blobUrl);
+
+  } catch (err) {
+    console.error("Export failed", err);
+    throw err;
+  }
+};
+
 export const toBackendMonthFormat = (monthStr) => {
   if (!monthStr) return "";
 
@@ -185,18 +213,30 @@ export const toFrontendMonthFormat = (monthStr) => {
   return `${months[parseInt(month, 10) - 1]}'${year.slice(2)}`;
 };
 
-
-export const correctEmployeeRows = async (correctedRows) => {
+export const correctEmployeeRows = async (input) => {
+  const token = localStorage.getItem("access_token");
   if (!token) throw new Error("Not authenticated");
 
-  const payload = correctedRows.map(({ reason, ...row }) => row);
-  console.log(payload)
+  // ✅ Normalize input
+  const rows = Array.isArray(input)
+    ? input
+    : input?.corrected_rows;
+
+  if (!Array.isArray(rows)) {
+    throw new Error("corrected_rows must be an array");
+  }
+
+  // ✅ Remove `reason` safely
+  const payload = rows.map(({ reason, ...row }) => row);
+
+  console.log("🚀 Sending corrected_rows:", payload);
 
   try {
-    
     const response = await axiosInstance.post(
-      `/upload/correct_error_rows`,
-      { corrected_rows: payload }
+      "/upload/correct_error_rows",
+      {
+        corrected_rows: payload,
+      }
     );
     return response.data;
   } catch (err) {
@@ -214,6 +254,7 @@ export const fetchClientSummary = async (
   payload
 ) => {
   if (!token) throw new Error("Not authenticated");
+  console.log(payload)
 
   try {
     const response = await axios.post(
