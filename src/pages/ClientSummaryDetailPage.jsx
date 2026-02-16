@@ -34,7 +34,7 @@ console.log(filters)
     // Optional filters – only include if user selected
     if (filters.years?.length) payload.years = filters.years;
     if (filters.months?.length) payload.months = filters.months;
-    if (filters.emp_id?.length) payload.emp_id = filters.emp_id;
+    if (filters.employeeId?.length) payload.emp_id = filters.employeeId;
     if (filters.client_partner?.length) payload.client_partner = filters.client_partner;
     if (filters.shifts && filters.shifts !== "ALL") payload.shifts = filters.shifts;
     if (filters.headcounts && filters.headcounts !== "ALL") payload.headcounts = filters.headcounts;
@@ -254,7 +254,7 @@ const monthSummaries = useMemo(() => {
 
             {/* EXPANDED CONTENT */}
             {expandedMonth.includes(monthKey) && (
-              <Box>
+              <div className="fade-in w-full h-full overflow-x-auto">
                 <ReusableTable
   data={normalizeClientSummaryData({
     clients: clientsMap,
@@ -264,7 +264,7 @@ const monthSummaries = useMemo(() => {
   nestedColumns={clientAnalyticsEmployeeColumns}
 />
 
-              </Box>
+              </div>
             )}
           </Box>
         )

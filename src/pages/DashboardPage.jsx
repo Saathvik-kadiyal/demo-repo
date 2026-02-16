@@ -226,7 +226,7 @@ const handleDashboardAction = (row) => {
      
 
       {/* TABLE + CHART */}
-      <div className="mt-4 flex gap-4 md:flex-col-reverse lg:flex-row">
+      <div className="mt-4 flex gap-4 sm:flex-col-reverse md:flex-row">
         {/* TABLE */}
         <div className="lg:w-[60%] md:w-full rounded-xl bg-white py-4 flex flex-col gap-2 h-full">
           <div className="px-4 flex justify-end">
