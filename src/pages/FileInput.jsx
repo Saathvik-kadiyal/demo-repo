@@ -307,30 +307,33 @@ const runFetch = useCallback(
 
 
         <div className="flex items-center gap-2">
-          <SearchInput
-            value={searchText}
-            onChange={(e) => {
-  const currentValue = e.target.value.trim();
-  setSearchText(e.target.value);
+         <SearchInput
+  value={searchText}
+  onChange={(e) => {
+    const value = e.target.value;
+    const currentValue = value.trim();
 
-  const payload = { ...filters };
+    setSearchText(value);
 
-  if (currentValue) {
-    if (searchBy === "emp_id") payload.emp_id = currentValue;
-    else if (searchBy === "client_partner") payload.client_partner = currentValue;
-    else if (searchBy === "clients") payload.clients = [currentValue];
-  } else {
-    delete payload.emp_id;
-    delete payload.client_partner;
-    delete payload.clients;
-  }
+    const payload = { ...filters };
 
-  setPage(0);
-  runFetch(payload);
-}}
+    if (currentValue) {
+      if (searchBy === "emp_id") payload.emp_id = currentValue;
+      else if (searchBy === "client_partner")
+        payload.client_partner = currentValue;
+      else if (searchBy === "clients")
+        payload.clients = [currentValue];
+    } else {
+      delete payload.emp_id;
+      delete payload.client_partner;
+      delete payload.clients;
+    }
 
+    setPage(0);
+    runFetch(payload);
   }}
 />
+
 
 
 
