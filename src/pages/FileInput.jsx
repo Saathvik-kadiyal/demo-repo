@@ -38,9 +38,9 @@ const FileInput = () => {
   const [searchText, setSearchText] = useState("");
   const [searchBy, setSearchBy] = useState("emp_id");
   const [currentPayload, setCurrentPayload] = useState({});
-  const [page, setPage] = useState(0); // current page (0-based)
-  const [limit, setLimit] = useState(10); // rows per page
-  const [totalCount, setTotalCount] = useState(0); // total rows from API
+  const [page, setPage] = useState(0);
+  const [limit, setLimit] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
 
   const {
     rows,
@@ -57,10 +57,9 @@ const FileInput = () => {
 
   const tableData = mapEmployeeForTable(rows);
   const safeErrorRows = errorRows || [];
-  console.log(rows);
 
   /* ----------------------------------------------------
-     🔹 SINGLE SOURCE OF TRUTH FOR PAYLOAD
+      SINGLE SOURCE OF TRUTH FOR PAYLOAD
   ---------------------------------------------------- */
   const buildPayload = (
     baseFilters = {},
@@ -81,53 +80,36 @@ const FileInput = () => {
   };
 
   /* ----------------------------------------------------
-     🔹 Fetch
+    Fetch
   ---------------------------------------------------- */
-  const runFetch = useCallback(
-    async (payloadFilters = {}) => {
-      setTableLoading(true);
-      try {
-        const normalized = normalizeFilters(payloadFilters);
-        console.log("Normalized filters for API:", normalized);
+const runFetch = useCallback(
+  async (payloadFilters = {}) => {
+    console.log("Running fetch with filters:", payloadFilters);
+    setTableLoading(true);
+    try {
+      const normalized = normalizeFilters(payloadFilters);
 
-        if (searchText?.trim()) {
-          const value = searchText.trim();
+      // Do NOT reference searchText here!
+      // Instead, pass the payload fully prepared from input/filters.
 
-          if (
-            searchBy === "emp_id" &&
-            (normalized.emp_id === undefined || normalized.emp_id === "")
-          ) {
-            normalized.emp_id = value;
-          } else if (searchBy === "client_partner" &&
-            (normalized.client_partner === undefined ||
-              normalized.client_partner === "")
-          )
-            normalized.client_partner = value;
-          else if (searchBy === "clients" &&
-            (normalized.clients === undefined || normalized.clients.length === 0)
-          ) {
-            normalized.clients = [value];
-          }
-        }
+      const payload = {
+        start: page * limit,
+        limit,
+        sort_by: "total_allowance",
+        sort_order: "default",
+        ...normalized,
+      };
 
-        const payload = {
-          start: page * limit,
-          limit: limit,
-          sort_by: "total_allowance",
-          sort_order: "default",
-          ...normalized,
-        };
+      setCurrentPayload(payload);
+      await getProcessedData(payload);
+      setTotalCount(rows?.total_records || 0);
+    } finally {
+      setTableLoading(false);
+    }
+  },
+  [getProcessedData, page, limit] // <-- remove searchText & searchBy
+);
 
-        setCurrentPayload(payload); // <--- store the exact payload
-
-        await getProcessedData(payload);
-        setTotalCount(rows?.total_records || 0);
-      } finally {
-        setTableLoading(false);
-      }
-    },
-    [getProcessedData, searchText, searchBy, page, limit]
-  );
 
   const debouncedRunFetch = useCallback(
     debounce((payload) => {
@@ -141,7 +123,7 @@ const FileInput = () => {
   }, [runFetch]);
 
   /* ----------------------------------------------------
-     🔹 Filters
+      Filters
   ---------------------------------------------------- */
   const handleApplyFilters = (filtersObj) => {
     setFilters(filtersObj);
@@ -150,7 +132,7 @@ const FileInput = () => {
   };
 
   /* ----------------------------------------------------
-     🔹 Search
+      Search
   ---------------------------------------------------- */
   const handleSearchChange = (e) => {
     const value = e.target.value;
@@ -159,7 +141,7 @@ const FileInput = () => {
   };
 
   /* ----------------------------------------------------
-     🔹 File Upload
+      File Upload
   ---------------------------------------------------- */
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
@@ -174,7 +156,7 @@ const FileInput = () => {
   };
 
   /* ----------------------------------------------------
-     🔹 KPI
+      KPI
   ---------------------------------------------------- */
   const totalAllowance = shiftSummary?.total || 0;
 
@@ -188,7 +170,7 @@ const FileInput = () => {
     }));
 
   /* ----------------------------------------------------
-     🔹 Popups
+      Popups
   ---------------------------------------------------- */
   useEffect(() => {
     if (errorFileLink || error || success) {
@@ -223,10 +205,16 @@ const FileInput = () => {
     runFetch(filters);
   }, [page, limit]);
 
-  console.log(popupOpen);
+
+    const handleOpenEmployeeModal = (employee) => {
+    console.log("Opening modal for employee:", employee);
+    setSelectedEmployee(employee);
+    setShowModal(true);
+  };
+ 
 
   /* ----------------------------------------------------
-     🔹 UI
+      UI
   ---------------------------------------------------- */
   return (
     <Box sx={{ width: "100%", p: 2, position: "relative" }}>
@@ -327,35 +315,30 @@ const FileInput = () => {
         <div className="flex items-center gap-2">
           <SearchInput
             value={searchText}
-            placeholder={
-              searchBy === "emp_id"
-                ? "Search Employee ID"
-                : searchBy === "clients"
-                ? "Search Client"
-                : "Search Client Partner"
-            }
-            onChange={(value) => {
-              setSearchText(value);
+            onChange={(value) => setSearchText(value)}
+            onKeyDown={(e) => {
+              console.log(e);
+              if (e.key === "Enter") {
+                const currentValue = e.target.value.trim(); // <-- use input value directly
+                const payload = { ...filters };
 
-              const payload = { ...filters };
+      if (currentValue) {
+        if (searchBy === "emp_id") payload.emp_id = currentValue;
+        else if (searchBy === "client_partner") payload.client_partner = currentValue;
+        else if (searchBy === "clients") payload.clients = [currentValue];
+      } else {
+        delete payload.emp_id;
+        delete payload.client_partner;
+        delete payload.clients;
+      }
 
-              if (value.trim()) {
-                if (searchBy === "emp_id") {
-                  payload.emp_id = value.trim();
-                } else if (searchBy === "client_partner") {
-                  payload.client_partner = value.trim();
-                } else if (searchBy === "clients") {
-                  payload.clients = [value.trim()];
-                }
-              } else {
-                delete payload.emp_id;
-                delete payload.client_partner;
-                delete payload.clients;
-              }
-              setPage(0);
-              debouncedRunFetch(payload);
-            }}
-          />
+      setPage(0);
+      runFetch(payload); // call API once
+    }
+  }}
+/>
+
+
 
           <select
             value={searchBy}
@@ -385,10 +368,11 @@ const FileInput = () => {
         data={tableData}
         columns={allowanceColumns}
         getRowKey={(row) => row.emp_id}
-        onActionClick={(emp) => {
-          setSelectedEmployee(emp);
-          setShowModal(true);
-        }}
+        // onActionClick={(emp) => {
+        //   setSelectedEmployee(emp);
+        //   setShowModal(true);
+        // }
+onActionClick={handleOpenEmployeeModal}
       />
       <Box
         display="flex"

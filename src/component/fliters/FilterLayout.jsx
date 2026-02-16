@@ -8,7 +8,7 @@ const initialState = {
   years: [],
   months: [],
   employeeId: "",
-  allowance: "",      // single string: "100-200"
+//   allowance: "",      // single string: "100-200"
   departments: [],
   headcounts: ""      // single string: "1-5" or "Highest to Lowest"
 };

@@ -12,10 +12,13 @@ import {
   TablePagination,
   IconButton,
   Tooltip,
+  Button,
 } from "@mui/material";
 import { Pen, ChevronRight } from "lucide-react";
 import infoIcon from "../assets/info.svg"
-import arrowright from "../assets/arrowright.svg"
+import arrowright from "../assets/arrowright.svg";
+import * as XLSX from "xlsx";
+ 
 type EditTableProps = {
   rows: any[];
   page: number;
@@ -39,9 +42,46 @@ const ErrorTable: React.FC<EditTableProps> = ({
 }) => {
   const [expandedRowIdx, setExpandedRowIdx] = useState<number | null>(null);
 
+  const handleDownloadErrorRows = () => {
+    if (!rows || rows.length === 0) return;
+ 
+    const cleanedRows = rows.map(({ reason, ...rest }) => rest);
+    const worksheet = XLSX.utils.json_to_sheet(cleanedRows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Error Rows");
+    XLSX.writeFile(workbook, "Remaining_Error_Rows.xlsx");
+  };
+ 
+ 
+
   return (
     <>
       <Box>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1, mt: -4 }}>
+          <Button
+            variant="text"
+            onClick={handleDownloadErrorRows}
+            disabled={rows.length === 0}
+            sx={{
+              color: "#092443",
+              textTransform: "none",
+              padding: 0,
+              minWidth: 0,
+    fontWeight: 500,
+    cursor: "pointer",
+   
+    // "&:disabled": {
+    //   color: "#a0a0a0",
+    //   cursor: "default",
+    //   textDecoration: "none",
+    // },
+  }}
+>
+  Download Template
+</Button>
+</Box>
+ 
+ 
         <TableContainer
           component={Paper}
           sx={{

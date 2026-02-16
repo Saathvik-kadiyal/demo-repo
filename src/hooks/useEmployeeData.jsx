@@ -177,7 +177,6 @@ export const useEmployeeData = () => {
   //   async (start = 0, limit = 10, params = {}) => {
 const getProcessedData = useCallback(
   async (payload) => {
-    console.log("Fetching with payload:", payload);
     try {
       setLoading(true);
 
@@ -209,7 +208,6 @@ const totalAllowance = res.shift_details?.[1]?.total_allowance ?? 0;
 
       // Headcount is total employees
       const headCount = employees.length;
-      console.log(res.shift_details)
 
       setShiftSummary({
         ...shiftTotals,

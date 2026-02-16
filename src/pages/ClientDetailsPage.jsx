@@ -6,6 +6,7 @@ import peopleIcon from "../assets/people.svg"
 import clientsIcon from "../assets/clients.svg"
 import KpiCard from "../component/kpicards/KpiCard";
 import ReusableTable from "../component/ReusableTable/ReusableTable";
+import arrow from "../assets/arrow.svg";
 
 import {
   BarChart,
@@ -23,6 +24,7 @@ import {
 } from "../component/ReusableTable/columns";
 import { all } from "axios";
 import { formatRupeesWithUnit } from "../utils/utils";
+import { useNavigate } from "react-router-dom";
 
 /* -------------------------
    PAYLOAD BUILDER
@@ -56,6 +58,7 @@ export default function ClientDetailsPage({
   const [summary, setSummary] = useState(null);
   const [clientData, setClientData] = useState(null);
   const [activeChartTab, setActiveChartTab] = useState("shifts");
+  const navigate = useNavigate();
 
   /* -------------------------
      FETCH CLIENT DETAILS
@@ -155,7 +158,9 @@ console.log("Employee data:", empShifts);
   return (
     <div className="relative w-full px-4 py-4 overflow-x-hidden">
       {/* TITLE */}
-      <h2 className="text-xl font-semibold mb-4">{clientName}</h2>
+      <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+         <img src={arrow} alt="back" style={{ width: 16, height: 16,  transform:"rotate(90deg)"}}  onClick={() => navigate("/")}/>
+        <span>{clientName}</span></h2>
 
       {/* KPI CARDS */}
       <div className="flex flex-wrap gap-4 mb-6">

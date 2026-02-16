@@ -4,8 +4,8 @@ import unselectIcon from "../../../assets/unselect.svg";
 
 const HeadCountsPanel = ({ filters, setFilters }) => {
   const options = [
-    "Highest to Lowest",
-    "Lowest to Highest",
+    // "Highest to Lowest",
+    // "Lowest to Highest",
     "1-5",
     "5-10",
     "10-15",

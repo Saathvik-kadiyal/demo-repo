@@ -1,6 +1,5 @@
 // utils/normalizeFilters.js
 export const normalizeFilters = (filters = {}) => {
-  console.log("NORMALIZING FILTERS:", filters);
   const payload = {
     clients: filters.clients || "ALL",
     departments: filters.departments || "ALL",
@@ -8,6 +7,18 @@ export const normalizeFilters = (filters = {}) => {
     sort_order: "default",
   };
 
+if (filters.emp_id) {
+  payload.emp_id = Array.isArray(filters.emp_id)
+    ? filters.emp_id
+    : [filters.emp_id];
+}
+
+if (filters.client_partner) {
+  payload.client_partner = Array.isArray(filters.client_partner)
+    ? filters.client_partner
+    : [filters.client_partner];
+}
+  // if (filters.shifts && filters.shifts !== "ALL") payload.shifts = filters.shifts;
   // YEARS
   if (Array.isArray(filters.years) && filters.years.length > 0) {
     const years = filters.years

@@ -27,7 +27,6 @@ export default function ReusableTable({
 }) {
   const [expanded, setExpanded] = useState(new Set());
   if (!data?.length) return <div>{noDataFallback}</div>;
-  console.log(data)
 
   const toggle = (key) => {
     setExpanded((prev) => {
