@@ -464,11 +464,11 @@ const handleSave = async () => {
     alignItems: "center",
   }}
 >
-   <Typography
+  <Typography
     sx={{
       fontSize: "18px",
       fontWeight: 600,
-     color: "var(--Info-80, #0F3C70)",
+      color: "#1E3A8A",
       letterSpacing: "0.2px",
     }}
   >
@@ -482,24 +482,9 @@ const handleSave = async () => {
       </IconButton>
     </Box>
  
-   
- 
-   <Typography
-  sx={{
-    color: "var(--Checkbox-Disable-Uncheck, #727272)",
-    fontFamily: "Poppins",
-    fontWeight: 400,
-    fontSize: "16px",
-    lineHeight: "100%",
-    letterSpacing: "0%",
-     mt: -3,
-  }}
-  mb={3}
->
-  Edit Error Fields
-</Typography>
- 
- 
+    <Typography fontWeight={600} mb={2}>
+      Error Fields
+    </Typography>
  
  
     <Box
