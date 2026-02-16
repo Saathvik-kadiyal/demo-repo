@@ -315,26 +315,26 @@ const runFetch = useCallback(
         <div className="flex items-center gap-2">
           <SearchInput
             value={searchText}
-            onChange={(value) => setSearchText(value)}
-            onKeyDown={(e) => {
-              console.log(e);
-              if (e.key === "Enter") {
-                const currentValue = e.target.value.trim(); // <-- use input value directly
-                const payload = { ...filters };
+            onChange={(e) => {
+  const currentValue = e.target.value.trim();
+  setSearchText(e.target.value);
 
-      if (currentValue) {
-        if (searchBy === "emp_id") payload.emp_id = currentValue;
-        else if (searchBy === "client_partner") payload.client_partner = currentValue;
-        else if (searchBy === "clients") payload.clients = [currentValue];
-      } else {
-        delete payload.emp_id;
-        delete payload.client_partner;
-        delete payload.clients;
-      }
+  const payload = { ...filters };
 
-      setPage(0);
-      runFetch(payload); // call API once
-    }
+  if (currentValue) {
+    if (searchBy === "emp_id") payload.emp_id = currentValue;
+    else if (searchBy === "client_partner") payload.client_partner = currentValue;
+    else if (searchBy === "clients") payload.clients = [currentValue];
+  } else {
+    delete payload.emp_id;
+    delete payload.client_partner;
+    delete payload.clients;
+  }
+
+  setPage(0);
+  runFetch(payload); // API runs on every change
+}
+
   }}
 />
 
