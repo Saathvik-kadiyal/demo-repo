@@ -364,7 +364,8 @@ const runFetch = useCallback(
       </div>
 
       {/* Table */}
-      <ReusableTable
+      <div className="w-full h-full overflow-x-auto">
+        <ReusableTable
         data={tableData}
         columns={allowanceColumns}
         getRowKey={(row) => row.emp_id}
@@ -374,6 +375,7 @@ const runFetch = useCallback(
         // }
 onActionClick={handleOpenEmployeeModal}
       />
+      </div>
       <Box
         display="flex"
         justifyContent="space-between"

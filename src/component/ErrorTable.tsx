@@ -18,7 +18,7 @@ import { Pen, ChevronRight } from "lucide-react";
 import infoIcon from "../assets/info.svg"
 import arrowright from "../assets/arrowright.svg";
 import * as XLSX from "xlsx";
- 
+
 type EditTableProps = {
   rows: any[];
   page: number;
@@ -29,6 +29,32 @@ type EditTableProps = {
   isHiddenField: (key: string) => boolean;
   headerMap: Record<string, string>;
 };
+
+const StatusChip = ({ status }: { status: string }) => {
+  const isActive = status?.toLowerCase() === "active";
+
+  return (
+    <Box
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: 24,
+        px: 2,
+        borderRadius: "999px",
+        backgroundColor: isActive ? "#BCD6F6" : "#FEE2E2",
+        color: isActive ? "#3183E3" : "#B91C1C",
+        fontSize: 12,
+        fontWeight: 500,
+        whiteSpace: "nowrap",
+      }}
+    >
+      {status}
+    </Box>
+  );
+};
+
+
 
 const ErrorTable: React.FC<EditTableProps> = ({
   rows,
@@ -43,16 +69,28 @@ const ErrorTable: React.FC<EditTableProps> = ({
   const [expandedRowIdx, setExpandedRowIdx] = useState<number | null>(null);
 
   const handleDownloadErrorRows = () => {
+
     if (!rows || rows.length === 0) return;
- 
-    const cleanedRows = rows.map(({ reason, ...rest }) => rest);
-    const worksheet = XLSX.utils.json_to_sheet(cleanedRows);
+
+    const formattedRows = rows.map((row) => ({
+      ...row,
+      reason: row.reason
+        ? Object.entries(row.reason)
+          .map(([key, val]) => `${key}: ${val}`)
+          .join(", ")
+        : "",
+    }));
+
+
+
+    const worksheet = XLSX.utils.json_to_sheet(formattedRows);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Error Rows");
     XLSX.writeFile(workbook, "Remaining_Error_Rows.xlsx");
   };
- 
- 
+
+
+
 
   return (
     <>
@@ -67,21 +105,21 @@ const ErrorTable: React.FC<EditTableProps> = ({
               textTransform: "none",
               padding: 0,
               minWidth: 0,
-    fontWeight: 500,
-    cursor: "pointer",
-   
-    // "&:disabled": {
-    //   color: "#a0a0a0",
-    //   cursor: "default",
-    //   textDecoration: "none",
-    // },
-  }}
->
-  Download Template
-</Button>
-</Box>
- 
- 
+              fontWeight: 500,
+              cursor: "pointer",
+
+              // "&:disabled": {
+              //   color: "#a0a0a0",
+              //   cursor: "default",
+              //   textDecoration: "none",
+              // },
+            }}
+          >
+            Download Template
+          </Button>
+        </Box>
+
+
         <TableContainer
           component={Paper}
           sx={{
@@ -303,6 +341,34 @@ const ErrorTable: React.FC<EditTableProps> = ({
                                   >
                                     Active
                                   </Box>
+                                ) : isError ? (
+                                  row.reason[key]
+                                ) : (
+                                  row[key] ?? "-"
+                                )}
+                              </TableCell>
+                            );
+                          })}
+
+                        {Object.keys(row)
+                          .filter((key) => !isHiddenField(key))
+                          .map((key) => {
+                            const isStatusField = key.toLowerCase() === "current_status";
+                            const isError = row.reason && row.reason[key];
+
+                            return (
+                              <TableCell
+                                key={key}
+                                id={`cell-${row.emp_id}-${key}`}
+                                sx={{
+                                  fontSize: "12px",
+                                  pl: 2,
+                                  color: isError ? "#E53935" : "#1A1A1A",
+                                  fontWeight: isError ? 500 : 400,
+                                }}
+                              >
+                                {isStatusField ? (
+                                  <StatusChip status={row[key]} />
                                 ) : isError ? (
                                   row.reason[key]
                                 ) : (
