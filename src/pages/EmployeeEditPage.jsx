@@ -243,7 +243,7 @@ const handleSave = async () => {
  
       <Box display="flex" alignItems="center" gap={0.5} sx={{ mb: 3 }}>
         {/* Back arrow */}
-        <img src={arrow} alt="back" style={{ width: 16, height: 16 }} />
+        <img src={arrow} alt="back" style={{ width: 16, height: 16,  rotate:"90deg"}} />
  
         {/* Shift Allowance */}
         <Typography
@@ -303,7 +303,7 @@ const handleSave = async () => {
      
  
       {/* Modal for editing employee */}
-      <Modal
+      {/* <Modal
         open={!!selectedEmployee}
         onClose={() => setSelectedEmployee(null)}
         BackdropProps={{
@@ -344,7 +344,7 @@ const handleSave = async () => {
             Edit Error Fields
           </Typography>
  
-          {/* Display non-error fields */}
+          
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
             {selectedEmployee &&
               Object.entries(selectedEmployee).map(([key, value]) => {
@@ -361,7 +361,6 @@ const handleSave = async () => {
               })}
           </Box>
  
-          {/* Display error fields for editing */}
           <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
             {selectedEmployee &&
               Object.keys(selectedEmployee.reason || {}).map((field) => (
@@ -422,7 +421,7 @@ const handleSave = async () => {
               </Button>
             </Box>
  
-            {/* Error message below Save button */}
+         
             {saveError && (
               <Typography color="error" variant="body2">
                 {saveError}
@@ -430,8 +429,212 @@ const handleSave = async () => {
             )}
           </Box>
         </Paper>
-      </Modal>
+      </Modal> */}
  
+
+<Modal
+  open={!!selectedEmployee}
+  onClose={() => setSelectedEmployee(null)}
+  BackdropProps={{
+    style: { backgroundColor: "rgba(0,0,0,0.5)" },
+  }}
+>
+  <Paper
+    sx={{
+      width: "75%",
+      maxWidth: 1000,
+      maxHeight: "85vh",
+      p: 4,
+      mx: "auto",
+      mt: "6vh",
+      overflowY: "auto",
+      borderRadius: 3,
+    }}
+  >
+   
+ 
+      <Box
+  sx={{
+ 
+    px: 0,
+    py: 2,
+    mb: 2,
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  }}
+>
+  <Typography
+    sx={{
+      fontSize: "18px",
+      fontWeight: 600,
+      color: "#1E3A8A",
+      letterSpacing: "0.2px",
+    }}
+  >
+    Employee Details – EMP ID: {selectedEmployee?.emp_id}
+  </Typography>
+ 
+ 
+ 
+      <IconButton onClick={() => setSelectedEmployee(null)}>
+        <X size={20} />
+      </IconButton>
+    </Box>
+ 
+    <Typography fontWeight={600} mb={2}>
+      Error Fields
+    </Typography>
+ 
+ 
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 3,
+        mb: 4,
+      }}
+    >
+      {selectedEmployee &&
+        Object.entries(selectedEmployee).map(([key, value]) => {
+          if (isHiddenField(key) || key in selectedEmployee.reason)
+            return null;
+ 
+          return (
+            <Box key={key}>
+              <Typography
+                sx={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  mb: 0.5,
+                  color: "#374151",
+                }}
+              >
+                {BACKEND_TO_FRONTEND[key] || key.replace(/_/g, " ").toUpperCase()}
+              </Typography>
+ 
+              <TextField
+                fullWidth
+                size="small"
+                value={value ?? "-"}
+                disabled
+                sx={{
+                  backgroundColor: "#F9FAFB",
+                }}
+              />
+            </Box>
+          );
+        })}
+    </Box>
+ 
+ 
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 3,
+      }}
+    >
+      {selectedEmployee &&
+        Object.keys(selectedEmployee.reason || {}).map((field) => (
+          <Box key={field}>
+            <Typography
+              sx={{
+                fontSize: 13,
+                fontWeight: 500,
+                mb: 0.5,
+                color: "#374151",
+              }}
+            >
+              {field.replace(/_/g, " ").toUpperCase()}
+            </Typography>
+ 
+            <TextField
+              fullWidth
+              size="small"
+              type={TEXT_FIELDS.includes(field) ? "text" : "number"}
+              inputProps={TEXT_FIELDS.includes(field) ? {} : { min: 0 }}
+              value={editedFields[field] ?? ""}
+              onChange={(e) => {
+                const value = e.target.value;
+                setEditedFields((prev) => ({ ...prev, [field]: value }));
+ 
+                let isValid = false;
+ 
+                if (TEXT_FIELDS.includes(field)) {
+                  isValid = value.trim() !== "";
+                } else {
+                  const num = Number(value);
+                  isValid = !isNaN(num) && num >= 0;
+                }
+ 
+                if (isValid) {
+                  setClearedErrors((prev) => ({
+                    ...prev,
+                    [field]: true,
+                  }));
+                }
+              }}
+              error={
+                !!selectedEmployee?.reason?.[field] &&
+                !clearedErrors[field]
+              }
+              helperText={
+                !clearedErrors[field]
+                  ? selectedEmployee?.reason?.[field]
+                  : ""
+              }
+            />
+          </Box>
+        ))}
+    </Box>
+ 
+    {/* ---------- ACTION BUTTONS ---------- */}
+    <Box mt={4} display="flex" gap={2}>
+      <Button
+        variant="contained"
+        onClick={handleSave}
+        disabled={isSaveDisabled}
+        sx={{
+          backgroundColor: "#1E3A8A",
+          textTransform: "none",
+          fontWeight: 600,
+          px: 3,
+          "&:hover": { backgroundColor: "#16286b" },
+        }}
+      >
+        Save
+      </Button>
+ 
+      <Button
+        variant="outlined"
+        onClick={() => setSelectedEmployee(null)}
+        sx={{
+          borderColor: "#1E3A8A",
+          color: "#1E3A8A",
+          textTransform: "none",
+          fontWeight: 600,
+          px: 3,
+          "&:hover": {
+            backgroundColor: "rgba(30,58,138,0.08)",
+            borderColor: "#1E3A8A",
+          },
+        }}
+      >
+        Back
+      </Button>
+    </Box>
+ 
+   
+{saveError   && (
+      <Typography color="error" variant="body2" mt={2}>
+        {saveError}
+      </Typography>
+    )}
+  </Paper>
+</Modal>
+ 
+
       {/* Popup modal for success messages */}
       {/* <Modal
         open={popupOpen}

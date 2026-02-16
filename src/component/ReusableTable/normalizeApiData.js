@@ -229,7 +229,6 @@ export const mapEmployeeForTable = (employees = []) => {
   return employees.map((emp) => {
     const shiftDays = emp["Shift Days"] || {}; // your API field for days
     const flattenedShifts = {};
-    console.log("Mapping employee:", emp);
     return {
       emp_id: emp["Emp ID"],
       emp_name: emp["Emp Name"],
@@ -245,7 +244,6 @@ export const mapEmployeeForTable = (employees = []) => {
 };
 
 export const mapSummaryForCards = (response) => {
-  console.log("Mapping summary for cards with response:", response);
   const summary = response?.shift_details || {};
 
   return {
