@@ -23,6 +23,7 @@ import * as XLSX from "xlsx";
 import { correctEmployeeRows } from "../utils/helper";
 import arrow from "../assets/arrow.svg";
 import ErrorTable from "../component/ErrorTable.tsx";
+import PopupMessage from "../component/popupMessages/PopupMessage.tsx";
  
  
  
@@ -53,7 +54,6 @@ const EmployeeEditPage = () => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [saveError, setSaveError] = useState("");
   const [clearedErrors, setClearedErrors] = useState({});
- 
  
   const TEXT_FIELDS = ["payroll_month", "duration_month"];
   const NUMBER_FIELDS = [
@@ -433,7 +433,7 @@ const handleSave = async () => {
       </Modal>
  
       {/* Popup modal for success messages */}
-      <Modal
+      {/* <Modal
         open={popupOpen}
         onClose={() => setPopupOpen(false)}
         BackdropProps={{ style: { backgroundColor: "rgba(0,0,0,0.3)" } }}
@@ -489,7 +489,13 @@ const handleSave = async () => {
             Close
           </Button>
         </Paper>
-      </Modal>
+      </Modal> */}
+        <PopupMessage
+  open={popupOpen}
+  message={popupMessage}
+  severity={popupType}
+  onClose={() => setPopupOpen(false)}
+/>
     </Box>
   );
 };

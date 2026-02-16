@@ -119,6 +119,7 @@ export const updateEmployeeShift = async (
   payroll_month,
   payload
 ) => {
+  console
   try {
     const response = await axiosInstance.put(
       "/display/update",

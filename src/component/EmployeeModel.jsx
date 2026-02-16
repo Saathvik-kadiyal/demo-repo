@@ -11,10 +11,10 @@ const getDaysInMonth = (monthStr) => {
 const SHIFT_KEYS = ["PST_MST", "US_INDIA", "SG", "ANZ"];
 const UI_LABEL = { PST_MST: "PST MST", US_INDIA: "US INDIA", SG: "SG", ANZ: "ANZ" };
 
-const EmployeeModal = ({ employee, onClose, loading, setPopupMessage, setPopupType }) => {
+const EmployeeModal = ({ employee, onClose, setPopupMessage, setPopupType }) => {
   const { setOnSave } = useEmployeeData();
 
-    console.log("Popup functions:", setPopupMessage, setPopupType);
+    // console.log("Popup functions:", setPopupMessage, setPopupType);
 
   const [data, setData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -116,7 +116,6 @@ console.log(data)
         err?.response?.data?.detail ||
         err?.message ||
         "Something went wrong";
-
       setPopupMessage(`EMP ID: ${data.emp_id} update failed: ${backendMessage}`);
       setPopupType("error");
     } finally {
@@ -260,12 +259,24 @@ console.log(data)
               </button>
             </>
           ) : (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="rounded-lg bg-yellow-500 px-6 py-2 text-sm font-medium text-white"
-            >
-              Edit
-            </button>
+          <button
+  onClick={() => setIsEditing(true)}
+  className="
+    mt-3
+    bg-[#1E3A8A]
+    hover:bg-[#16286b]
+    text-white
+    font-semibold
+    rounded
+    px-4
+    py-1.5
+    transition-colors
+  "
+>
+  Edit
+</button>
+
+ 
           )}
         </div>
       </div>
