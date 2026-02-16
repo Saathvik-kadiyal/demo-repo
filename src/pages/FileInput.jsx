@@ -88,10 +88,6 @@ const runFetch = useCallback(
     setTableLoading(true);
     try {
       const normalized = normalizeFilters(payloadFilters);
-
-      // Do NOT reference searchText here!
-      // Instead, pass the payload fully prepared from input/filters.
-
       const payload = {
         start: page * limit,
         limit,
@@ -107,7 +103,7 @@ const runFetch = useCallback(
       setTableLoading(false);
     }
   },
-  [getProcessedData, page, limit] // <-- remove searchText & searchBy
+  [getProcessedData, page, limit]
 );
 
 
@@ -187,8 +183,6 @@ const runFetch = useCallback(
       setTableLoading(true);
 
       if (!currentPayload) return;
-
-      // remove pagination before sending
       const { start, limit, ...exportPayload } = currentPayload;
 
       await downloadFilteredExcel(exportPayload);
@@ -245,7 +239,7 @@ const runFetch = useCallback(
           <img
             src={arrow}
             alt="back"
-            style={{ transform: "rotate(90deg)" }} // rotates 180°
+            style={{ transform: "rotate(90deg)" }} 
           />
           <Typography>Shift Allowances Data</Typography>
         </Box>
@@ -302,16 +296,16 @@ const runFetch = useCallback(
         ))}
       </Box>
 
-      {/* Search + Filter */}
+
       <div className="flex items-center justify-between gap-4 mb-3">
-        {/* Left */}
+
         <div>
           <p className="text-sm font-semibold text-gray-800">
             Employee Details
           </p>
         </div>
 
-        {/* Right */}
+
         <div className="flex items-center gap-2">
           <SearchInput
             value={searchText}
@@ -332,8 +326,8 @@ const runFetch = useCallback(
   }
 
   setPage(0);
-  runFetch(payload); // API runs on every change
-}
+  runFetch(payload);
+}}
 
   }}
 />
