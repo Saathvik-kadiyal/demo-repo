@@ -47,8 +47,8 @@ export const dashboardColumns = [
     key: "headcount",
     header: "Headcount",
     sortable: true,
-    sortFn: (a, b) => (a.head_count || 0) - (b.head_count || 0),
-    render: (v, row) => row.head_count ?? 1,
+    sortFn: (a, b) => (a.headcount || 0) - (b.headcount || 0),
+    render: (v, row) => row.headcount ?? 1,
   },
   {
     key: "total_allowance",
