@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Box, Button, Stack, Typography, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Button,
+  Stack,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 import ReusableTable from "../component/ReusableTable/ReusableTable.jsx";
@@ -32,11 +38,9 @@ const FileInput = () => {
   const [searchText, setSearchText] = useState("");
   const [searchBy, setSearchBy] = useState("emp_id");
   const [currentPayload, setCurrentPayload] = useState({});
-  const [page, setPage] = useState(0);      // current page (0-based)
-const [limit, setLimit] = useState(10);   // rows per page
-const [totalCount, setTotalCount] = useState(0); // total rows from API
-
-
+  const [page, setPage] = useState(0); // current page (0-based)
+  const [limit, setLimit] = useState(10); // rows per page
+  const [totalCount, setTotalCount] = useState(0); // total rows from API
 
   const {
     rows,
@@ -48,21 +52,21 @@ const [totalCount, setTotalCount] = useState(0); // total rows from API
     downloadErrorExcel,
     success,
     error,
-    shiftSummary
+    shiftSummary,
   } = useEmployeeData();
 
   const tableData = mapEmployeeForTable(rows);
   const safeErrorRows = errorRows || [];
-  console.log(rows)
-
-
-
-
+  console.log(rows);
 
   /* ----------------------------------------------------
      🔹 SINGLE SOURCE OF TRUTH FOR PAYLOAD
   ---------------------------------------------------- */
-  const buildPayload = (baseFilters = {}, searchValue = searchText, searchKey = searchBy) => {
+  const buildPayload = (
+    baseFilters = {},
+    searchValue = searchText,
+    searchKey = searchBy
+  ) => {
     const payload = { ...baseFilters };
 
     if (searchValue?.trim()) {
@@ -79,50 +83,58 @@ const [totalCount, setTotalCount] = useState(0); // total rows from API
   /* ----------------------------------------------------
      🔹 Fetch
   ---------------------------------------------------- */
-const runFetch = useCallback(
-  async (payloadFilters = {}) => {
-    setTableLoading(true);
-    try {
-      const normalized = normalizeFilters(payloadFilters);
+  const runFetch = useCallback(
+    async (payloadFilters = {}) => {
+      setTableLoading(true);
+      try {
+        const normalized = normalizeFilters(payloadFilters);
+        console.log("Normalized filters for API:", normalized);
 
-      if (searchText?.trim()) {
-        const value = searchText.trim();
+        if (searchText?.trim()) {
+          const value = searchText.trim();
 
-        if (searchBy === "emp_id") normalized.emp_id = value;
-        else if (searchBy === "client_partner") normalized.client_partner = value;
-        else if (searchBy === "clients") normalized.clients = [value];
+          if (
+            searchBy === "emp_id" &&
+            (normalized.emp_id === undefined || normalized.emp_id === "")
+          ) {
+            normalized.emp_id = value;
+          } else if (searchBy === "client_partner" &&
+            (normalized.client_partner === undefined ||
+              normalized.client_partner === "")
+          )
+            normalized.client_partner = value;
+          else if (searchBy === "clients" &&
+            (normalized.clients === undefined || normalized.clients.length === 0)
+          ) {
+            normalized.clients = [value];
+          }
+        }
+
+        const payload = {
+          start: page * limit,
+          limit: limit,
+          sort_by: "total_allowance",
+          sort_order: "default",
+          ...normalized,
+        };
+
+        setCurrentPayload(payload); // <--- store the exact payload
+
+        await getProcessedData(payload);
+        setTotalCount(rows?.total_records || 0);
+      } finally {
+        setTableLoading(false);
       }
-
-      const payload = {
-  start: page * limit,
-  limit: limit,
-  sort_by: "total_allowance",
-  sort_order: "default",
-  ...normalized,
-};
-
-
-      setCurrentPayload(payload); // <--- store the exact payload
-
-      await getProcessedData(payload);
-      setTotalCount(rows?.total_records || 0);
-
-
-    } finally {
-      setTableLoading(false);
-    }
-  },
-  [getProcessedData, searchText, searchBy, page, limit]
-);
-
-
+    },
+    [getProcessedData, searchText, searchBy, page, limit]
+  );
 
   const debouncedRunFetch = useCallback(
-  debounce((payload) => {
-    runFetch(payload);
-  }, 800),
-  [runFetch]
-);
+    debounce((payload) => {
+      runFetch(payload);
+    }, 800),
+    [runFetch]
+  );
 
   useEffect(() => {
     runFetch({});
@@ -180,41 +192,38 @@ const runFetch = useCallback(
   ---------------------------------------------------- */
   useEffect(() => {
     if (errorFileLink || error || success) {
-      setPopupMessage(errorFileLink ? "File processed with errors." : error || success);
+      setPopupMessage(
+        errorFileLink ? "File processed with errors." : error || success
+      );
       setPopupSeverity(errorFileLink || error ? "error" : "success");
       setPopupOpen(true);
     }
   }, [errorFileLink, error, success]);
 
+  const handleExportData = async () => {
+    try {
+      setTableLoading(true);
 
-const handleExportData = async () => {
-  try {
-    setTableLoading(true);
+      if (!currentPayload) return;
 
-    if (!currentPayload) return;
+      // remove pagination before sending
+      const { start, limit, ...exportPayload } = currentPayload;
 
-    // remove pagination before sending
-    const { start, limit, ...exportPayload } = currentPayload;
+      await downloadFilteredExcel(exportPayload);
+    } catch (err) {
+      setPopupMessage("Failed to export data");
+      setPopupSeverity("error");
+      setPopupOpen(true);
+    } finally {
+      setTableLoading(false);
+    }
+  };
 
-    await downloadFilteredExcel(exportPayload);
+  useEffect(() => {
+    runFetch(filters);
+  }, [page, limit]);
 
-  } catch (err) {
-    setPopupMessage("Failed to export data");
-    setPopupSeverity("error");
-    setPopupOpen(true);
-  } finally {
-    setTableLoading(false);
-  }
-};
-
-
-useEffect(() => {
-  runFetch(filters);
-}, [page, limit]);
-
-
-
-
+  console.log(popupOpen);
 
   /* ----------------------------------------------------
      🔹 UI
@@ -222,42 +231,72 @@ useEffect(() => {
   return (
     <Box sx={{ width: "100%", p: 2, position: "relative" }}>
       {tableLoading && (
-        <Box sx={{ position: "absolute", inset: 0, zIndex: 9, display: "flex", justifyContent: "center", alignItems: "center", background: "rgba(0,0,0,0.3)" }}>
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 9,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            background: "rgba(0,0,0,0.3)",
+          }}
+        >
           <CircularProgress />
         </Box>
       )}
 
       {/* Header */}
       <Box display="flex" justifyContent="space-between" mb={3}>
-        <Box display="flex" alignItems="center" gap={1} onClick={() => navigate("/")}>
-          <img src={arrow} alt="back" />
+        <Box
+          display="flex"
+          alignItems="center"
+          gap={1}
+          onClick={() => navigate("/")}
+        >
+          <img
+            src={arrow}
+            alt="back"
+            style={{ transform: "rotate(90deg)" }} // rotates 180°
+          />
           <Typography>Shift Allowances Data</Typography>
         </Box>
 
         <Stack direction="row" spacing={1}>
-          <Button variant="contained" component="label" sx={{
-            backgroundColor:"#1C2F72",
-            textTransform: 'none'
-          }}>
+          <Button
+            variant="contained"
+            component="label"
+            sx={{
+              backgroundColor: "#1C2F72",
+              textTransform: "none",
+            }}
+          >
             Upload File
             <input hidden type="file" onChange={handleFileChange} />
           </Button>
-          <Button variant="outlined" sx={{
-            backgroundColor:"white",
-            color:"#1C2F72",
-            textTransform: 'none',
-            border:"1px solid #1C2F72"
-          }} onClick={handleExportData}
->
+          <Button
+            variant="outlined"
+            sx={{
+              backgroundColor: "white",
+              color: "#1C2F72",
+              textTransform: "none",
+              border: "1px solid #1C2F72",
+            }}
+            onClick={handleExportData}
+          >
             Export Data
           </Button>
-          <Button variant="contained" onClick={downloadExcel} sx={{
-            border:"none",
-            background:"transparent",
-            boxShadow:"none",
-            color:"#0F3C70",
-            textTransform: 'none'
-          }}>
+          <Button
+            variant="contained"
+            onClick={downloadExcel}
+            sx={{
+              border: "none",
+              background: "transparent",
+              boxShadow: "none",
+              color: "#0F3C70",
+              textTransform: "none",
+            }}
+          >
             Download Template
           </Button>
         </Stack>
@@ -265,59 +304,63 @@ useEffect(() => {
 
       {/* KPI */}
       <Box display="flex" gap={2} mb={4} flexWrap="wrap">
-        <KpiCard HeaderIcon={allowanceIcon} HeaderText="Total Allowance" BodyNumber={totalAllowance} />
+        <KpiCard
+          HeaderIcon={allowanceIcon}
+          HeaderText="Total Allowance"
+          BodyNumber={totalAllowance}
+        />
         {shiftKpiCards.map((kpi, i) => (
           <ShiftKpiCard key={i} {...kpi} />
         ))}
       </Box>
 
       {/* Search + Filter */}
-     <div className="flex items-center justify-between gap-4 mb-3">
-  {/* Left */}
-  <div>
-    <p className="text-sm font-semibold text-gray-800">
-      Employee Details
-    </p>
-  </div>
+      <div className="flex items-center justify-between gap-4 mb-3">
+        {/* Left */}
+        <div>
+          <p className="text-sm font-semibold text-gray-800">
+            Employee Details
+          </p>
+        </div>
 
-  {/* Right */}
-  <div className="flex items-center gap-2">
-    <SearchInput
-      value={searchText}
-      placeholder={
-        searchBy === "emp_id"
-          ? "Search Employee ID"
-          : searchBy === "clients"
-          ? "Search Client"
-          : "Search Client Partner"
-      }
-      onChange={(value) => {
-        setSearchText(value);
+        {/* Right */}
+        <div className="flex items-center gap-2">
+          <SearchInput
+            value={searchText}
+            placeholder={
+              searchBy === "emp_id"
+                ? "Search Employee ID"
+                : searchBy === "clients"
+                ? "Search Client"
+                : "Search Client Partner"
+            }
+            onChange={(value) => {
+              setSearchText(value);
 
-        const payload = { ...filters };
+              const payload = { ...filters };
 
-        if (value.trim()) {
-          if (searchBy === "emp_id") {
-            payload.emp_id = value.trim();
-          } else if (searchBy === "client_partner") {
-            payload.client_partner = value.trim();
-          } else if (searchBy === "clients") {
-            payload.clients = [value.trim()];
-          }
-        } else {
-          delete payload.emp_id;
-          delete payload.client_partner;
-          delete payload.clients;
-        }
-setPage(0);
-        debouncedRunFetch(payload);
-      }}
-    />
+              if (value.trim()) {
+                if (searchBy === "emp_id") {
+                  payload.emp_id = value.trim();
+                } else if (searchBy === "client_partner") {
+                  payload.client_partner = value.trim();
+                } else if (searchBy === "clients") {
+                  payload.clients = [value.trim()];
+                }
+              } else {
+                delete payload.emp_id;
+                delete payload.client_partner;
+                delete payload.clients;
+              }
+              setPage(0);
+              debouncedRunFetch(payload);
+            }}
+          />
 
-    <select
-      value={searchBy}
-      onChange={(e) => setSearchBy(e.target.value)}
-      className="
+          <select
+            value={searchBy}
+            onChange={(e) => setSearchBy(e.target.value)}
+            className="
       custom-select
         border border-[#E0E0E0]
         rounded-sm px-2 py-2
@@ -327,16 +370,15 @@ setPage(0);
         max-w-sm
         w-[212px]
       "
-    >
-      <option value="emp_id">Employee ID</option>
-      <option value="clients">Clients</option>
-      <option value="client_partner">Client Partner</option>
-    </select>
+          >
+            <option value="emp_id">Employee ID</option>
+            <option value="clients">Clients</option>
+            <option value="client_partner">Client Partner</option>
+          </select>
 
-    <FilterDrawer onApply={handleApplyFilters} filters={filters} />
-  </div>
-</div>
-
+          <FilterDrawer onApply={handleApplyFilters} filters={filters} />
+        </div>
+      </div>
 
       {/* Table */}
       <ReusableTable
@@ -348,65 +390,71 @@ setPage(0);
           setShowModal(true);
         }}
       />
-      <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
-  <Typography variant="body2">
-    Page {page + 1}
-  </Typography>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mt={2}
+      >
+        <Typography variant="body2">Page {page + 1}</Typography>
 
-  <Stack direction="row" spacing={1}>
-    <Button
-      disabled={page === 0}
-      onClick={() => setPage((prev) => prev - 1)}
-    >
-      Previous
-    </Button>
+        <Stack direction="row" spacing={1}>
+          <Button
+            disabled={page === 0}
+            onClick={() => setPage((prev) => prev - 1)}
+          >
+            Previous
+          </Button>
 
-    <Button
-      disabled={(page + 1) * limit >= totalCount}
-      onClick={() => setPage((prev) => prev + 1)}
-    >
-      Next
-    </Button>
-  </Stack>
-</Box>
+          <Button
+            disabled={(page + 1) * limit >= totalCount}
+            onClick={() => setPage((prev) => prev + 1)}
+          >
+            Next
+          </Button>
+        </Stack>
+      </Box>
 
-
-      {showModal && (
-        <EmployeeModal employee={selectedEmployee} onClose={() => setShowModal(false)} />
+      {showModal && selectedEmployee && (
+        <EmployeeModal
+          employee={selectedEmployee}
+          onClose={() => setShowModal(false)}
+          setPopupMessage={setPopupMessage}
+          setPopupType={setPopupSeverity}
+        />
       )}
 
       <PopupMessage
-  open={popupOpen}
-  message={popupMessage}
-  severity={popupSeverity}
-  onClose={() => setPopupOpen(false)}
-  actions={
-    popupSeverity === "error" && errorFileLink ? (
-      <>
-        <Button
-          variant="contained"
-          size="small"
-          onClick={() =>
-            navigate("/shift-allowance/edit", {
-              state: { errorRows: safeErrorRows },
-            })
-          }
-        >
-          Edit
-        </Button>
+        open={popupOpen}
+        message={popupMessage}
+        severity={popupSeverity}
+        onClose={() => setPopupOpen(false)}
+        actions={
+          popupSeverity === "error" && errorFileLink ? (
+            <>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() =>
+                  navigate("/shift-allowance/edit", {
+                    state: { errorRows: safeErrorRows },
+                  })
+                }
+              >
+                Edit
+              </Button>
 
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={() => downloadErrorExcel(errorFileLink)}
-        >
-          Download Error File
-        </Button>
-      </>
-    ) : null
-  }
-/>
-
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => downloadErrorExcel(errorFileLink)}
+              >
+                Download Error File
+              </Button>
+            </>
+          ) : null
+        }
+      />
     </Box>
   );
 };

@@ -1,4 +1,6 @@
-export const SHIFT_HEADERS = ["ANZ", "PST_MST", "US_IND", "SG", "US3"];
+import { formatRupeesWithUnit } from "../../utils/utils";
+
+export const SHIFT_HEADERS = ["ANZ", "PST_MST", "US_INDIA", "SG"];
 
 const buildShiftColumns = () =>
   SHIFT_HEADERS.map((key) => ({
@@ -25,7 +27,7 @@ export const buildClientSummary = () =>
     header: key,
     sortable: true,
     sortFn: (a, b) => (a.shifts?.[key] || 0) - (b.shifts?.[key] || 0),
-    render: (val) => `₹ ${Number(val ?? 0).toLocaleString()}`, // ensure a number, no object
+    render: (val) => `${val?formatRupeesWithUnit(val):0}`, // ensure a number, no object
   }));
 
 export const dashboardColumns = [
@@ -53,7 +55,7 @@ export const dashboardColumns = [
     header: "Allowance",
     sortable: true,
     sortFn: (a, b) => (a.total || 0) - (b.total || 0),
-    render: (v) => `₹ ${Number(v).toLocaleString()}`,
+    render: (v) => `${formatRupeesWithUnit(v)}`,
   },
 
   {
@@ -117,7 +119,7 @@ export const allowanceColumns = [
     header: "Total Allowance",
     sortable: true,
     sortFn: (a, b) => (a.total || 0) - (b.total || 0),
-    render: (v) => `₹ ${Number(v).toLocaleString()}`,
+    render: (v) => `${formatRupeesWithUnit(v)}`,
   },
   {
     key: "action",
@@ -146,7 +148,7 @@ export const clientAnalyticsClientColumns = [
     key: "total",
     header: "TotalAllowance",
     sortable: true,
-    render: (v) => `₹ ${Number(v).toLocaleString()}`,
+    render: (v) => `${formatRupeesWithUnit(v)}`,
   },
   {
     key: "action",
@@ -178,7 +180,7 @@ export const clientAnalyticsEmployeeColumns = [
     key: "total",
     header: "Total Allowance",
     sortable: true,
-    render: (v) => `₹ ${Number(v).toLocaleString()}`,
+    render: (v) => `${formatRupeesWithUnit(v)}`,
   },
 ];
 
@@ -200,7 +202,7 @@ export const clientDetailClientPartnersColumns = [
     key: "total",
     header: "Total Allowance",
     sortable: true,
-    render: (v) => `₹ ${Number(v).toLocaleString()}`,
+    render: (v) => `${formatRupeesWithUnit(v)}`,
   },
   {
     key: "action",
@@ -232,6 +234,6 @@ export const clientDetailEmployeesColumns = [
     key: "total",
     header: "Total Allowance",
     sortable: true,
-    render: (v) => `₹ ${Number(v).toLocaleString()}`,
+    render: (v) => `${formatRupeesWithUnit(v)}`,
   },
 ];

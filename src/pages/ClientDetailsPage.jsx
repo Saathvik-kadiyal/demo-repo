@@ -22,6 +22,7 @@ import {
   clientDetailEmployeesColumns,
 } from "../component/ReusableTable/columns";
 import { all } from "axios";
+import { formatRupeesWithUnit } from "../utils/utils";
 
 /* -------------------------
    PAYLOAD BUILDER
@@ -98,10 +99,10 @@ const tableData = useMemo(() => {
 
         shifts: {
           ANZ: shifts.ANZ ?? 0,
-          PST_MST: shifts.PST_MST ?? 0,
-          US_INDIA: shifts.US_INDIA ?? 0,
-          SG: shifts.SG ?? 0,
-          US3: shifts.US3 ?? 0,
+          PST_MST: shifts.PST_MST ?`${formatRupeesWithUnit(shifts.PST_MST)}` : 0,
+          US_INDIA: shifts.US_INDIA ?`${formatRupeesWithUnit(shifts.US_INDIA)}` : 0,
+          SG: shifts.SG ?`${formatRupeesWithUnit(shifts.SG)}` : 0,
+          US3: shifts.US3 ?`${formatRupeesWithUnit(shifts.US3)}` : 0,
         },
 
         children: (partner.employees || []).map((emp) => {
@@ -115,11 +116,11 @@ console.log("Employee data:", empShifts);
             total: emp.total_allowance ?? 0,
 
             shifts: {
-              ANZ: emp.ANZ ?? 0,
-              PST_MST: emp.PST_MST ?? 0,
-              US_INDIA: emp.US_INDIA ?? 0,
-              SG: emp.SG ?? 0,
-              US3: emp.US3 ?? 0,
+              ANZ: emp.ANZ ? `${formatRupeesWithUnit(emp.ANZ)}` : 0,
+              PST_MST: emp.PST_MST ? `${formatRupeesWithUnit(emp.PST_MST)}` : 0,
+              US_INDIA: emp.US_INDIA ? `${formatRupeesWithUnit(emp.US_INDIA)}` : 0,
+              SG: emp.SG ? `${formatRupeesWithUnit(emp.SG)}` : 0,
+              US3: emp.US3 ? `${formatRupeesWithUnit(emp.US3)}` : 0,
             },
           };
         }),
@@ -146,7 +147,7 @@ console.log("Employee data:", empShifts);
 
   return Object.entries(source).map(([key, value]) => ({
     name: key,
-    amount: value,
+     amount: Number(value), 
   }));
 }, [clientData, activeChartTab]);
 
@@ -179,7 +180,7 @@ console.log("Employee data:", empShifts);
         <KpiCard
           loading={loading}
           HeaderIcon={peopleIcon}
-          HeaderText="Account Managers"
+          HeaderText="Client Partners"
      BodyNumber={clientData?.client_partner_count ?? 0}
           BodyComparisionNumber=""
         />
@@ -252,9 +253,18 @@ console.log("Employee data:", empShifts);
     data={chartData}
     barCategoryGap="40%"
   >
-    <XAxis dataKey="name" />
-    <YAxis />
-    <Tooltip />
+    <XAxis
+      dataKey="name"
+      tick={{ fontSize: 12 }}
+    />
+ <YAxis
+  tickFormatter={(value) => formatRupeesWithUnit(value)}
+/>
+
+ <Tooltip
+  formatter={(value) => formatRupeesWithUnit(value)}
+/>
+
     <Bar
       dataKey="amount"
       barSize={25}

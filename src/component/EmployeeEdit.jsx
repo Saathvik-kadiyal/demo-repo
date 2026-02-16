@@ -132,29 +132,45 @@ const EmployeeEdit = () => {
         ))}
       </Box>
 
-      <Button
-        variant="contained"
-        onClick={() =>
-          alert("This will trigger the save functionality in the future.")
-        }
-      >
+      <Button  onClick={handleSave}
+      sx={{
+         mt: 3,
+    backgroundColor: "#1E3A8A",
+    color: "#fff",
+    textTransform: "none", // normal text
+    borderRadius: "4px",
+    padding: "6px 16px",
+    fontWeight: 600,
+    "&:hover": {
+      backgroundColor: "#16286b",
+    },
+      }}>
         Save
       </Button>
-
+ 
       {saveSuccess && (
-        <Typography
-          color={
-            saveSuccess.includes("successfully") ? "success.main" : "error"
-          }
-          sx={{ mt: 1 }}
-        >
+        <Typography color={saveSuccess.includes("successfully") ? "success.main" : "error"} sx={{ mt: 1 }}>
           {saveSuccess}
         </Typography>
       )}
-
-      <Button sx={{ mt: 2 }} onClick={() => navigate(-1)}>
+ 
+      <Button  onClick={() => navigate(-1)}
+        sx={{
+          mt: 2,
+    backgroundColor: "transparent",
+    color: "#1E3A8A",
+    border: "2px solid #1E3A8A",
+    borderRadius: "4px",
+    padding: "6px 16px",
+    textTransform: "none",
+    fontWeight: 600,
+    "&:hover": {
+      backgroundColor: "rgba(28, 47, 114, 0.1)",
+    },
+        }}>
         Go Back
       </Button>
+ 
     </Box>
   );
 };

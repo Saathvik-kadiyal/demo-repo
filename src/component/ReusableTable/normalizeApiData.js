@@ -170,8 +170,8 @@ export function normalizeClientSummaryData(raw) {
       );
     return {
       SG: Number(get(["client_SG", "dept_SG", "SG"])) || 0,
-      US_IND:
-        Number(get(["client_US_IND", "dept_US_IND", "US_IND"])) || 0,
+      US_INDIA:
+        Number(get(["client_US_INDIA", "dept_US_INDIA", "US_INDIA"])) || 0,
       PST_MST: Number(get(["client_PST_MST", "dept_PST_MST", "PST_MST"])) || 0,
       ANZ: Number(get(["client_ANZ", "dept_ANZ", "ANZ"])) || 0,
       US3: Number(get(["client_US3", "dept_US3", "US3"])) || 0,

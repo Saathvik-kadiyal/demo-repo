@@ -2,7 +2,7 @@
 export const normalizeFilters = (filters = {}) => {
   console.log("NORMALIZING FILTERS:", filters);
   const payload = {
-    clients: filters.client || "ALL",
+    clients: filters.clients || "ALL",
     departments: filters.departments || "ALL",
     sort_by: "total_allowance",
     sort_order: "default",

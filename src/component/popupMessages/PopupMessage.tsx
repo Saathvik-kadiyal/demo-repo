@@ -1,8 +1,9 @@
 import React from "react";
 import { Box, Button } from "@mui/material";
-// import succesIcon from "../../assets/success.svg";
-// import invalidIcon from "../../assets/invalid.svg";
-// import errorIcon from "../../assets/error.svg";
+import succesIcon from "../../assets/success.svg";
+import invalidIcon from "../../assets/invalid.svg";
+import errorIcon from "../../assets/error.svg";
+import close from "../../assets/close.svg";
  
 interface PopupMessageProps {
   open: boolean;
@@ -20,6 +21,8 @@ const PopupMessage: React.FC<PopupMessageProps> = ({
   actions,
 }) => {
   if (!open) return null;
+  console.log("PopupMessage rendered with severity:", severity);
+  console.log("PopupMessage rendered with message:", message);
  
   const severityNormalized = severity?.toLowerCase();
   let severityFinal: "success" | "error" | "invalid" = "success";
@@ -29,12 +32,12 @@ const PopupMessage: React.FC<PopupMessageProps> = ({
     severityFinal = "invalid";
   else severityFinal = "success";
  
-  // const icon =
-  //   severityFinal === "error"
-  //     ? errorIcon
-  //     : severityFinal === "invalid"
-  //     ? invalidIcon
-  //     : succesIcon;
+  const icon =
+    severityFinal === "error"
+      ? errorIcon
+      : severityFinal === "invalid"
+      ? invalidIcon
+      : succesIcon;
  
   const textClass =
     severityFinal === "error"
@@ -75,13 +78,13 @@ const PopupMessage: React.FC<PopupMessageProps> = ({
           padding: 3,
         }}
       >
-        {/* <img src={icon} alt={severityFinal} className="popup-figma-icon" /> */}
+        <img src={icon} alt={severityFinal} className="popup-figma-icon" />
         <p className={textClass}>{message}</p>
  
         {/* Render any custom buttons/actions */}
         {actions && <Box sx={{ display: "flex", gap: 1, mt: 1 }}>{actions}</Box>}
  
-        <button
+        {/* <button
           className="popup-close-btn"
           onClick={onClose}
           style={{
@@ -96,7 +99,21 @@ const PopupMessage: React.FC<PopupMessageProps> = ({
           }}
         >
           Close
-        </button>
+        </button> */}
+
+         <img
+  src={close}
+  alt="close"
+  onClick={onClose}
+  style={{
+    position: "absolute",
+    top: "12px",
+    right: "12px",
+    width: "18px",
+    height: "18px",
+    cursor: "pointer",
+  }}
+/>
       </Box>
     </>
   );
