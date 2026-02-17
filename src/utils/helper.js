@@ -218,7 +218,6 @@ export const correctEmployeeRows = async (input) => {
   const token = localStorage.getItem("access_token");
   if (!token) throw new Error("Not authenticated");
 
-  // ✅ Normalize input
   const rows = Array.isArray(input)
     ? input
     : input?.corrected_rows;
@@ -227,11 +226,9 @@ export const correctEmployeeRows = async (input) => {
     throw new Error("corrected_rows must be an array");
   }
 
-  // ✅ Remove `reason` safely
   const payload = rows.map(({ reason, ...row }) => row);
 
-  console.log("🚀 Sending corrected_rows:", payload);
-
+ 
   try {
     const response = await axiosInstance.post(
       "/upload/correct_error_rows",
@@ -255,8 +252,6 @@ export const fetchClientSummary = async (
   payload
 ) => {
   if (!token) throw new Error("Not authenticated");
-  console.log(payload)
-
   try {
     const response = await axios.post(
       `${backendApi}/client-summary`,
@@ -309,7 +304,6 @@ export const downloadClientSummary = async (payload) => {
 //       headers: { Authorization: `Bearer ${token}` },
 //     });
 
-//     console.log("Month range response:", response.data)
 //     if (!Array.isArray(response.data) || response.data.length === 0) {
 //       return [];
 //     }
@@ -421,7 +415,6 @@ export const fetchDashboardKpiSummary = async (body) => {
       "/dashboard/KPIS-summary",
       body
     );
-    console.log("KPI Summary response:", res.data);
     return res.data;
   } catch (err) {
     throw new Error(
@@ -460,10 +453,9 @@ export const fetchDashboardTable = async (
     const res = await axiosInstance.post(
       "/dashboard-Table",
       body,
-      { params } // 👈 query params here
+      { params }
     );
-    console.log("Dashboard Table response:", res);
-    return res.data;
+   return res.data;
   } catch (err) {
     throw new Error(
       err?.response?.data?.detail ||
@@ -474,14 +466,12 @@ export const fetchDashboardTable = async (
 };
 
 export const fetchDashboardIndividualClientDetails = async (body) => {
-  console.log("Fetching individual client details with payload:", body);
   try {
     const res = await axiosInstance.post(
       "/dashboard/client-Page-Graph",
       body
     );
-    console.log("Individual Client Details response:", res.data);
-    return res.data;
+   return res.data;
   } catch (err) {
     throw new Error(
       err?.response?.data?.detail ||

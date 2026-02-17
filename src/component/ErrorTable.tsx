@@ -115,7 +115,7 @@ const handleDownloadErrorRows = () => {
     // },
   }}
 >
-  Download Template
+  Download Error File
 </Button>
 </Box>
  

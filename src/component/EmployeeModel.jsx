@@ -246,14 +246,14 @@ console.log(data)
             <>
               <button
                 onClick={resetChanges}
-                className="rounded-lg border px-6 py-2 text-sm font-medium"
+                className=" border rounded-sm px-6 py-2 text-sm font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving || Boolean(error)}
-                className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white disabled:bg-blue-300"
+                className="rounded-sm bg-[#1E3A8A] px-6 py-2 text-sm font-medium text-white disabled:bg-blue-300"
               >
                 {saving ? "Saving..." : "Save"}
               </button>
