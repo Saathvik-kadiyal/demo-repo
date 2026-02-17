@@ -24,6 +24,7 @@ import { useEmployeeData } from "../hooks/useEmployeeData.jsx";
 import SearchInput from "../component/SearchInput.jsx";
 import { debounce, downloadFilteredExcel } from "../utils/helper.js";
 import Pagination from "../component/pagination/Pagination.jsx";
+import { formatRupeesWithUnit } from "../utils/utils.js";
 
 const FileInput = () => {
   const navigate = useNavigate();
@@ -172,7 +173,7 @@ const FileInput = () => {
     .filter(([k]) => !["total", "headcount", "head_count"].includes(k))
     .map(([ShiftType, ShiftCount]) => ({
       ShiftType,
-      ShiftCount,
+      ShiftCount:formatRupeesWithUnit(ShiftCount),
       ShiftCountSize: "2rem",
       ShiftTypeSize: "1rem",
     }));
@@ -340,7 +341,7 @@ const FileInput = () => {
         <KpiCard
           HeaderIcon={allowanceIcon}
           HeaderText="Total Allowance"
-          BodyNumber={totalAllowance}
+          BodyNumber={formatRupeesWithUnit(totalAllowance)}
         />
         {shiftKpiCards.map((kpi, i) => (
           <ShiftKpiCard key={i} {...kpi} />
