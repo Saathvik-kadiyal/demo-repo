@@ -185,6 +185,7 @@ const getProcessedData = useCallback(
       const employees = Array.isArray(res?.data?.employees)
         ? res.data.employees
         : [];
+        console.log(res.total_records)
 
       const mapped = employees.map((item, idx) => ({
         id: `${item.emp_id}-${idx}`,

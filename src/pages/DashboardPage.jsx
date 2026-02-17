@@ -23,6 +23,7 @@ import {
 } from "../utils/helper";
 import SearchInput from "../component/SearchInput";
 import KpiCard from "../component/kpicards/KpiCard";
+import Pagination from "../component/pagination/Pagination";
 
 /* -------------------------
    FILTER NORMALIZER
@@ -65,7 +66,17 @@ export default function DashboardPage() {
   const [tableData, setTableData] = useState([]);
   const [chartData, setChartData] = useState(null);
   const [search, setSearch] = useState("");
+  const [currentPage,setCurrentPage]=useState(1)
+  const [filteredTableData,setFilteredTableData] = useState([])
+  const [rows,setRows]=useState(5)
   const navigate = useNavigate();
+  console.log(tableData)
+  const NoOfPages = Math.floor(tableData.length/rows)
+
+const startIndex = rows * (currentPage - 1);
+const endIndex = startIndex + rows;
+
+const paginatedData = tableData?.slice(startIndex, endIndex);
 
   /* -------------------------
      FETCH TABLE DATA
@@ -88,8 +99,6 @@ export default function DashboardPage() {
             row.company.toLowerCase().includes(search.toLowerCase())
           )
         : dashboardData;
-        console.log("Fetched and filtered table data:", filteredData);
-
       setTableData(filteredData);
     } catch (err) {
       console.error("Table fetch error:", err);
@@ -97,7 +106,6 @@ export default function DashboardPage() {
     }
   }, [search]);
 
-  // Debounce search
   const debouncedTableFetch = useCallback(debounce(fetchTableData, 500), [fetchTableData]);
 
   /* -------------------------
@@ -110,7 +118,6 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
 
-      // KPI + Chart
       const [kpiResponse, chartResponse] = await Promise.all([
         fetchDashboardKpiSummary(payload),
         fetchDashboardClientGraph(payload),
@@ -243,12 +250,19 @@ const handleDashboardAction = (row) => {
                 <p>Loading...</p>
               </div>
             ) : (
-              <ReusableTable
-                data={tableData}
+              <div>
+                <ReusableTable
+                data={paginatedData}
                 columns={dashboardColumns}
                 message="No clients found"
                  onActionClick={handleDashboardAction} 
               />
+              <Pagination
+              currentPage={currentPage}
+              totalPages={NoOfPages||1}
+              onPageChange={setCurrentPage}
+              />
+                </div>
             )}
           </div>
         </div>

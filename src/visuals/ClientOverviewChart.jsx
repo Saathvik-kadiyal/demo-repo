@@ -67,6 +67,8 @@ function generateColors(n) {
 // -----------------------------
 export default function ClientsOverviewChart({ apiResponse,onTopChange }) {
   const [top, setTop] = useState("ALL");
+
+
   const { chartData, meta } = useMemo(
     () => normalizeClientsApi(apiResponse),
     [apiResponse]

@@ -23,6 +23,7 @@ import allowanceIcon from "../assets/allowance.svg";
 import { useEmployeeData } from "../hooks/useEmployeeData.jsx";
 import SearchInput from "../component/SearchInput.jsx";
 import { debounce, downloadFilteredExcel } from "../utils/helper.js";
+import Pagination from "../component/pagination/Pagination.jsx";
 
 const FileInput = () => {
   const navigate = useNavigate();
@@ -38,9 +39,10 @@ const FileInput = () => {
   const [searchText, setSearchText] = useState("");
   const [searchBy, setSearchBy] = useState("emp_id");
   const [currentPayload, setCurrentPayload] = useState({});
-  const [page, setPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
+  const [pageRows, setPageRows] = useState(10);
 
   const {
     rows,
@@ -53,7 +55,14 @@ const FileInput = () => {
     success,
     error,
     shiftSummary,
+    totalRecords,
   } = useEmployeeData();
+
+  useEffect(() => {
+    setTotalCount(totalRecords);
+  }, [totalRecords]);
+
+  const NoOfPages = Math.floor(totalRecords / pageRows);
 
   const tableData = mapEmployeeForTable(rows);
   const safeErrorRows = errorRows || [];
@@ -82,30 +91,33 @@ const FileInput = () => {
   /* ----------------------------------------------------
     Fetch
   ---------------------------------------------------- */
-const runFetch = useCallback(
-  async (payloadFilters = {}) => {
-    console.log("Running fetch with filters:", payloadFilters);
-    setTableLoading(true);
-    try {
-      const normalized = normalizeFilters(payloadFilters);
-      const payload = {
-        start: page * limit,
-        limit,
-        sort_by: "total_allowance",
-        sort_order: "default",
-        ...normalized,
-      };
+  const runFetch = useCallback(
+    async (payloadFilters = {}) => {
+      console.log("Running fetch with filters:", payloadFilters);
+      setTableLoading(true);
+      try {
+        const normalized = normalizeFilters(payloadFilters);
 
-      setCurrentPayload(payload);
-      await getProcessedData(payload);
-      setTotalCount(rows?.total_records || 0);
-    } finally {
-      setTableLoading(false);
-    }
-  },
-  [getProcessedData, page, limit]
-);
+        // Do NOT reference searchText here!
+        // Instead, pass the payload fully prepared from input/filters.
 
+        const payload = {
+          start: currentPage * limit,
+          limit,
+          sort_by: "total_allowance",
+          sort_order: "default",
+          ...normalized,
+        };
+
+        setCurrentPayload(payload);
+        await getProcessedData(payload);
+        setTotalCount(rows?.total_records || 0);
+      } finally {
+        setTableLoading(false);
+      }
+    },
+    [getProcessedData, currentPage, limit] // <-- remove searchText & searchBy
+  );
 
   const debouncedRunFetch = useCallback(
     debounce((payload) => {
@@ -123,7 +135,7 @@ const runFetch = useCallback(
   ---------------------------------------------------- */
   const handleApplyFilters = (filtersObj) => {
     setFilters(filtersObj);
-    setPage(0);
+    setCurrentPage(0);
     runFetch(buildPayload(filtersObj));
   };
 
@@ -169,11 +181,17 @@ const runFetch = useCallback(
       Popups
   ---------------------------------------------------- */
   useEffect(() => {
-    if (errorFileLink || error || success) {
-      setPopupMessage(
-        errorFileLink ? "File processed with errors." : error || success
-      );
-      setPopupSeverity(errorFileLink || error ? "error" : "success");
+    if (errorFileLink) {
+      setPopupMessage("File processed with errors.");
+      setPopupSeverity("error");
+      setPopupOpen(true);
+    } else if (error) {
+      setPopupMessage(error);
+      setPopupSeverity("invalid");
+      setPopupOpen(true);
+    } else if (success) {
+      setPopupMessage(success);
+      setPopupSeverity("success");
       setPopupOpen(true);
     }
   }, [errorFileLink, error, success]);
@@ -197,15 +215,48 @@ const runFetch = useCallback(
 
   useEffect(() => {
     runFetch(filters);
-  }, [page, limit]);
+  }, [currentPage, limit]);
 
+  useEffect(() => {
+    if (popupMessage) {
+      setPopupOpen(true);
+    }
+  }, [popupMessage]);
 
-    const handleOpenEmployeeModal = (employee) => {
+  const handleOpenEmployeeModal = (employee) => {
     console.log("Opening modal for employee:", employee);
     setSelectedEmployee(employee);
     setShowModal(true);
   };
- 
+
+  const getPagination = (current, total) => {
+    const pages = [];
+
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+
+    pages.push(1);
+
+    if (current > 3) {
+      pages.push("...");
+    }
+
+    const start = Math.max(2, current - 1);
+    const end = Math.min(total - 1, current + 1);
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    if (current < total - 2) {
+      pages.push("...");
+    }
+
+    pages.push(total);
+
+    return pages;
+  };
 
   /* ----------------------------------------------------
       UI
@@ -315,25 +366,23 @@ const runFetch = useCallback(
       const currentValue = e.target.value.trim();
       const payload = { ...filters };
 
-      if (currentValue) {
-        if (searchBy === "emp_id") payload.emp_id = currentValue;
-        else if (searchBy === "client_partner")
-          payload.client_partner = currentValue;
-        else if (searchBy === "clients")
-          payload.clients = [currentValue];
-      } else {
-        delete payload.emp_id;
-        delete payload.client_partner;
-        delete payload.clients;
-      }
+                if (currentValue) {
+                  if (searchBy === "emp_id") payload.emp_id = currentValue;
+                  else if (searchBy === "client_partner")
+                    payload.client_partner = currentValue;
+                  else if (searchBy === "clients")
+                    payload.clients = [currentValue];
+                } else {
+                  delete payload.emp_id;
+                  delete payload.client_partner;
+                  delete payload.clients;
+                }
 
-      setPage(0);
-      runFetch(payload);
-    }
-  }}
-/>
-
-
+                setCurrentPage(0);
+                runFetch(payload); // call API once
+              }
+            }}
+          />
 
 
 
@@ -363,40 +412,25 @@ const runFetch = useCallback(
       {/* Table */}
       <div className="w-full h-full overflow-x-auto">
         <ReusableTable
-        data={tableData}
-        columns={allowanceColumns}
-        getRowKey={(row) => row.emp_id}
-        // onActionClick={(emp) => {
-        //   setSelectedEmployee(emp);
-        //   setShowModal(true);
-        // }
-onActionClick={handleOpenEmployeeModal}
-      />
+          data={tableData}
+          columns={allowanceColumns}
+          getRowKey={(row) => row.emp_id}
+          // onActionClick={(emp) => {
+          //   setSelectedEmployee(emp);
+          //   setShowModal(true);
+          // }
+          onActionClick={handleOpenEmployeeModal}
+        />
       </div>
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mt={2}
-      >
-        <Typography variant="body2">Page {page + 1}</Typography>
 
-        <Stack direction="row" spacing={1}>
-          <Button
-            disabled={page === 0}
-            onClick={() => setPage((prev) => prev - 1)}
-          >
-            Previous
-          </Button>
+      <div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={NoOfPages || 1}
+          onPageChange={setCurrentPage}
 
-          <Button
-            disabled={(page + 1) * limit >= totalCount}
-            onClick={() => setPage((prev) => prev + 1)}
-          >
-            Next
-          </Button>
-        </Stack>
-      </Box>
+        />
+      </div>
 
       {showModal && selectedEmployee && (
         <EmployeeModal
@@ -423,6 +457,17 @@ onActionClick={handleOpenEmployeeModal}
                     state: { errorRows: safeErrorRows },
                   })
                 }
+                style={{
+                  background: "#1E3A8A",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "4px",
+                  padding: "6px 16px",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                  textTransform: "none",
+                }}
               >
                 Edit
               </Button>
@@ -431,6 +476,17 @@ onActionClick={handleOpenEmployeeModal}
                 variant="outlined"
                 size="small"
                 onClick={() => downloadErrorExcel(errorFileLink)}
+                style={{
+                  background: "transparent",
+                  color: "#1E3A8A",
+                  border: "2px solid #1E3A8A",
+                  borderRadius: "4px",
+                  padding: "6px 16px",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                  textTransform: "none",
+                }}
               >
                 Download Error File
               </Button>
