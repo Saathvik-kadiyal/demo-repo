@@ -201,8 +201,6 @@ const FileInput = () => {
       setTableLoading(true);
 
       if (!currentPayload) return;
-
-      // remove pagination before sending
       const { start, limit, ...exportPayload } = currentPayload;
 
       await downloadFilteredExcel(exportPayload);
@@ -292,7 +290,7 @@ const FileInput = () => {
           <img
             src={arrow}
             alt="back"
-            style={{ transform: "rotate(90deg)" }} // rotates 180°
+            style={{ transform: "rotate(90deg)" }} 
           />
           <Typography>Shift Allowances Data</Typography>
         </Box>
@@ -349,25 +347,24 @@ const FileInput = () => {
         ))}
       </Box>
 
-      {/* Search + Filter */}
+
       <div className="flex items-center justify-between gap-4 mb-3">
-        {/* Left */}
+
         <div>
           <p className="text-sm font-semibold text-gray-800">
             Employee Details
           </p>
         </div>
 
-        {/* Right */}
+
         <div className="flex items-center gap-2">
-          <SearchInput
-            value={searchText}
-            onChange={(value) => setSearchText(value)}
-            onKeyDown={(e) => {
-              console.log(e);
-              if (e.key === "Enter") {
-                const currentValue = e.target.value.trim(); // <-- use input value directly
-                const payload = { ...filters };
+        <SearchInput
+  value={searchText}
+  onChange={(value) => setSearchText(value)}
+  onKeyDown={(e) => {
+    if (e.key === "Enter") {
+      const currentValue = e.target.value.trim();
+      const payload = { ...filters };
 
                 if (currentValue) {
                   if (searchBy === "emp_id") payload.emp_id = currentValue;
@@ -386,6 +383,8 @@ const FileInput = () => {
               }
             }}
           />
+
+
 
           <select
             value={searchBy}
