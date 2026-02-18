@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import ClientsTooltip from "./ClientsTooltip";
 import { CLIENT_ENUMS } from "../utils/enums";
-import "../index.css"
+import "../index.css";
 const REVERSE_ENUM = Object.fromEntries(
   Object.entries(CLIENT_ENUMS).map(([k, v]) => [v, k])
 );
@@ -44,7 +44,6 @@ export function normalizeClientsApi(api) {
   return { chartData, meta };
 }
 
-
 // -----------------------------
 // Color Generator
 // -----------------------------
@@ -65,9 +64,8 @@ function generateColors(n) {
 // -----------------------------
 // Chart Component
 // -----------------------------
-export default function ClientsOverviewChart({ apiResponse,onTopChange }) {
+export default function ClientsOverviewChart({ apiResponse, onTopChange }) {
   const [top, setTop] = useState("ALL");
-
 
   const { chartData, meta } = useMemo(
     () => normalizeClientsApi(apiResponse),
@@ -92,25 +90,23 @@ export default function ClientsOverviewChart({ apiResponse,onTopChange }) {
     <div className="p-4  justify-around flex-col h-full rounded-xl">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Clients Overview</h2>
-       <select
-  className="custom-select border rounded-sm border-[#E0E0E0] px-2 py-2 text-sm focus:outline-none w-[150px]"
-  value={top}
-  onChange={(e) => {
-    const value = e.target.value === "ALL" ? "ALL" : e.target.value;
-    setTop(value);
-    onTopChange?.(value);
-  }}
->
-  <option value="ALL">All</option>
-  <option value="5">Top 5</option>
-  <option value="10">Top 10</option>
-</select>
-
-
+        <select
+          className="custom-select border rounded-sm border-[#E0E0E0] px-2 py-2 text-sm focus:outline-none w-[150px]"
+          value={top}
+          onChange={(e) => {
+            const value = e.target.value === "ALL" ? "ALL" : e.target.value;
+            setTop(value);
+            onTopChange?.(value);
+          }}
+        >
+          <option value="ALL">All</option>
+          <option value="5">Top 5</option>
+          <option value="10">Top 10</option>
+        </select>
       </div>
 
       <div className="w-full flex justify-center relative mt-12">
-        <div className="w-100 h-100 relative">
+        <div className="w-100 min-h-80 relative">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -118,8 +114,8 @@ export default function ClientsOverviewChart({ apiResponse,onTopChange }) {
                 dataKey="value"
                 nameKey="label"
                 stroke="none"
-                innerRadius={60}
-                outerRadius={200}
+                innerRadius="40%"
+                outerRadius="100%"
                 paddingAngle={0}
                 labelLine={false}
                 minAngle={16}

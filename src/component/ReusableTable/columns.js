@@ -6,7 +6,7 @@ const buildShiftColumns = () =>
   SHIFT_HEADERS.map((key) => ({
     key: `shifts.${key}`,
     header: key,
-    sortable: true,
+    // sortable: true,
     sortFn: (a, b) => (a?.shifts?.[key] || 0) - (b?.shifts?.[key] || 0),
     render: (val) => val ?? 0,
   }));
@@ -15,7 +15,7 @@ const buildAllowanceShiftColumns = () =>
   SHIFT_HEADERS.map((key) => ({
     key: `shift_days.${key}`,
     header: key,
-    sortable: true,
+    // sortable: true,
     sortFn: (a, b) =>
       (a?.shifts_days?.[key] || 0) - (b?.shifts_days?.[key] || 0),
     render: (val) => val ?? 0,
@@ -23,37 +23,37 @@ const buildAllowanceShiftColumns = () =>
 
 export const buildClientSummary = () =>
   SHIFT_HEADERS.map((key) => ({
-    key: `shifts.${key}`, // nested path is correct
+    key: `shifts.${key}`,
     header: key,
-    sortable: true,
+    // sortable: true,
     sortFn: (a, b) => (a.shifts?.[key] || 0) - (b.shifts?.[key] || 0),
-    render: (val) => `${val?formatRupeesWithUnit(val):0}`, // ensure a number, no object
+    render: (val) => `${val?formatRupeesWithUnit(val):0}`,
   }));
 
 export const dashboardColumns = [
   {
     key: "company",
     header: "Client Name",
-    sortable: true,
+    // sortable: true,
     sortFn: (a, b) => a.name.localeCompare(b.name),
   },
   {
     key: "departments",
     header: "Department",
-    sortable: true,
+    // sortable: true,
     sortFn: (a, b) => (a.department_count || 0) - (b.department_count || 0),
   },
   {
     key: "headcount",
     header: "Headcount",
-    sortable: true,
+    // sortable: true,
     sortFn: (a, b) => (a.headcount || 0) - (b.headcount || 0),
     render: (v, row) => row.headcount ?? 1,
   },
   {
     key: "total_allowance",
     header: "Allowance",
-    sortable: true,
+    // sortable: true,
     sortFn: (a, b) => (a.total || 0) - (b.total || 0),
     render: (v) => `${formatRupeesWithUnit(v)}`,
   },
@@ -69,18 +69,18 @@ export const allowanceColumns = [
   {
     key: "emp_name",
     header: "Emp Name",
-    sortable: true,
+    // sortable: true,
     sortFn: (a, b) => a.emp_name.localeCompare(b.emp_name),
   },
   {
     key: "emp_id",
     header: "ID",
-    sortable: true,
+    // sortable: true,
   },
   {
     key: "department",
     header: "Department",
-    sortable: true,
+    // sortable: true,
   },
 
   {
@@ -99,12 +99,12 @@ export const allowanceColumns = [
   {
     key: "client_partner",
     header: "Client Partner",
-    sortable: true,
+    // sortable: true,
   },
   {
     key: "client",
     header: "Client",
-    sortable: true,
+    // sortable: true,
   },
   {
     key: "duration_month",
@@ -117,7 +117,7 @@ export const allowanceColumns = [
   {
     key: "total",
     header: "Total Allowance",
-    sortable: true,
+    // sortable: true,
     sortFn: (a, b) => (a.total || 0) - (b.total || 0),
     render: (v) => `${formatRupeesWithUnit(v)}`,
   },
@@ -134,12 +134,13 @@ export const clientAnalyticsClientColumns = [
   {
     key: "name",
     header: "Client Name",
-    sortable: true,
+    // sortable: true,
+    width:"300px",
   },
   {
     key: "head_count",
     header: "Headcount",
-    sortable: true,
+    // sortable: true,
   },
 
   ...buildClientSummary(),
@@ -147,7 +148,9 @@ export const clientAnalyticsClientColumns = [
   {
     key: "total",
     header: "TotalAllowance",
-    sortable: true,
+      sortable: true,
+    sortKey: "total_allowance",
+    render: (v) => `${formatRupeesWithUnit(v)}`,
     render: (v) => `${formatRupeesWithUnit(v)}`,
   },
   {
@@ -161,17 +164,18 @@ export const clientAnalyticsEmployeeColumns = [
   {
     key: "name",
     header: "Emp Name",
-    sortable: true,
+    // sortable: true,
+    width:"300px"
   },
   {
     key: "head_count",
     header: "Headcount",
-    sortable: true,
+    // sortable: true,
   },
   {
     key: "client_partner",
     header: "Client Partner",
-    sortable: true,
+    // sortable: true,
   },
 
   ...buildClientSummary(),
@@ -179,7 +183,7 @@ export const clientAnalyticsEmployeeColumns = [
   {
     key: "total",
     header: "Total Allowance",
-    sortable: true,
+    // sortable: true,
     render: (v) => `${formatRupeesWithUnit(v)}`,
   },
 ];
@@ -188,12 +192,12 @@ export const clientDetailClientPartnersColumns = [
   {
     key: "name",
     header: "Client Partner Name",
-    sortable: true,
+    // sortable: true,
   },
   {
     key: "head_count",
     header: "Headcount",
-    sortable: true,
+    // sortable: true,
   },
 
   ...buildShiftColumns(),
@@ -201,7 +205,7 @@ export const clientDetailClientPartnersColumns = [
   {
     key: "total",
     header: "Total Allowance",
-    sortable: true,
+    // sortable: true,
     render: (v) => `${formatRupeesWithUnit(v)}`,
   },
   {
@@ -215,17 +219,17 @@ export const clientDetailEmployeesColumns = [
   {
     key: "name",
     header: "Emp Name",
-    sortable: true,
+    // sortable: true,
   },
   {
     key: "emp_id",
     header: "ID",
-    sortable: true,
+    // sortable: true,
   },
   {
     key: "department",
     header: "Department",
-    sortable: true,
+    // sortable: true,
   },
 
   ...buildShiftColumns(),
@@ -233,7 +237,7 @@ export const clientDetailEmployeesColumns = [
   {
     key: "total",
     header: "Total Allowance",
-    sortable: true,
+    // sortable: true,
     render: (v) => `${formatRupeesWithUnit(v)}`,
   },
 ];

@@ -22,16 +22,20 @@ const ClientSummaryDetailedPage = () => {
   const [error, setError] = useState("");
   const [expandedMonth, setExpandedMonth] = useState([]);
   const [currentPayload, setCurrentPayload] = useState({});
+const [sortConfig, setSortConfig] = useState({
+  key: "total",
+  order: "desc",
+});
 
 
-const runFetch = useCallback(async (filters) => {
+
+const runFetch = useCallback(async (filters, sort = sortConfig) => {
   setLoading(true);
   setError("");
-console.log(filters)
+
   try {
     const payload = {};
 
-    // Optional filters – only include if user selected
     if (filters.years?.length) payload.years = filters.years;
     if (filters.months?.length) payload.months = filters.months;
     if (filters.employeeId?.length) payload.emp_id = filters.employeeId;
@@ -39,15 +43,17 @@ console.log(filters)
     if (filters.shifts && filters.shifts !== "ALL") payload.shifts = filters.shifts;
     if (filters.headcounts && filters.headcounts !== "ALL") payload.headcounts = filters.headcounts;
 
-    // Always include clients and departments
     payload.clients = filters.clients || "ALL";
     payload.departments = filters.departments || "ALL";
 
-    // Sorting
-    payload.sort_by = "total_allowance";
-    payload.sort_order = "desc";
+    // ✅ Dynamic sorting
+    payload.sort_by =
+      sort?.key === "total"
+        ? "total_allowance"
+        : sort?.key || "total_allowance";
 
-    // Store payload for download
+    payload.sort_order = sort?.order || "desc";
+
     setCurrentPayload(payload);
 
     const res = await fetchClientSummary(payload);
@@ -58,7 +64,16 @@ console.log(filters)
   } finally {
     setLoading(false);
   }
-}, []);
+}, [sortConfig]);
+
+
+const handleSort = ({ key, order }) => {
+  const newSort = { key, order };
+  setSortConfig(newSort);
+
+  runFetch(filters, newSort);
+};
+
 
 
 
@@ -262,6 +277,8 @@ const monthSummaries = useMemo(() => {
   })}
   columns={clientAnalyticsClientColumns}
   nestedColumns={clientAnalyticsEmployeeColumns}
+   sortConfig={sortConfig}
+  onSort={handleSort}
 />
 
               </div>

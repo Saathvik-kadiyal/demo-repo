@@ -4,6 +4,7 @@ import succesIcon from "../../assets/success.svg";
 import invalidIcon from "../../assets/invalid.svg";
 import errorIcon from "../../assets/error.svg";
 import close from "../../assets/close.svg";
+import "../../index.css"
  
 interface PopupMessageProps {
   open: boolean;

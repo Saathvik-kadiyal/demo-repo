@@ -81,6 +81,6 @@ export function formatRupeesWithUnit(amount, unit = "auto") {
   const divisor = units[unit];
   if (!divisor) return `₹${amount}`;
 
-  return `₹${(amount / divisor).toFixed(2)} ${unit}`;
+  return `₹${(amount / divisor).toFixed(2)}${unit}`;
 }
 

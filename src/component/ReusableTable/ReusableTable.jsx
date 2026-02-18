@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Eye from "../../assets/eye.svg";
 import dropDownIcon from "../../assets/arrow.svg";
+import "../../index.css";
 
 function getNestedValue(obj, path) {
   return path.split(".").reduce((acc, key) => acc?.[key], obj);
@@ -23,7 +24,9 @@ export default function ReusableTable({
   cellClassName,
   headerClassName,
   noDataFallback = "No Data Available",
-   onActionClick, 
+  onActionClick,
+  onSort,
+  sortConfig,
 }) {
   const [expanded, setExpanded] = useState(new Set());
   if (!data?.length) return <div>{noDataFallback}</div>;
@@ -50,15 +53,13 @@ export default function ReusableTable({
       const elements = [];
 
       elements.push(
-     <tr
-  key={rowKey}
-  className={rowClassName?.(row)}
-  style={{
-    backgroundColor:
-      row.type === "department" ? "#EAF2FB" : undefined,
-  }}
->
-
+        <tr
+          key={rowKey}
+          className={rowClassName?.(row)}
+          style={{
+            backgroundColor: row.type === "department" ? "#EAF2FB" : undefined,
+          }}
+        >
           {columns.map((col, colIndex) => {
             const value = getNestedValue(row, col.key);
 
@@ -68,52 +69,45 @@ export default function ReusableTable({
                 className={cellClassName}
                 style={{
                   paddingLeft:
-                    colIndex === 0 ? `${level * 20 + 8}px` : undefined,
+                    colIndex ===0 ||colIndex===1 ? `${level + 10}px` : undefined,
                 }}
               >
                 {col.type === "action" ? (
                   hasChildren ? (
                     <button onClick={() => toggle(rowKey)}>
-  {/* {expanded.has(rowKey) ? (
+                      {/* {expanded.has(rowKey) ? (
     <span className="toggle-icon rotate-18"><img src={dropDownIcon} alt="dropdown-arrow"/></span>
   ) : (
     <span className="toggle-icon"><img src={dropDownIcon} alt="dropdown-arrow"/></span>
   )} */}
 
- <span
-  className={`toggle-icon inline-block transition-transform duration-200 ${
-    expanded.has(rowKey) ? "rotate-180" : "rotate-0"
-  }`}
->
-
-
-  <img src={dropDownIcon} alt="dropdown-arrow" />
-</span>
-
-</button>
-
+                      <span
+                        className={`toggle-icon inline-block transition-transform duration-200 ${
+                          expanded.has(rowKey) ? "rotate-180" : "rotate-0"
+                        }`}
+                      >
+                        <img src={dropDownIcon} alt="dropdown-arrow" />
+                      </span>
+                    </button>
                   ) : (
                     <button onClick={() => onActionClick?.(row)}>
                       <img src={Eye} alt="view" />
                     </button>
                   )
                 ) : colIndex === 0 && row.type === "department" ? (
-  <div>
-    <div style={{ fontSize: 12, color: "#6B7280" }}>
-      Department
-    </div>
-    <div style={{ fontWeight: 500 }}>
-      {value}
-    </div>
-  </div>
-) : col.render ? (
-  col.render(value, row, { hasChildren, toggle, expanded })
-) : isPrimitive(value) ? (
-  value
-) : (
-  ""
-)}
-
+                  <div>
+                    <div style={{ fontSize: 12, color: "#6B7280" }}>
+                      Department
+                    </div>
+                    <div style={{ fontWeight: 500 }}>{value}</div>
+                  </div>
+                ) : col.render ? (
+                  col.render(value, row, { hasChildren, toggle, expanded })
+                ) : isPrimitive(value) ? (
+                  value
+                ) : (
+                  ""
+                )}
               </td>
             );
           })}
@@ -124,7 +118,7 @@ export default function ReusableTable({
         if (childrenAreEmployees && nestedColumns) {
           elements.push(
             <tr key={`${rowKey}-employee-table`}>
-              <td colSpan={columns.length}>
+              <td colSpan={columns.length} style={{padding:0}}>
                 <ReusableTable
                   data={children}
                   columns={nestedColumns}
@@ -134,7 +128,7 @@ export default function ReusableTable({
                   rowClassName={rowClassName}
                   cellClassName={cellClassName}
                   headerClassName={headerClassName}
-                  onActionClick={onActionClick} 
+                  onActionClick={onActionClick}
                 />
               </td>
             </tr>
@@ -156,9 +150,63 @@ export default function ReusableTable({
             <th
               key={col.key}
               className={headerClassName}
-              style={{ textAlign: col.align || "left", width: col.width }}
+              style={{
+                textAlign: col.align || "left",
+                width: col.width,
+                cursor: col.sortable ? "pointer" : "default",
+              }}
+              onClick={() => {
+                if (!col.sortable) return;
+
+                const order =
+                  sortConfig?.key === col.key && sortConfig?.order === "asc"
+                    ? "desc"
+                    : "asc";
+
+                onSort?.({
+                  key: col.key,
+                  sort_by: col.sortKey || col.key,
+                  order,
+                });
+              }}
             >
-              {col.header}
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                {col.header}
+                {col.sortable && (
+                  <span
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      marginLeft: 4,
+                      fontSize: 10,
+                      lineHeight: 1,
+                    }}
+                  >
+                    <span
+                      style={{
+                        color:
+                          sortConfig?.key === col.key &&
+                          sortConfig?.order === "asc"
+                            ? "#1C2F72"
+                            : "#C0C4CC",
+                      }}
+                    >
+                      ▲
+                    </span>
+                    <span
+                      style={{
+                        color:
+                          sortConfig?.key === col.key &&
+                          sortConfig?.order === "desc"
+                            ? "#1C2F72"
+                            : "#C0C4CC",
+                      }}
+                    >
+                      ▼
+                    </span>
+                  </span>
+                )}
+              </div>
             </th>
           ))}
         </tr>

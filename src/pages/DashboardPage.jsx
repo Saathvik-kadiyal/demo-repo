@@ -71,7 +71,7 @@ export default function DashboardPage() {
   const [rows,setRows]=useState(5)
   const navigate = useNavigate();
   console.log(tableData)
-  const NoOfPages = Math.floor(tableData.length/rows)
+  const NoOfPages = Math.floor(tableData.length/rows)+1
 
 const startIndex = rows * (currentPage - 1);
 const endIndex = startIndex + rows;
@@ -246,11 +246,11 @@ const handleDashboardAction = (row) => {
 
           <div className=" overflow-x-auto w-full h-full justify-center items-center">
             {loading ? (
-              <div className="flex h-64 items-center justify-center">
+              <div className="flex min-h-64 items-center justify-center">
                 <p>Loading...</p>
               </div>
             ) : (
-              <div>
+              <div className="min-h-100 flex justify-between flex-col">
                 <ReusableTable
                 data={paginatedData}
                 columns={dashboardColumns}

@@ -16,8 +16,8 @@
   --border-size: 1px;
   --border-color: #dddddd;
   --white: #ffffff;
-  --nav-bg: #E9F1FC;
-  --table-bg: #BCD6F6;
+  --nav-bg: #e9f1fc;
+  --table-bg: #bcd6f6;
 }
 
 /* ===== Body ===== */
@@ -91,7 +91,7 @@ body {
   /* justify-content: space-between; */
   text-align: center;
 }
-.ShiftKpiBody{
+.ShiftKpiBody {
   justify-content: space-between;
   align-items: flex-start;
 }
@@ -201,9 +201,9 @@ body {
 .reusable-table {
   width: 100%;
   border-collapse: collapse;
-padding: 0;
-margin: 0;
-background-color: white;
+  padding: 0;
+  margin: 0;
+  background-color: white;
 }
 
 .reusable-table thead tr {
@@ -286,7 +286,7 @@ background-color: white;
 
 /* ===== Nested Department Row ===== */
 .reusable-table tbody tr[style*="background-color: #fafafa"] {
-  background: #f9fafb !important;
+  background: #f9fafb;
 }
 
 /* ===== Nested Employees Table ===== */
