@@ -264,6 +264,8 @@ console.log("Employee data:", empShifts);
     />
  <YAxis
   tickFormatter={(value) => formatRupeesWithUnit(value)}
+  fontSize={12}
+  
 />
 
  <Tooltip
