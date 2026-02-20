@@ -11,6 +11,7 @@ export default function ClientRouteWrapper() {
   return (
     <ClientDetailsPage
       clientName={state.clientName}
+      departmentName ={state.departmentName}
       years={state.years}
       months={state.months}
     />

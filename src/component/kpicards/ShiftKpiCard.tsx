@@ -18,8 +18,8 @@ const ShiftKpiCard: React.FC<ShiftKpiCardProps> = ({
   ShiftType,
   ShiftCount,
 ShiftCountry,
-  ShiftCountSize = '2rem',
-  ShiftTypeSize="2rem"
+  ShiftCountSize = '18px',
+  ShiftTypeSize='18px'
 }) => {
 
   return (

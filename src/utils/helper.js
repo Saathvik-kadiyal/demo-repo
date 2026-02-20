@@ -433,6 +433,7 @@ export const fetchDashboardClientGraph = async (body) => {
       "/client-total-allowances-piechart",
       body
     );
+    console.log(res.data)
     return res.data;
   } catch (err) {
     throw new Error(
@@ -449,6 +450,7 @@ export const fetchDashboardTable = async (
   body,
   params = {}
 ) => {
+  console.log(params)
   try {
     const res = await axiosInstance.post(
       "/dashboard-Table",
@@ -465,10 +467,40 @@ export const fetchDashboardTable = async (
   }
 };
 
+export const fetchDashboardDepartmentTable= async (body,params={})=>{
+  try {
+    const res= await axiosInstance.post("/dashboard-Table-dept",
+      body,
+      {params}
+    );
+    return res.data
+  } catch (err) {
+    throw newError(
+      err?.response?.data?.details||err?.message||"Failed to fetch Department details"
+    )
+  }
+}
+
 export const fetchDashboardIndividualClientDetails = async (body) => {
   try {
     const res = await axiosInstance.post(
       "/dashboard/client-Page-Graph",
+      body
+    );
+   return res.data;
+  } catch (err) {
+    throw new Error(
+      err?.response?.data?.detail ||
+      err?.message ||
+      "Failed to fetch individual client details"
+    );
+  }
+}
+
+export const fetchDashboardIndividualDepartmentDetails = async (body) => {
+  try {
+    const res = await axiosInstance.post(
+      "/dashboard/department-Page-Graph",
       body
     );
    return res.data;

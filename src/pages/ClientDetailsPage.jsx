@@ -1,12 +1,12 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import "../index.css";
-import allowanceIcon from "../assets/allowance.svg"
-import departmentsIcon from "../assets/departments.svg"
-import peopleIcon from "../assets/people.svg"
-import clientsIcon from "../assets/clients.svg"
+import allowanceIcon from "../assets/allowance.svg";
+import departmentsIcon from "../assets/departments.svg";
+import peopleIcon from "../assets/people.svg";
+import arrow from "../assets/arrow.svg";
+
 import KpiCard from "../component/kpicards/KpiCard";
 import ReusableTable from "../component/ReusableTable/ReusableTable";
-import arrow from "../assets/arrow.svg";
 
 import {
   BarChart,
@@ -22,35 +22,29 @@ import {
   clientDetailClientPartnersColumns,
   clientDetailEmployeesColumns,
 } from "../component/ReusableTable/columns";
-import { all } from "axios";
 import { formatRupeesWithUnit } from "../utils/utils";
 import { useNavigate } from "react-router-dom";
 
 /* -------------------------
    PAYLOAD BUILDER
 ------------------------- */
-const buildPayload = ({ clientName, years, months }) => {
-  const payload = {
-    clients: Array.isArray(clientName)
-      ? clientName
-      : clientName
-      ? [clientName]
-      : [],
-  };
-
-  if (Array.isArray(years) && years.length > 0) {
-    payload.years = years;
-  }
-
-  if (Array.isArray(months) && months.length > 0) {
-    payload.months = months;
-  }
+const buildPayload = ({ clientName, departmentName,years, months }) => {
+  const payload = {};
+if(clientName){
+  payload.clientName= clientName
+}
+if(departmentName){
+  payload.departmentName=departmentName
+}
+  if (years?.length) payload.years = years;
+  if (months?.length) payload.months = months;
 
   return payload;
 };
 
 export default function ClientDetailsPage({
-  clientName,
+  clientName="",
+  departmentName="",
   years = [],
   months = [],
 }) {
@@ -59,19 +53,24 @@ export default function ClientDetailsPage({
   const [clientData, setClientData] = useState(null);
   const [activeChartTab, setActiveChartTab] = useState("shifts");
   const navigate = useNavigate();
+  console.log(clientName,years,months)
 
   /* -------------------------
      FETCH CLIENT DETAILS
   ------------------------- */
   const fetchClientDetails = useCallback(async () => {
+    if (!clientName &!departmentName) return;
+
     try {
       setLoading(true);
 
-      const payload = buildPayload({ clientName, years, months });
+      const payload = buildPayload({ clientName, departmentName, years, months });
       const res = await fetchDashboardIndividualClientDetails(payload);
 
+      const clientObj = res?.clients?.[clientName] ?? null;
+
       setSummary(res?.summary ?? null);
-      setClientData(res?.clients?.[clientName] ?? null);
+      setClientData(clientObj);
     } catch (err) {
       console.error("Client details error:", err);
       setSummary(null);
@@ -86,83 +85,148 @@ export default function ClientDetailsPage({
   }, [fetchClientDetails]);
 
   /* -------------------------
-     TABLE DATA (Partner → Employees)
+     NORMALIZE PARTNERS (NEW STRUCTURE SUPPORT)
+  ------------------------- */
+  const normalizedPartners = useMemo(() => {
+    if (!clientData) return {};
+
+    if (clientData.departments_breakdown) {
+      return Object.values(clientData.departments_breakdown).reduce(
+        (acc, dept) => {
+          Object.entries(dept.client_partners || {}).forEach(
+            ([partnerName, partnerData]) => {
+              if (!acc[partnerName]) {
+                acc[partnerName] = {
+                  headcount: 0,
+                  total_allowance: 0,
+                  shifts_summary: {},
+                  employees: [],
+                };
+              }
+
+              acc[partnerName].headcount += partnerData.headcount || 0;
+              acc[partnerName].total_allowance +=
+                partnerData.total_allowance || 0;
+
+              Object.entries(partnerData.shifts_summary || {}).forEach(
+                ([shift, value]) => {
+                  acc[partnerName].shifts_summary[shift] =
+                    (acc[partnerName].shifts_summary[shift] || 0) + value;
+                }
+              );
+
+              acc[partnerName].employees.push(
+                ...(partnerData.employees || [])
+              );
+            }
+          );
+
+          return acc;
+        },
+        {}
+      );
+    }
+
+    return clientData.client_partners || {};
+  }, [clientData]);
+
+  /* -------------------------
+     TABLE DATA
   ------------------------- */
 const tableData = useMemo(() => {
-  if (!clientData?.client_partners) return [];
+  if (!clientData?.departments_breakdown) return [];
 
-  return Object.entries(clientData.client_partners).map(
-    ([partnerName, partner]) => {
-      const shifts = partner.shifts_summary || {};
+  return Object.entries(clientData.departments_breakdown).map(
+    ([departmentName, department]) => ({
+      type: "department",
+      name: departmentName,
+      head_count: department.headcount ?? 0,
+      total: department.total_allowance ?? 0,
 
-      return {
-        name: partnerName,
-        head_count: partner.headcount ?? 0,
-        total: partner.total_allowance ?? 0,
+      shifts: {
+        ANZ: formatRupeesWithUnit(department.shifts_summary?.ANZ || 0),
+        PST_MST: formatRupeesWithUnit(department.shifts_summary?.PST_MST || 0),
+        US_INDIA: formatRupeesWithUnit(department.shifts_summary?.US_INDIA || 0),
+        SG: formatRupeesWithUnit(department.shifts_summary?.SG || 0),
+      },
 
-        shifts: {
-          ANZ: shifts.ANZ ?? 0,
-          PST_MST: shifts.PST_MST ?`${formatRupeesWithUnit(shifts.PST_MST)}` : 0,
-          US_INDIA: shifts.US_INDIA ?`${formatRupeesWithUnit(shifts.US_INDIA)}` : 0,
-          SG: shifts.SG ?`${formatRupeesWithUnit(shifts.SG)}` : 0,
-          US3: shifts.US3 ?`${formatRupeesWithUnit(shifts.US3)}` : 0,
-        },
+      children: Object.entries(department.client_partners || {}).map(
+        ([partnerName, partner]) => ({
+          type: "partner",
+          name: partnerName,
+          head_count: partner.headcount ?? 0,
+          total: partner.total_allowance ?? 0,
 
-        children: (partner.employees || []).map((emp) => {
-          const empShifts = emp.shifts_summary || {};
-console.log("Employee data:", empShifts);
-          return {
-            type: "employee",  
+          shifts: {
+            ANZ: formatRupeesWithUnit(partner.shifts_summary?.ANZ || 0),
+            PST_MST: formatRupeesWithUnit(partner.shifts_summary?.PST_MST || 0),
+            US_INDIA: formatRupeesWithUnit(partner.shifts_summary?.US_INDIA || 0),
+            SG: formatRupeesWithUnit(partner.shifts_summary?.SG || 0),
+          },
+
+          children: (partner.employees || []).map((emp) => ({
+            type: "employee",
             name: emp.emp_name,
             emp_id: emp.emp_id,
-            department: emp.department,
+            // department: emp.department,
             total: emp.total_allowance ?? 0,
 
             shifts: {
-              ANZ: emp.ANZ ? `${formatRupeesWithUnit(emp.ANZ)}` : 0,
-              PST_MST: emp.PST_MST ? `${formatRupeesWithUnit(emp.PST_MST)}` : 0,
-              US_INDIA: emp.US_INDIA ? `${formatRupeesWithUnit(emp.US_INDIA)}` : 0,
-              SG: emp.SG ? `${formatRupeesWithUnit(emp.SG)}` : 0,
-              US3: emp.US3 ? `${formatRupeesWithUnit(emp.US3)}` : 0,
+              ANZ: formatRupeesWithUnit(emp.ANZ || 0),
+              PST_MST: formatRupeesWithUnit(emp.PST_MST || 0),
+              US_INDIA: formatRupeesWithUnit(emp.US_INDIA || 0),
+              SG: formatRupeesWithUnit(emp.SG || 0),
             },
-          };
-        }),
-      };
-    }
+          })),
+        })
+      ),
+    })
   );
 }, [clientData]);
-
-
-
 
   /* -------------------------
      CHART DATA
   ------------------------- */
   const chartData = useMemo(() => {
-  if (!clientData) return [];
+    if (!clientData) return [];
 
-  const source =
-    activeChartTab === "shifts"
-      ? clientData.shifts_summary
-      : clientData.department_summary;
+    let source = null;
 
-  if (!source) return [];
+    if (activeChartTab === "shifts") {
+      source = clientData.shifts_summary;
+    } else {
+      if (clientData.departments_breakdown) {
+        source = Object.fromEntries(
+          Object.entries(clientData.departments_breakdown).map(
+            ([deptName, dept]) => [deptName, dept.total_allowance]
+          )
+        );
+      } else {
+        source = clientData.department_summary;
+      }
+    }
 
-  return Object.entries(source).map(([key, value]) => ({
-    name: key,
-     amount: Number(value), 
-  }));
-}, [clientData, activeChartTab]);
+    if (!source) return [];
 
+    return Object.entries(source).map(([key, value]) => ({
+      name: key,
+      amount: Number(value),
+    }));
+  }, [clientData, activeChartTab]);
 
   return (
     <div className="relative w-full px-4 py-4 overflow-x-hidden">
-      {/* TITLE */}
       <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-         <img src={arrow} alt="back" style={{ width: 16, height: 16,  transform:"rotate(90deg)"}}  onClick={() => navigate("/")}/>
-        <span>{clientName}</span></h2>
+        <img
+          src={arrow}
+          alt="back"
+          style={{ width: 16, height: 16, transform: "rotate(90deg)" }}
+          onClick={() => navigate("/")}
+        />
+        <span>{clientName}</span>
+      </h2>
 
-      {/* KPI CARDS */}
+      {/* KPI */}
       <div className="flex flex-wrap gap-4 mb-6">
         <KpiCard
           loading={loading}
@@ -171,7 +235,6 @@ console.log("Employee data:", empShifts);
           BodyNumber={`₹${Number(
             summary?.total_allowance ?? 0
           ).toLocaleString()}`}
-          BodyComparisionNumber=""
         />
 
         <KpiCard
@@ -179,46 +242,41 @@ console.log("Employee data:", empShifts);
           HeaderIcon={departmentsIcon}
           HeaderText="Departments"
           BodyNumber={summary?.departments ?? 0}
-          BodyComparisionNumber=""
         />
 
         <KpiCard
           loading={loading}
           HeaderIcon={peopleIcon}
           HeaderText="Client Partners"
-     BodyNumber={clientData?.client_partner_count ?? 0}
-          BodyComparisionNumber=""
+          BodyNumber={Object.keys(normalizedPartners).length}
         />
-         <KpiCard
+
+        <KpiCard
           loading={loading}
           HeaderIcon={peopleIcon}
           HeaderText="Headcount"
           BodyNumber={summary?.headcount ?? 0}
-          BodyComparisionNumber=""
         />
       </div>
 
-      {/* TABLE + CHART */}
-      <div className="flex gap-6 flex-col">
-        {/* TABLE */}
-        <div className="rounded-xl bg-white py-4">
-          {loading ? (
-            <div className="flex h-64 items-center justify-center">
-              Loading...
-            </div>
-          ) : (
-            <ReusableTable
-              data={tableData}
-              message="No data found"
-              columns={clientDetailClientPartnersColumns}
-              nestedColumns={clientDetailEmployeesColumns}
-            />
-          )}
-        </div>
+      {/* TABLE */}
+      <div className="rounded-b-xl bg-white  mb-6">
+        {loading ? (
+          <div className="flex h-64 items-center justify-center">
+            Loading...
+          </div>
+        ) : (
+          <ReusableTable
+            data={tableData}
+            message="No data found"
+            columns={clientDetailClientPartnersColumns}
+            nestedColumns={clientDetailEmployeesColumns}
+          />
+        )}
+      </div>
 
-        {/* BAR CHART */}
-       {/* BAR CHART */}
-<div className="rounded-xl bg-white p-4">
+      {/* CHART */}
+     <div className="rounded-xl bg-white p-4 ">
   <div className="flex items-center justify-between mb-4">
     <p className="text-sm font-medium">
       {activeChartTab === "shifts"
@@ -302,8 +360,6 @@ console.log("Employee data:", empShifts);
     </div>
   )}
 </div>
-
-      </div>
     </div>
   );
 }
