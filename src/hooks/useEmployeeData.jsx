@@ -216,7 +216,12 @@ const totalAllowance = res.shift_details?.[1]?.total_allowance ?? 0;
         head_count: headCount,
       });
 
-      setError(total === 0 ? "No data found" : "");
+      // setError(total === 0 ? "No data found" : "");
+      if (total === 0) {
+  setRows([]);
+  setDisplayRows([]);
+}
+
     } catch (error) {
       const message =
         error?.response?.data?.detail || error.message || "Failed to fetch data";
@@ -307,19 +312,45 @@ const totalAllowance = res.shift_details?.[1]?.total_allowance ?? 0;
 
       const start = (page - 1) * 10;
       getProcessedData(start, 10, buildSearchParams(filters));
-    } catch (err) {
-      const errorDetail = err?.detail;
+    // } catch (err) {
+    //   const errorDetail = err?.detail;
 
-      if (errorDetail) {
-        const { message, error_file, error_rows } = errorDetail;
+    //   if (errorDetail) {
+    //     const { message, error_file, error_rows } = errorDetail;
 
-        if (message) setError(message);
-        if (error_file) setErrorFileLink(error_file);
-        if (error_rows) setErrorRows(error_rows);
-      } else {
-        setError("Network error");
-      }
+    //     if (message) setError(message);
+    //     if (error_file) setErrorFileLink(error_file);
+    //     if (error_rows) setErrorRows(error_rows);
+    //   } else {
+    //     setError("Network error");
+    //   }
+    // }
+ } catch (err) {
+  const errorDetail = err?.detail;
+
+  if (errorDetail) {
+    const { message, error_file, error_rows } = errorDetail;
+
+    // 1️⃣ File processed with row errors
+    if (error_file) {
+      setErrorFileLink(error_file);
+      setErrorRows(error_rows || []);
+      setError(""); // 🔥 IMPORTANT → clear normal error
+      return;
     }
+
+    // 2️⃣ Invalid format (no error_file but has message)
+    if (message) {
+      setError(message);
+      setErrorFileLink(null);
+      return;
+    }
+
+  } else {
+    setError("Network error");
+  }
+}
+
     finally {
       setLoading(false);
     }

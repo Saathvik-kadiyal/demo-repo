@@ -8,7 +8,7 @@
 }
 
 .filter-drawer {
-  width: 520px;
+  width: 440px;
   height: 100%;
   background: white;
   animation: slideIn 0.3s ease forwards;
@@ -22,4 +22,114 @@
   to {
     transform: translateX(0);
   }
+}
+
+.filter-icon-wrapper {
+  width: 48px;             /* Square wrapper for the icon */
+  height: 48px;
+  background-color: #1e3a8a; /* Dark blue background like your design */
+  border-radius: 50%;      /* Circular wrapper */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15); /* subtle shadow */
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.filter-icon-wrapper:hover {
+  transform: scale(1.1); /* slight zoom on hover */
+  box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+}
+
+.filter-icon-wrapper img {
+  width: 24px;  /* size of your icon */
+  height: 24px;
+}
+
+/* .dashboard-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  padding: 10px 20px;
+  background-color: #1e3a8a;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 16px;
+  font-weight: 500;
+} */
+
+.filter-svg-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.dashboard-filter-btn .filter-svg-icon rect {
+  fill: none;
+}
+.dashboard-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;                /* Remove padding around the button */
+  background-color: transparent; /* Remove background */
+  color: #1e3a8a;             /* Icon and text color */
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+
+
+
+
+.dashboard-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  width: 97px;
+  height: 36px;
+  border-radius: 4px;
+  background: #1C2F72;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+}
+
+
+
+
+.dashboard-filter-btn:hover {
+  background: #16245A;      
+}
+
+.filter-icon-inline {
+  width: 16px;               /* adjust to match Figma icon size */
+  height: 16px;
+  display: inline-block;
+}
+
+
+
+
+.dashboard-filter-btn img {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+}
+
+
+.filter-btn-text {
+  font-size: 14px;
+  font-weight: 500;
+  display:inline-block;
 }

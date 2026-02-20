@@ -75,11 +75,6 @@ export default function ReusableTable({
                 {col.type === "action" ? (
                   hasChildren ? (
                     <button onClick={() => toggle(rowKey)}>
-                      {/* {expanded.has(rowKey) ? (
-    <span className="toggle-icon rotate-18"><img src={dropDownIcon} alt="dropdown-arrow"/></span>
-  ) : (
-    <span className="toggle-icon"><img src={dropDownIcon} alt="dropdown-arrow"/></span>
-  )} */}
 
                       <span
                         className={`toggle-icon inline-block transition-transform duration-200 ${
@@ -143,6 +138,9 @@ export default function ReusableTable({
   };
 
   return (
+      <div
+    className="reusable-table-wrapper"
+  >
     <table className={`reusable-table ${className || ""}`}>
       <thead>
         <tr>
@@ -154,6 +152,8 @@ export default function ReusableTable({
                 textAlign: col.align || "left",
                 width: col.width,
                 cursor: col.sortable ? "pointer" : "default",
+
+               
               }}
               onClick={() => {
                 if (!col.sortable) return;
@@ -214,5 +214,6 @@ export default function ReusableTable({
 
       <tbody>{renderRows(data)}</tbody>
     </table>
+  </div>
   );
 }
