@@ -35,7 +35,9 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   };
 
   return (
-    <div className="flex justify-end items-center mt-4 gap-6">
+
+    <div className="flex justify-end items-center mt-4 gap-[6px] h-[28px] ">
+
       <div
         role="button"
         tabIndex={currentPage === 1 ? -1 : 0}
@@ -43,7 +45,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
           currentPage === 1
             ? "text-[#727272] cursor-not-allowed"
             : "text-[#4A4A4A] hover:text-black"
-        }`}
+          }`}
         onClick={() => currentPage !== 1 && onPageChange(1)}
         onKeyDown={(e) =>
           handleKeyPress(e, () => onPageChange(1), currentPage === 1)
@@ -66,8 +68,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         className={`flex items-center gap-1 px-2 py-1 rounded ${
           currentPage === 1
             ? "text-[#727272] cursor-not-allowed"
-            : "text-[#4A4A4A] hover:text-black"
-        }`}
+            : "text-[#4A4A4A] hover:text-black  cursor-pointer"
+          }`}
         onClick={() =>
           currentPage > 1 && onPageChange(currentPage - 1)
         }
@@ -90,7 +92,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         <span>Previous</span>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-[6px]">
         {pages.map((item, index) => {
           const isActive = item === currentPage;
           const isDots = item === "...";
@@ -100,11 +102,11 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
               key={index}
               role={!isDots ? "button" : undefined}
               tabIndex={!isDots ? 0 : -1}
-              className={`px-2 py-1 text-sm ${
-                isActive
-                  ? "border-b-2 border-[#68B0DA] text-[#68B0DA]"
-                  : "border-transparent"
-              } ${!isDots ? "cursor-pointer" : ""}`}
+              className={`h-[28px] flex items-center px-2 text-sm border-b-2 ${isActive
+                  ? "border-[#68B0DA] text-[#68B0DA]"
+                  : "border-transparent text-[#4A4A4A]"
+                } ${!isDots ? "cursor-pointer hover:text-black" : ""}`}
+
               onClick={() =>
                 typeof item === "number" && onPageChange(item)
               }
@@ -129,7 +131,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
           currentPage === totalPages
             ? "text-[#727272] cursor-not-allowed"
             : "text-[#4A4A4A] hover:text-black"
-        }`}
+          }`}
         onClick={() =>
           currentPage < totalPages &&
           onPageChange(currentPage + 1)
@@ -162,7 +164,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
           currentPage === totalPages
             ? "text-[#727272] cursor-not-allowed"
             : "text-[#4A4A4A] hover:text-black"
-        }`}
+          }`}
         onClick={() =>
           currentPage !== totalPages &&
           onPageChange(totalPages)

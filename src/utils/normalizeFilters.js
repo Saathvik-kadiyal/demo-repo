@@ -35,7 +35,7 @@ if (filters.client_partner) {
 
   // HEADCOUNT
   if (filters.headcount && filters.headcount !== "ALL") {
-    payload.headcount = filters.headcount;
+    payload.headcounts = filters.headcount;
   }
 
   // TOP
