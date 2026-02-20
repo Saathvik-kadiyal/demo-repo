@@ -16,7 +16,27 @@ const Navbar = () => {
       className="flex justify-between items-center shadow px-4 py-2 relative bg-white"
       style={{ zIndex: 100 }}
     >
-      <div className="font-Montserrat font-bold px-2 py-1 rounded">
+      {/* <div className="font-Montserrat font-bold px-2 py-2 rounded">
+        Shift Allowance Tracker
+      </div> */}
+
+      <div
+        style={{
+          fontFamily: "'Montserrat Alternates', sans-serif",
+          fontWeight: 700,
+          fontStyle: "normal",
+          fontSize: "20px",
+          lineHeight: "29px",
+          letterSpacing: "0%",
+          color: "#1C2F72",
+          width: "255px",
+          height: "29px",
+          position: "relative",
+          top: "0px",
+          left: "0px",
+          opacity: 1,
+        }}
+      >
         Shift Allowance Tracker
       </div>
 
@@ -26,10 +46,9 @@ const Navbar = () => {
             <NavLink
               to="/"
               className={({ isActive }) =>
-                `flex items-center gap-2 px-3 py-2 rounded-lg transition ${
-                  isActive
-                    ? "bg-(--nav-bg) text-(--primary-color) shadow-sm"
-                    : "text-(--primary-color) hover:bg-indigo-400"
+                `flex items-center gap-2 px-3 py-2 rounded-lg transition ${isActive
+                  ? "bg-(--nav-bg) text-(--primary-color) shadow-sm"
+                  : "text-(--primary-color) hover:bg-indigo-400"
                 }`
               }
             >
@@ -42,10 +61,9 @@ const Navbar = () => {
             <NavLink
               to="/shift-allowance"
               className={({ isActive }) =>
-                `flex items-center gap-2 px-3 py-2 rounded-lg transition ${
-                  isActive
-                    ? "bg-(--nav-bg) text-(--primary-color) shadow-sm"
-                    : "text-(--primary-color) hover:bg-indigo-400"
+                `flex items-center gap-2 px-3 py-2 rounded-lg transition ${isActive
+                  ? "bg-(--nav-bg) text-(--primary-color) shadow-sm"
+                  : "text-(--primary-color) hover:bg-indigo-400"
                 }`
               }
             >
@@ -59,10 +77,9 @@ const Navbar = () => {
             <NavLink
               to="/client-summary"
               className={({ isActive }) =>
-                `flex items-center gap-2 px-3 py-2 rounded-lg transition ${
-                  isActive
-                    ? "bg-(--nav-bg) text-(--primary-color) shadow-sm"
-                    : "text-(--primary-color) hover:bg-indigo-400"
+                `flex items-center gap-2 px-3 py-2 rounded-lg transition ${isActive
+                  ? "bg-(--nav-bg) text-(--primary-color) shadow-sm"
+                  : "text-(--primary-color) hover:bg-indigo-400"
                 }`
               }
             >
@@ -84,9 +101,8 @@ const Navbar = () => {
           </div>
           <ChevronDown
             size={16}
-            className={`transition-transform duration-200 ${
-              dropdownOpen ? "rotate-180" : ""
-            }`}
+            className={`transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""
+              }`}
           />
         </button>
 

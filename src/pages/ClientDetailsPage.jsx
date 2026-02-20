@@ -158,9 +158,26 @@ console.log("Employee data:", empShifts);
   return (
     <div className="relative w-full px-4 py-4 overflow-x-hidden">
       {/* TITLE */}
-      <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-         <img src={arrow} alt="back" style={{ width: 16, height: 16,  transform:"rotate(90deg)"}}  onClick={() => navigate("/")}/>
-        <span>{clientName}</span></h2>
+      {/* <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+         <img src={arrow} alt="back"
+          style={{ width: 16, height: 16,  transform:"rotate(90deg)"}} 
+           onClick={() => navigate("/")}/>
+        <span>{clientName}</span></h2> */} 
+
+        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+  <div
+    onClick={() => navigate("/")}
+    className="flex items-center justify-center cursor-pointer p-2 hover:bg-gray-200 rounded-full"
+  >
+    <img
+      src={arrow}
+      alt="back"
+      className="w-[18px] h-[16px] rotate-90"
+    />
+  </div>
+  <span>{clientName}</span>
+</h2>
+
 
       {/* KPI CARDS */}
       <div className="flex flex-wrap gap-4 mb-6">

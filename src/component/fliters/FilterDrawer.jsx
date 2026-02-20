@@ -4,14 +4,20 @@ import { filterTabs } from "./filters.config";
 import "./filter.drawer.css";
 import filterIcon from "../../assets/filter.svg";
 
-const FilterDrawer = ({ onApply }) => {
+const FilterDrawer = ({ onApply,className = "",showText = false}) => {
   const [open, setOpen] = useState(false);
 
   return (
     <>
       {/* Trigger Button */}
-      <button className="filter-trigger-btn" onClick={() => setOpen(true)}>
+      {/* <button className="filter-trigger-btn" onClick={() => setOpen(true)}> */}
+<button
+  className={`filter-trigger-btn ${className}`}
+  onClick={() => setOpen(true)}
+>
+       {showText && <span className="filter-btn-text">Filter</span>}
         <img src={filterIcon} alt="filter icon" />
+        
       </button>
 
       {/* Drawer */}
@@ -25,6 +31,7 @@ const FilterDrawer = ({ onApply }) => {
                 onApply(filters);
                 setOpen(false);
               }}
+                onClose={() => setOpen(false)} 
             />
           </div>
         </div>

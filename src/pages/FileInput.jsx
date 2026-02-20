@@ -25,7 +25,7 @@ import SearchInput from "../component/SearchInput.jsx";
 import { debounce, downloadFilteredExcel } from "../utils/helper.js";
 import Pagination from "../component/pagination/Pagination.jsx";
 import { formatRupeesWithUnit } from "../utils/utils.js";
-
+import pen from "../assets/pen.svg";
 const FileInput = () => {
   const navigate = useNavigate();
 
@@ -173,29 +173,51 @@ const FileInput = () => {
     .filter(([k]) => !["total", "headcount", "head_count"].includes(k))
     .map(([ShiftType, ShiftCount]) => ({
       ShiftType,
-      ShiftCount:formatRupeesWithUnit(ShiftCount),
+      ShiftCount: formatRupeesWithUnit(ShiftCount),
       ShiftCountSize: "2rem",
       ShiftTypeSize: "1rem",
     }));
 
+
+
+
   /* ----------------------------------------------------
       Popups
   ---------------------------------------------------- */
+
   useEffect(() => {
+
+
     if (errorFileLink) {
       setPopupMessage("File processed with errors.");
       setPopupSeverity("error");
       setPopupOpen(true);
-    } else if (error) {
+      return;
+    }
+
+
+    if (error) {
+      if (error.toLowerCase().includes("invalid")) {
+        setPopupSeverity("invalid");
+      } else {
+        setPopupSeverity("error");
+      }
+
       setPopupMessage(error);
-      setPopupSeverity("invalid");
       setPopupOpen(true);
-    } else if (success) {
+      return;
+    }
+
+    //  Success
+    if (success) {
       setPopupMessage(success);
       setPopupSeverity("success");
       setPopupOpen(true);
     }
+
   }, [errorFileLink, error, success]);
+
+
 
   const handleExportData = async () => {
     try {
@@ -291,7 +313,7 @@ const FileInput = () => {
           <img
             src={arrow}
             alt="back"
-            style={{ transform: "rotate(90deg)" }} 
+            style={{ transform: "rotate(90deg)" }}
           />
           <Typography>Shift Allowances Data</Typography>
         </Box>
@@ -359,13 +381,13 @@ const FileInput = () => {
 
 
         <div className="flex items-center gap-2">
-        <SearchInput
-  value={searchText}
-  onChange={(value) => setSearchText(value)}
-  onKeyDown={(e) => {
-    if (e.key === "Enter") {
-      const currentValue = e.target.value.trim();
-      const payload = { ...filters };
+          <SearchInput
+            value={searchText}
+            onChange={(value) => setSearchText(value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                const currentValue = e.target.value.trim();
+                const payload = { ...filters };
 
                 if (currentValue) {
                   if (searchBy === "emp_id") payload.emp_id = currentValue;
@@ -451,25 +473,38 @@ const FileInput = () => {
           popupSeverity === "error" && errorFileLink ? (
             <>
               <Button
-                variant="contained"
+                // variant="contained"
+                disableElevation
                 size="small"
                 onClick={() =>
                   navigate("/shift-allowance/edit", {
                     state: { errorRows: safeErrorRows },
                   })
                 }
-                style={{
-                  background: "#1E3A8A",
+
+                className="button-common"
+                sx={{
+                  backgroundColor: "#1C2F72",
                   color: "#fff",
-                  border: "none",
+                  width: "170px",
+                  height: "40px",
                   borderRadius: "4px",
-                  padding: "6px 16px",
-                  cursor: "pointer",
-                  fontWeight: 600,
-                  whiteSpace: "nowrap",
                   textTransform: "none",
+                  "&:hover": {
+                    backgroundColor: "#16255A",
+                  },
                 }}
               >
+                <img
+                  src={pen}
+                  alt="edit"
+                  style={{
+                    width: 24,
+                    height: 24,
+                    marginLeft: 9,
+                    display: "flex",
+                  }}
+                />
                 Edit
               </Button>
 

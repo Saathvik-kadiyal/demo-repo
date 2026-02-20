@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import LeftTabs from "./LeftTabs";
 import RightPanels from "./RightPanels";
 import "./filter.styles.css";
+import close from "../../assets/close.svg";
 
 const initialState = {
   client: [],
@@ -13,13 +14,22 @@ const initialState = {
   headcounts: ""      // single string: "1-5" or "Highest to Lowest"
 };
 
-const FilterLayout = ({ tabs, onApply, onReset }) => {
+const FilterLayout = ({ tabs, onApply, onReset,onClose }) => {
   const [activeTab, setActiveTab] = useState(tabs[0].key);
   const [filters, setFilters] = useState(initialState);
 
   return (
     <div className="filter-layout">
-      <div className="filter-header">Filters</div>
+      {/* <div className="filter-header">Filters</div> */}
+      <div className="filter-header">
+  <span>Filters</span>
+  <img
+    src={close}
+    alt="Close"
+    className="close-icon"
+    onClick={onClose}
+  />
+</div>
 
       <div className="filter-body">
         <LeftTabs
@@ -35,7 +45,7 @@ const FilterLayout = ({ tabs, onApply, onReset }) => {
         />
       </div>
 
-      <div className="filter-footer">
+      {/* <div className="filter-footer">
         <button
           onClick={() => {
             setFilters(initialState);
@@ -43,8 +53,20 @@ const FilterLayout = ({ tabs, onApply, onReset }) => {
           }}
         >
           Reset
-        </button>
+        </button> */}
 
+<div className="filter-footer">
+  {/* Reset Button */}
+  <button
+    onClick={() => {
+      setFilters(initialState);
+      onReset?.();
+      onClose?.(); // closes drawer
+    }}
+    className="reset-btn"
+  >
+    Reset
+  </button>
         <button
           onClick={() => {
             const cleanedFilters = {};
@@ -62,6 +84,7 @@ const FilterLayout = ({ tabs, onApply, onReset }) => {
 
             onApply(cleanedFilters);
           }}
+          className="apply-btn"
         >
           Apply
         </button>

@@ -149,7 +149,7 @@ console.log(data)
     }}
   >
     <div
-      className="relative w-full max-w-5xl rounded-2xl bg-white shadow-xl"
+      className="relative w-full max-w-4xl rounded-2xl bg-white shadow-xl"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Close */}
@@ -165,15 +165,32 @@ console.log(data)
 
       {/* Header */}
       <div className="px-8 pt-8">
-        <h2 className="text-xl font-semibold text-gray-900">
+        {/* <h2 className="text-xl font-semibold text-gray-900">
           Employee Details – EMP ID:{" "}
           <span className="font-bold">{data.emp_id}</span>
-        </h2>
+        </h2> */} 
+        <h2
+  className="
+    
+   
+    font-['Poppins']
+    font-medium
+    text-[16px]
+    leading-[100%]
+    text-left
+    rounded-lg
+    "
+   style={{color :"#0F3C70" }}
+  
+>
+  Employee Details – EMP ID: {data.emp_id}
+</h2>
+
         <p className="mt-1 text-sm text-gray-500">Update Fields</p>
       </div>
 
       {/* Body */}
-      <div className="mt-6 max-h-[70vh] overflow-y-auto px-8 pb-8">
+      <div className="mt-6 max-h-[60vh] overflow-y-auto px-8 pb-8">
         <div className="grid grid-cols-1 gap-x-8 gap-y-5 md:grid-cols-2">
           <Field label="EMP ID" value={data.emp_id} />
           <Field label="EMP NAME" value={data.emp_name} />
@@ -244,7 +261,7 @@ console.log(data)
         <div className="mt-8 flex justify-end gap-3">
           {isEditing ? (
             <>
-              <button
+              {/* <button
                 onClick={resetChanges}
                 className=" border rounded-sm px-6 py-2 text-sm font-medium"
               >
@@ -256,22 +273,72 @@ console.log(data)
                 className="rounded-sm bg-[#1E3A8A] px-6 py-2 text-sm font-medium text-white disabled:bg-blue-300"
               >
                 {saving ? "Saving..." : "Save"}
-              </button>
+              </button> */}
+
+              <button
+  onClick={resetChanges}
+  className="
+    border
+    rounded-[4px]
+    w-[110px]
+    h-[36px]
+    px-[16px]
+    py-[8px]
+    text-sm
+    font-normal
+    text-gray-700
+    hover:bg-gray-100
+    transition-colors
+  "
+>
+  Cancel
+</button>
+
+<button
+  onClick={handleSave}
+  disabled={saving || Boolean(error)}
+  className="
+    rounded-[4px]
+    w-[110px]
+    h-[36px]
+    bg-[var(--Buttons-Primary-Active,#1C2F72)]
+    text-white
+    font-normal
+    px-[16px]
+    py-[8px]
+    text-sm
+    transition-colors
+    disabled:bg-blue-300
+    disabled:cursor-not-allowed
+    hover:bg-[#16286b]
+  "
+>
+  {saving ? "Saving..." : "Save"}
+</button>
+
             </>
           ) : (
           <button
   onClick={() => setIsEditing(true)}
   className="
     mt-3
-    bg-[#1E3A8A]
-    hover:bg-[#16286b]
+    w-[110px]
+    h-[36px]
+    rounded-[4px]
+    bg-[var(--Buttons-Primary-Active,#1C2F72)]
     text-white
-    font-semibold
-    rounded
-    px-4
-    py-1.5
+    font-normal
+    px-[16px]
+    py-[8px]
     transition-colors
+    hover:bg-[#16286b]
+    flex
+    items-center
+    justify-center
+    gap-[8px]
   "
+
+
 >
   Edit
 </button>

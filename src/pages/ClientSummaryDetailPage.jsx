@@ -27,7 +27,7 @@ const [sortConfig, setSortConfig] = useState({
   order: "desc",
 });
 
-
+console.log(data)
 
 const runFetch = useCallback(async (filters, sort = sortConfig) => {
   setLoading(true);

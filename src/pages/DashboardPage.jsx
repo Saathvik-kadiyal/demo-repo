@@ -186,8 +186,10 @@ const handleDashboardAction = (row) => {
       )}
     <div className="flex flex-col gap-2 ">
          <div className="flex justify-end">
-        <FilterDrawer onApply={handleFilterApply} />
+        
+        <FilterDrawer onApply={handleFilterApply} className="dashboard-filter-btn" showText={true}/>
        </div>
+      
 
      
 
