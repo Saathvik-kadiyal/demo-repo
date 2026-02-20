@@ -4,6 +4,7 @@ import AllowancePanel from "./panels/AllowancePanel";
 import DepartmentsPanel from "./panels/DepartmentsPanel";
 import HeadcountsPanel from "./panels/HeadCountsPanel.jsx";
 import PeriodPanel from "./panels/PeriodPanel.jsx";
+import ShiftsPanel from "./panels/ShiftsPanel.jsx";
 
 export const filterTabs = [
   { key: "client", label: "Client", component: ClientPanel },
@@ -11,5 +12,6 @@ export const filterTabs = [
   // { key: "employeeId", label: "Employee ID", component: EmployeeIdPanel },
   // { key: "allowance", label: "Allowance", component: AllowancePanel },
   { key: "departments", label: "Departments", component: DepartmentsPanel },
+  // {key:"shifts", label:"Shifts",component:ShiftsPanel},
   { key: "headcounts", label: "Headcounts", component: HeadcountsPanel }
 ];

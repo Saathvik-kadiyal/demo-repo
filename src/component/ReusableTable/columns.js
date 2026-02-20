@@ -65,6 +65,42 @@ export const dashboardColumns = [
   },
 ];
 
+export const dashboardDepartmentColumns = [
+  {
+    key: "department",
+    header: "Departments",
+    // sortable: true,
+    sortFn: (a, b) => a.name.localeCompare(b.name),
+    width:"280px",
+  },
+  {
+    key: "clients",
+    header: "Clients",
+    // sortable: true,
+    sortFn: (a, b) => (a.department_count || 0) - (b.department_count || 0),
+  },
+  {
+    key: "headcount",
+    header: "Headcount",
+    // sortable: true,
+    sortFn: (a, b) => (a.headcount || 0) - (b.headcount || 0),
+    render: (v, row) => row.headcount ?? 1,
+  },
+  {
+    key: "total_allowance",
+    header: "Allowance",
+    // sortable: true,
+    sortFn: (a, b) => (a.total || 0) - (b.total || 0),
+    render: (v) => `${formatRupeesWithUnit(v)}`,
+  },
+
+  {
+    key: "action",
+    header: "Action",
+    type: "action",
+  },
+];
+
 export const allowanceColumns = [
   {
     key: "emp_name",

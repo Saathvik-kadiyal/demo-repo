@@ -41,8 +41,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       <div
         role="button"
         tabIndex={currentPage === 1 ? -1 : 0}
-
-        className={`h-[28px] flex items-center gap-1 px-1 text-sm ${currentPage === 1
+        className={`flex items-center gap-1 px-2 py-1 rounded ${
+          currentPage === 1
             ? "text-[#727272] cursor-not-allowed"
             : "text-[#4A4A4A] hover:text-black"
           }`}
@@ -65,8 +65,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       <div
         role="button"
         tabIndex={currentPage === 1 ? -1 : 0}
-
-        className={`h-[28px] flex items-center gap-1 px-1 text-sm ${currentPage === 1
+        className={`flex items-center gap-1 px-2 py-1 rounded ${
+          currentPage === 1
             ? "text-[#727272] cursor-not-allowed"
             : "text-[#4A4A4A] hover:text-black  cursor-pointer"
           }`}
@@ -127,7 +127,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       <div
         role="button"
         tabIndex={currentPage === totalPages ? -1 : 0}
-        className={`flex items-center gap-1 px-2 py-1 rounded cursor-pointer ${currentPage === totalPages
+        className={`flex items-center gap-1 px-2 py-1 rounded ${
+          currentPage === totalPages
             ? "text-[#727272] cursor-not-allowed"
             : "text-[#4A4A4A] hover:text-black"
           }`}
@@ -159,7 +160,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       <div
         role="button"
         tabIndex={currentPage === totalPages ? -1 : 0}
-        className={`flex items-center gap-1 px-2 py-1 rounded cursor-pointer ${currentPage === totalPages
+        className={`flex items-center gap-1 px-2 py-1 rounded ${
+          currentPage === totalPages
             ? "text-[#727272] cursor-not-allowed"
             : "text-[#4A4A4A] hover:text-black"
           }`}

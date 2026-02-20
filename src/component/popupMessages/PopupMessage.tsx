@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Button } from "@mui/material";
-import succesIcon from "../../assets/success.svg";
+import successIcon from "../../assets/success.svg";
 import invalidIcon from "../../assets/invalid.svg";
 import errorIcon from "../../assets/error.svg";
 import close from "../../assets/close.svg";
@@ -38,7 +38,9 @@ const PopupMessage: React.FC<PopupMessageProps> = ({
       ? errorIcon
       : severityFinal === "invalid"
       ? invalidIcon
-      : succesIcon;
+      : successIcon;
+
+      console.log(icon)
  
   const textClass =
     severityFinal === "error"

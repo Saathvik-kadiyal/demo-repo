@@ -28,7 +28,7 @@ const KpiCard: React.FC<KpiCardProps> = ({
   BodyNumber,
   BodyComparisionNumber,
   iconSize = "28px",
-  BodyNumberSize = "2rem",
+  BodyNumberSize = "20px",
   width = "214px",
   height = "132px",
 }) => {
