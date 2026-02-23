@@ -3,7 +3,7 @@ import axios from "axios";
 import "../styles/LoginPage.css";
 import email from "../assets/email.svg";
 
-const backendApi = import.meta.env?.VITE_BACKEND_API || "";
+const backendApi = import.meta.env?.VITE_BACKEND_API || "http://localhost:8000";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
