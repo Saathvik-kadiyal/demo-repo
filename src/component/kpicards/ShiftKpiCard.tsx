@@ -28,7 +28,7 @@ ShiftCountry,
         {loading ? (
           <Loader size={ShiftTypeSize} shape="rectangle" />
         ) : (
-          <h3 className='text-5'>{ShiftType}</h3>
+          <h3>{ShiftType}</h3>
         )}
 {
   loading?(

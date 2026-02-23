@@ -3,15 +3,14 @@ import ClientDetailsPage from "../pages/ClientDetailsPage";
 
 export default function ClientRouteWrapper() {
   const { state } = useLocation();
-
-  if (!state?.clientName) {
+  if (!state?.clientName && !state?.departmentName) {
     return <Navigate to="/" replace />;
   }
 
   return (
     <ClientDetailsPage
       clientName={state.clientName}
-      departmentName ={state.departmentName}
+      departmentName={state.departmentName}
       years={state.years}
       months={state.months}
     />
