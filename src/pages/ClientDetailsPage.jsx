@@ -2,12 +2,11 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import "../index.css";
 import allowanceIcon from "../assets/allowance.svg";
 import departmentsIcon from "../assets/departments.svg";
+import clientsIcon from "../assets/clients.svg"
 import peopleIcon from "../assets/people.svg";
 import arrow from "../assets/arrow.svg";
-
 import KpiCard from "../component/kpicards/KpiCard";
 import ReusableTable from "../component/ReusableTable/ReusableTable";
-
 import {
   BarChart,
   Bar,
@@ -16,173 +15,246 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-
-import { fetchDashboardIndividualClientDetails } from "../utils/helper";
+import {
+  fetchDashboardIndividualClientDetails,
+  fetchDashboardIndividualDepartmentDetails,
+} from "../utils/helper";
 import {
   clientDetailClientPartnersColumns,
   clientDetailEmployeesColumns,
 } from "../component/ReusableTable/columns";
 import { formatRupeesWithUnit } from "../utils/utils";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
-/* -------------------------
-   PAYLOAD BUILDER
-------------------------- */
-const buildPayload = ({ clientName, departmentName,years, months }) => {
+const buildPayload = ({ clientName, departmentName, years, months }) => {
   const payload = {};
-if(clientName){
-  payload.clientName= clientName
-}
-if(departmentName){
-  payload.departmentName=departmentName
-}
+
+  if (clientName){
+     payload.clients = clientName;
+  }else if (departmentName) payload.departments = departmentName;
   if (years?.length) payload.years = years;
   if (months?.length) payload.months = months;
 
   return payload;
 };
 
-export default function ClientDetailsPage({
-  clientName="",
-  departmentName="",
-  years = [],
-  months = [],
-}) {
+export default function ClientDetailsPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const {
+    clientName = "",
+    departmentName = "",
+    years = [],
+    months = [],
+  } = location.state || {};
+
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState(null);
   const [clientData, setClientData] = useState(null);
   const [activeChartTab, setActiveChartTab] = useState("shifts");
-  const navigate = useNavigate();
-  console.log(clientName,years,months)
 
   /* -------------------------
-     FETCH CLIENT DETAILS
+     FETCH DETAILS
   ------------------------- */
-  const fetchClientDetails = useCallback(async () => {
-    if (!clientName &!departmentName) return;
+  const fetchDetails = useCallback(async () => {
+    if (!clientName && !departmentName) return;
 
     try {
       setLoading(true);
 
-      const payload = buildPayload({ clientName, departmentName, years, months });
-      const res = await fetchDashboardIndividualClientDetails(payload);
+      const payload = buildPayload({
+        clientName,
+        departmentName,
+        years,
+        months,
+      });
 
-      const clientObj = res?.clients?.[clientName] ?? null;
+      let res;
+
+      if (clientName) {
+        res = await fetchDashboardIndividualClientDetails(payload);
+        setClientData(res?.clients?.[clientName] ?? null);
+      } else {
+        res = await fetchDashboardIndividualDepartmentDetails(payload);
+        setClientData(res?.departments?.[departmentName] ?? null);
+      }
 
       setSummary(res?.summary ?? null);
-      setClientData(clientObj);
     } catch (err) {
-      console.error("Client details error:", err);
+      console.error("Details error:", err);
       setSummary(null);
       setClientData(null);
     } finally {
       setLoading(false);
     }
-  }, [clientName, years, months]);
+  }, [clientName, departmentName, years, months]);
 
   useEffect(() => {
-    fetchClientDetails();
-  }, [fetchClientDetails]);
+    fetchDetails();
+  }, [fetchDetails]);
 
   /* -------------------------
-     NORMALIZE PARTNERS (NEW STRUCTURE SUPPORT)
+     NORMALIZED PARTNERS COUNT
   ------------------------- */
   const normalizedPartners = useMemo(() => {
     if (!clientData) return {};
 
-    if (clientData.departments_breakdown) {
-      return Object.values(clientData.departments_breakdown).reduce(
-        (acc, dept) => {
-          Object.entries(dept.client_partners || {}).forEach(
-            ([partnerName, partnerData]) => {
+    // Department flow
+    if (departmentName && clientData.clients_breakdown) {
+      return Object.values(clientData.clients_breakdown).reduce(
+        (acc, client) => {
+          Object.entries(client.client_partners || {}).forEach(
+            ([partnerName, partner]) => {
               if (!acc[partnerName]) {
-                acc[partnerName] = {
-                  headcount: 0,
-                  total_allowance: 0,
-                  shifts_summary: {},
-                  employees: [],
-                };
+                acc[partnerName] = partner;
               }
-
-              acc[partnerName].headcount += partnerData.headcount || 0;
-              acc[partnerName].total_allowance +=
-                partnerData.total_allowance || 0;
-
-              Object.entries(partnerData.shifts_summary || {}).forEach(
-                ([shift, value]) => {
-                  acc[partnerName].shifts_summary[shift] =
-                    (acc[partnerName].shifts_summary[shift] || 0) + value;
-                }
-              );
-
-              acc[partnerName].employees.push(
-                ...(partnerData.employees || [])
-              );
             }
           );
-
           return acc;
         },
         {}
       );
     }
 
-    return clientData.client_partners || {};
-  }, [clientData]);
+    // Client flow
+    if (clientData.departments_breakdown) {
+      return Object.values(clientData.departments_breakdown).reduce(
+        (acc, dept) => {
+          Object.entries(dept.client_partners || {}).forEach(
+            ([partnerName, partner]) => {
+              if (!acc[partnerName]) {
+                acc[partnerName] = partner;
+              }
+            }
+          );
+          return acc;
+        },
+        {}
+      );
+    }
+
+    return {};
+  }, [clientData, departmentName]);
 
   /* -------------------------
      TABLE DATA
   ------------------------- */
-const tableData = useMemo(() => {
-  if (!clientData?.departments_breakdown) return [];
-
-  return Object.entries(clientData.departments_breakdown).map(
-    ([departmentName, department]) => ({
-      type: "department",
-      name: departmentName,
-      head_count: department.headcount ?? 0,
-      total: department.total_allowance ?? 0,
-
-      shifts: {
-        ANZ: formatRupeesWithUnit(department.shifts_summary?.ANZ || 0),
-        PST_MST: formatRupeesWithUnit(department.shifts_summary?.PST_MST || 0),
-        US_INDIA: formatRupeesWithUnit(department.shifts_summary?.US_INDIA || 0),
-        SG: formatRupeesWithUnit(department.shifts_summary?.SG || 0),
-      },
-
-      children: Object.entries(department.client_partners || {}).map(
-        ([partnerName, partner]) => ({
-          type: "partner",
-          name: partnerName,
-          head_count: partner.headcount ?? 0,
-          total: partner.total_allowance ?? 0,
+  const tableData = useMemo(() => {
+    if (!clientData) return [];
+    if (departmentName && clientData.clients_breakdown) {
+      return Object.entries(clientData.clients_breakdown).map(
+        ([client, clientObj]) => ({
+          type: "client",
+          name: client,
+          head_count: clientObj.headcount ?? 0,
+          total: clientObj.total_allowance ?? 0,
 
           shifts: {
-            ANZ: formatRupeesWithUnit(partner.shifts_summary?.ANZ || 0),
-            PST_MST: formatRupeesWithUnit(partner.shifts_summary?.PST_MST || 0),
-            US_INDIA: formatRupeesWithUnit(partner.shifts_summary?.US_INDIA || 0),
-            SG: formatRupeesWithUnit(partner.shifts_summary?.SG || 0),
+            ANZ: formatRupeesWithUnit(clientObj.shifts_summary?.ANZ || 0),
+            PST_MST: formatRupeesWithUnit(
+              clientObj.shifts_summary?.PST_MST || 0
+            ),
+            US_INDIA: formatRupeesWithUnit(
+              clientObj.shifts_summary?.US_INDIA || 0
+            ),
+            SG: formatRupeesWithUnit(clientObj.shifts_summary?.SG || 0),
           },
 
-          children: (partner.employees || []).map((emp) => ({
-            type: "employee",
-            name: emp.emp_name,
-            emp_id: emp.emp_id,
-            // department: emp.department,
-            total: emp.total_allowance ?? 0,
+          children: Object.entries(clientObj.client_partners || {}).map(
+            ([partnerName, partner]) => ({
+              type: "partner",
+              name: partnerName,
+              head_count: partner.headcount ?? 0,
+              total: partner.total_allowance ?? 0,
 
-            shifts: {
-              ANZ: formatRupeesWithUnit(emp.ANZ || 0),
-              PST_MST: formatRupeesWithUnit(emp.PST_MST || 0),
-              US_INDIA: formatRupeesWithUnit(emp.US_INDIA || 0),
-              SG: formatRupeesWithUnit(emp.SG || 0),
-            },
-          })),
+              shifts: {
+                ANZ: formatRupeesWithUnit(partner.shifts_summary?.ANZ || 0),
+                PST_MST: formatRupeesWithUnit(
+                  partner.shifts_summary?.PST_MST || 0
+                ),
+                US_INDIA: formatRupeesWithUnit(
+                  partner.shifts_summary?.US_INDIA || 0
+                ),
+                SG: formatRupeesWithUnit(partner.shifts_summary?.SG || 0),
+              },
+
+              children: (partner.employees || []).map((emp) => ({
+                type: "employee",
+                name: emp.emp_name,
+                emp_id: emp.emp_id,
+                total: emp.total_allowance ?? 0,
+
+                shifts: {
+                  ANZ: formatRupeesWithUnit(emp.ANZ || 0),
+                  PST_MST: formatRupeesWithUnit(emp.PST_MST || 0),
+                  US_INDIA: formatRupeesWithUnit(emp.US_INDIA || 0),
+                  SG: formatRupeesWithUnit(emp.SG || 0),
+                },
+              })),
+            })
+          ),
         })
-      ),
-    })
-  );
-}, [clientData]);
+      );
+    }
+
+    // 🔵 Client Flow
+    if (clientData.departments_breakdown) {
+      return Object.entries(clientData.departments_breakdown).map(
+        ([deptName, dept]) => ({
+          type: "department",
+          name: deptName,
+          head_count: dept.headcount ?? 0,
+          total: dept.total_allowance ?? 0,
+
+          shifts: {
+            ANZ: formatRupeesWithUnit(dept.shifts_summary?.ANZ || 0),
+            PST_MST: formatRupeesWithUnit(dept.shifts_summary?.PST_MST || 0),
+            US_INDIA: formatRupeesWithUnit(
+              dept.shifts_summary?.US_INDIA || 0
+            ),
+            SG: formatRupeesWithUnit(dept.shifts_summary?.SG || 0),
+          },
+
+          children: Object.entries(dept.client_partners || {}).map(
+            ([partnerName, partner]) => ({
+              type: "partner",
+              name: partnerName,
+              head_count: partner.headcount ?? 0,
+              total: partner.total_allowance ?? 0,
+
+              shifts: {
+                ANZ: formatRupeesWithUnit(partner.shifts_summary?.ANZ || 0),
+                PST_MST: formatRupeesWithUnit(
+                  partner.shifts_summary?.PST_MST || 0
+                ),
+                US_INDIA: formatRupeesWithUnit(
+                  partner.shifts_summary?.US_INDIA || 0
+                ),
+                SG: formatRupeesWithUnit(partner.shifts_summary?.SG || 0),
+              },
+
+              children: (partner.employees || []).map((emp) => ({
+                type: "employee",
+                name: emp.emp_name,
+                emp_id: emp.emp_id,
+                total: emp.total_allowance ?? 0,
+
+                shifts: {
+                  ANZ: formatRupeesWithUnit(emp.ANZ || 0),
+                  PST_MST: formatRupeesWithUnit(emp.PST_MST || 0),
+                  US_INDIA: formatRupeesWithUnit(emp.US_INDIA || 0),
+                  SG: formatRupeesWithUnit(emp.SG || 0),
+                },
+              })),
+            })
+          ),
+        })
+      );
+    }
+
+    return [];
+  }, [clientData, departmentName]);
 
   /* -------------------------
      CHART DATA
@@ -195,14 +267,18 @@ const tableData = useMemo(() => {
     if (activeChartTab === "shifts") {
       source = clientData.shifts_summary;
     } else {
-      if (clientData.departments_breakdown) {
+      if (departmentName && clientData.clients_breakdown) {
         source = Object.fromEntries(
-          Object.entries(clientData.departments_breakdown).map(
-            ([deptName, dept]) => [deptName, dept.total_allowance]
+          Object.entries(clientData.clients_breakdown).map(
+            ([client, obj]) => [client, obj.total_allowance]
           )
         );
-      } else {
-        source = clientData.department_summary;
+      } else if (clientData.departments_breakdown) {
+        source = Object.fromEntries(
+          Object.entries(clientData.departments_breakdown).map(
+            ([dept, obj]) => [dept, obj.total_allowance]
+          )
+        );
       }
     }
 
@@ -212,7 +288,7 @@ const tableData = useMemo(() => {
       name: key,
       amount: Number(value),
     }));
-  }, [clientData, activeChartTab]);
+  }, [clientData, departmentName, activeChartTab]);
 
   return (
     <div className="relative w-full px-4 py-4 overflow-x-hidden">
@@ -223,10 +299,9 @@ const tableData = useMemo(() => {
           style={{ width: 16, height: 16, transform: "rotate(90deg)" }}
           onClick={() => navigate("/")}
         />
-        <span>{clientName}</span>
+        <span>{clientName || departmentName}</span>
       </h2>
 
-      {/* KPI */}
       <div className="flex flex-wrap gap-4 mb-6">
         <KpiCard
           loading={loading}
@@ -236,21 +311,18 @@ const tableData = useMemo(() => {
             summary?.total_allowance ?? 0
           ).toLocaleString()}`}
         />
-
         <KpiCard
-          loading={loading}
-          HeaderIcon={departmentsIcon}
-          HeaderText="Departments"
-          BodyNumber={summary?.departments ?? 0}
-        />
-
+  loading={loading}
+  HeaderIcon={summary?.clients ? clientsIcon : departmentsIcon}
+  HeaderText={summary?.clients ? "Clients" : "Departments"}
+  BodyNumber={summary?.clients ? summary?.clients : summary?.total_departments}
+/>
         <KpiCard
           loading={loading}
           HeaderIcon={peopleIcon}
           HeaderText="Client Partners"
           BodyNumber={Object.keys(normalizedPartners).length}
         />
-
         <KpiCard
           loading={loading}
           HeaderIcon={peopleIcon}
@@ -259,7 +331,6 @@ const tableData = useMemo(() => {
         />
       </div>
 
-      {/* TABLE */}
       <div className="rounded-b-xl bg-white  mb-6">
         {loading ? (
           <div className="flex h-64 items-center justify-center">
@@ -275,91 +346,64 @@ const tableData = useMemo(() => {
         )}
       </div>
 
-      {/* CHART */}
-     <div className="rounded-xl bg-white p-4 ">
-  <div className="flex items-center justify-between mb-4">
-    <p className="text-sm font-medium">
-      {activeChartTab === "shifts"
-        ? "Shift Allowance Distribution"
-        : "Department Allowance Distribution"}
-    </p>
+      <div className="rounded-xl bg-white p-4 ">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-sm font-medium">
+            {activeChartTab === "shifts"
+              ? "Shift Allowance Distribution"
+              : "Allowance Distribution"}
+          </p>
 
-    {/* TABS */}
-    <div className="flex bg-gray-100 rounded-lg p-1">
-      <button
-        onClick={() => setActiveChartTab("shifts")}
-        className={`px-3 py-1 text-sm rounded-md transition ${
-          activeChartTab === "shifts"
-            ? "bg-white shadow text-black"
-            : "text-gray-500"
-        }`}
-      >
-        Shifts
-      </button>
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setActiveChartTab("shifts")}
+              className={`px-3 py-1 text-sm rounded-md transition ${
+                activeChartTab === "shifts"
+                  ? "bg-white shadow text-black"
+                  : "text-gray-500"
+              }`}
+            >
+              Shifts
+            </button>
 
-      <button
-        onClick={() => setActiveChartTab("departments")}
-        className={`px-3 py-1 text-sm rounded-md transition ${
-          activeChartTab === "departments"
-            ? "bg-white shadow text-black"
-            : "text-gray-500"
-        }`}
-      >
-        Departments
-      </button>
-    </div>
-  </div>
+            <button
+              onClick={() => setActiveChartTab("departments")}
+              className={`px-3 py-1 text-sm rounded-md transition ${
+                activeChartTab === "departments"
+                  ? "bg-white shadow text-black"
+                  : "text-gray-500"
+              }`}
+            >
+              {departmentName ? "Clients" : "Departments"}
+            </button>
+          </div>
+        </div>
 
-  {chartData.length > 0 ? (
-  <ResponsiveContainer width="100%" height={260}>
-  <BarChart
-    data={chartData}
-    barCategoryGap="40%"
-  >
-    <XAxis
-      dataKey="name"
-      tick={{ fontSize: 12 }}
-    />
- <YAxis
-  tickFormatter={(value) => formatRupeesWithUnit(value)}
-  fontSize={12}
-  
-/>
-
- <Tooltip
-  formatter={(value) => formatRupeesWithUnit(value)}
-/>
-
-    <Bar
-      dataKey="amount"
-      barSize={25}
-      radius={[6, 6, 0, 0]}
-      shape={(props) => {
-        const { x, y, width, height, index } = props;
-        const fillColor = index % 2 === 0 ? "#15549D" : "#3585E4";
-
-        return (
-          <rect
-            x={x}
-            y={y}
-            width={width}
-            height={height}
-            fill={fillColor}
-            rx={6}
-          />
-        );
-      }}
-    />
-  </BarChart>
-</ResponsiveContainer>
-
-
-  ) : (
-    <div className="flex h-64 items-center justify-center text-gray-400">
-      No chart data
-    </div>
-  )}
-</div>
+        {chartData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={chartData} barCategoryGap="40%">
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+              <YAxis
+                tickFormatter={(value) => formatRupeesWithUnit(value)}
+                fontSize={12}
+              />
+              <Tooltip
+                formatter={(value) => formatRupeesWithUnit(value)}
+              />
+              <Bar
+                dataKey="amount"
+                barSize={25}
+                radius={[6, 6, 0, 0]}
+                fill="#15549D"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex h-64 items-center justify-center text-gray-400">
+            No chart data
+          </div>
+        )}
+      </div>
     </div>
   );
 }

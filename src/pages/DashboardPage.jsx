@@ -53,12 +53,12 @@ export default function DashboardPage() {
     rows * (departmentCurrentPage - 1),
     rows * departmentCurrentPage
   );
-  // const paginatedDepartmentsData
 
   /* -------------------------
      NORMALIZE FILTERS
   ------------------------- */
   const normalizeFilters = (filters = {}) => {
+    console.log(filters)
     const payload = {
       clients: filters.clients || "ALL",
       departments: filters.departments || "ALL",
@@ -162,9 +162,10 @@ export default function DashboardPage() {
         setKpiData(kpiResponse?.summary ?? null);
         setChartData(chartResponse?.data ?? null);
 
-        if (departmentSearch?.trim()) {
+       if(departmentSearch || clientSearch !==""){
+         if (departmentSearch?.trim()!=="") {
           debouncedDepartmentTableFetch(payload, departmentSearch.trim());
-        } else if (clientSearch?.trim()) {
+        } else if (clientSearch?.trim()!=="") {
           debouncedTableFetch(payload, clientSearch.trim());
         } else {
           await Promise.all([
@@ -172,6 +173,7 @@ export default function DashboardPage() {
             fetchDepartmentsTable(payload),
           ]);
         }
+       }
       } catch (err) {
         console.error("Dashboard error:", err);
         setError(err.message || "Failed to load dashboard");
@@ -225,10 +227,12 @@ export default function DashboardPage() {
   }, [chartData]);
 
   const handleDashboardAction = (row, type) => {
+    console.log(row,type)
     const filters =
       type === "client"
         ? { clients: row.company }
         : { departments: row.department };
+        
 
     const payload = normalizeFilters(filters);
 

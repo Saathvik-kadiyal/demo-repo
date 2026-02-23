@@ -482,6 +482,7 @@ export const fetchDashboardDepartmentTable= async (body,params={})=>{
 }
 
 export const fetchDashboardIndividualClientDetails = async (body) => {
+
   try {
     const res = await axiosInstance.post(
       "/dashboard/client-Page-Graph",
