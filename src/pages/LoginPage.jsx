@@ -4,7 +4,6 @@ import "../styles/LoginPage.css";
 import email from "../assets/email.svg";
 
 const backendApi = import.meta.env?.VITE_BACKEND_API || "";
-console.log(backendApi)
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -13,6 +12,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
+    console.log(backendApi)
     e.preventDefault();
     setError("");
     setLoading(true);
