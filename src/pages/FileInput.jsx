@@ -25,7 +25,7 @@ import SearchInput from "../component/SearchInput.jsx";
 import { debounce, downloadFilteredExcel } from "../utils/helper.js";
 import Pagination from "../component/pagination/Pagination.jsx";
 import { formatRupeesWithUnit } from "../utils/utils.js";
-
+import pen from"../assets/pen.svg";
 const FileInput = () => {
   const navigate = useNavigate();
 
@@ -460,6 +460,7 @@ const FileInput = () => {
                 }
                 style={{
                   background: "#1E3A8A",
+                  
                   color: "#fff",
                   border: "none",
                   borderRadius: "4px",
@@ -468,8 +469,10 @@ const FileInput = () => {
                   fontWeight: 600,
                   whiteSpace: "nowrap",
                   textTransform: "none",
+                  width: "180px",
                 }}
               >
+                <img src={pen} alt="edit" style={{ width: "24px", height: "24px" }} />
                 Edit
               </Button>
 
@@ -487,6 +490,7 @@ const FileInput = () => {
                   fontWeight: 600,
                   whiteSpace: "nowrap",
                   textTransform: "none",
+                  width: "180px",
                 }}
               >
                 Download Error File
