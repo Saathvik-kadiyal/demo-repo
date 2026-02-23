@@ -25,7 +25,7 @@ import SearchInput from "../component/SearchInput.jsx";
 import { debounce, downloadFilteredExcel } from "../utils/helper.js";
 import Pagination from "../component/pagination/Pagination.jsx";
 import { formatRupeesWithUnit } from "../utils/utils.js";
-import pen from "../assets/pen.svg";
+
 const FileInput = () => {
   const navigate = useNavigate();
 
@@ -94,7 +94,7 @@ const FileInput = () => {
   ---------------------------------------------------- */
   const runFetch = useCallback(
     async (payloadFilters = {}) => {
-      console.log("Running fetch with filters:", payloadFilters);
+      
       setTableLoading(true);
       try {
         const normalized = normalizeFilters(payloadFilters);
@@ -117,7 +117,7 @@ const FileInput = () => {
         setTableLoading(false);
       }
     },
-    [getProcessedData, currentPage, limit] // <-- remove searchText & searchBy
+    [getProcessedData, currentPage, limit]
   );
 
   const debouncedRunFetch = useCallback(
@@ -173,51 +173,29 @@ const FileInput = () => {
     .filter(([k]) => !["total", "headcount", "head_count"].includes(k))
     .map(([ShiftType, ShiftCount]) => ({
       ShiftType,
-      ShiftCount: formatRupeesWithUnit(ShiftCount),
+      ShiftCount:formatRupeesWithUnit(ShiftCount),
       ShiftCountSize: "2rem",
       ShiftTypeSize: "1rem",
     }));
 
-
-
-
   /* ----------------------------------------------------
       Popups
   ---------------------------------------------------- */
-
   useEffect(() => {
-
-
     if (errorFileLink) {
       setPopupMessage("File processed with errors.");
       setPopupSeverity("error");
       setPopupOpen(true);
-      return;
-    }
-
-
-    if (error) {
-      if (error.toLowerCase().includes("invalid")) {
-        setPopupSeverity("invalid");
-      } else {
-        setPopupSeverity("error");
-      }
-
+    } else if (error) {
       setPopupMessage(error);
+      setPopupSeverity("invalid");
       setPopupOpen(true);
-      return;
-    }
-
-    //  Success
-    if (success) {
+    } else if (success) {
       setPopupMessage(success);
       setPopupSeverity("success");
       setPopupOpen(true);
     }
-
   }, [errorFileLink, error, success]);
-
-
 
   const handleExportData = async () => {
     try {
@@ -236,9 +214,9 @@ const FileInput = () => {
     }
   };
 
-  useEffect(() => {
-    runFetch(filters);
-  }, [currentPage, limit]);
+  // useEffect(() => {
+  //   runFetch(filters);
+  // }, [currentPage, limit]);
 
   useEffect(() => {
     if (popupMessage) {
@@ -313,7 +291,7 @@ const FileInput = () => {
           <img
             src={arrow}
             alt="back"
-            style={{ transform: "rotate(90deg)" }}
+            style={{ transform: "rotate(90deg)" }} 
           />
           <Typography>Shift Allowances Data</Typography>
         </Box>
@@ -381,13 +359,13 @@ const FileInput = () => {
 
 
         <div className="flex items-center gap-2">
-          <SearchInput
-            value={searchText}
-            onChange={(value) => setSearchText(value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                const currentValue = e.target.value.trim();
-                const payload = { ...filters };
+        <SearchInput
+  value={searchText}
+  onChange={(value) => setSearchText(value)}
+  onKeyDown={(e) => {
+    if (e.key === "Enter") {
+      const currentValue = e.target.value.trim();
+      const payload = { ...filters };
 
                 if (currentValue) {
                   if (searchBy === "emp_id") payload.emp_id = currentValue;
@@ -473,38 +451,25 @@ const FileInput = () => {
           popupSeverity === "error" && errorFileLink ? (
             <>
               <Button
-                // variant="contained"
-                disableElevation
+                variant="contained"
                 size="small"
                 onClick={() =>
                   navigate("/shift-allowance/edit", {
                     state: { errorRows: safeErrorRows },
                   })
                 }
-
-                className="button-common"
-                sx={{
-                  backgroundColor: "#1C2F72",
+                style={{
+                  background: "#1E3A8A",
                   color: "#fff",
-                  width: "170px",
-                  height: "40px",
+                  border: "none",
                   borderRadius: "4px",
+                  padding: "6px 16px",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
                   textTransform: "none",
-                  "&:hover": {
-                    backgroundColor: "#16255A",
-                  },
                 }}
               >
-                <img
-                  src={pen}
-                  alt="edit"
-                  style={{
-                    width: 24,
-                    height: 24,
-                    marginLeft: 9,
-                    display: "flex",
-                  }}
-                />
                 Edit
               </Button>
 
