@@ -151,7 +151,7 @@ export default function ReusableTable({
                 style={{
                   textAlign: col.align || "left",
                   width: col.width,
-                  cursor: col.sortable ? "pointer" : "default",      
+                  cursor: col.sortable ? "pointer" : "default",
                   verticalAlign: "middle",
                   whiteSpace: "pre-line",
                   fontWeight: 500,
@@ -177,32 +177,33 @@ export default function ReusableTable({
                 <div
                   style={{
                     display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-start",
+                    flexDirection: "row",
+                    alignItems: "centre",
                     gap: 0,
-
-                    textAlign: "left",
+                    justifyContent: "flex-start",
+                    textAlign: "centre",
                   }}
+
                 >
                   {/* {col.header} */}
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
 
-                    {/* ✅ Modified part for shift headers */}
-          {typeof col.header === "string" && col.header.includes("\n")
-            ? col.header.split("\n").map((line, index) => (
-                <div
-                  key={index}
-                  style={
-                    index === 0
-                      ? { fontWeight: 600 } 
-                      : { fontSize: 11, color: "#6B7280" } 
-                  }
-                >
-                  {line}
-                </div>
-              ))
-            : col.header}
+                    {typeof col.header === "string" && col.header.includes("\n")
+                      ? col.header.split("\n").map((line, index) => (
+                        <div
+                          key={index}
+                          style={
+                            index === 0
+                              ? { fontWeight: 600, textAlign: "center" }
+                              : { fontSize: 10, color: "black", textAlign: "center" }
+                          }
+                        >
+                          {line}
+                        </div>
+                      ))
+                      : col.header}
 
-
+                  </div>
                   {col.sortable && (
                     <span
                       style={{

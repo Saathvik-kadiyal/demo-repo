@@ -23,11 +23,9 @@ const buildShiftColumns = () =>
   SHIFT_HEADERS.map((key) => ({
     key: `shifts.${key}`,
     // header: `${key}\n${SHIFT_TIMINGS[key]}`,
-    // header:`${key}\n${SHIFT_TIMINGS[key]}\nINR ${MONEY_DATA[key] ?? 0}`,
     // sortable: true,
 
-
-header: `${formatShiftLabel(key)}\n${SHIFT_TIMINGS[key]}\nINR ${MONEY_DATA[key] ?? 0}`,
+  header: `${formatShiftLabel(key)}\n${SHIFT_TIMINGS[key]}\nINR ${MONEY_DATA[key] ?? 0}`,
     sortFn: (a, b) => (a?.shifts?.[key] || 0) - (b?.shifts?.[key] || 0),
     render: (val) => val ?? 0,
    
@@ -48,14 +46,7 @@ export const buildClientSummary = () =>
   SHIFT_HEADERS.map((key) => ({
     key: `shifts.${key}`,
     // header: `${key}\n${SHIFT_TIMINGS[key]}`,
-  //  header: `${key}\n${SHIFT_TIMINGS[key]}\nINR ${MONEY_DATA[key] ?? 0}`,
-// header: `
-// <div class="shift-title">${formatShiftLabel(key)}</div>
-//   <div class="shift-sub">${SHIFT_TIMINGS[key]}</div>
-//   <div class="shift-sub">INR ${MONEY_DATA[key] ?? 0}</div>
-// `,
-
-header: `${formatShiftLabel(key)}\n${SHIFT_TIMINGS[key]}\nINR ${MONEY_DATA[key] ?? 0}`,
+  header: `${formatShiftLabel(key)}\n${SHIFT_TIMINGS[key]}\nINR ${MONEY_DATA[key] ?? 0}`,
 
     // sortable: true,
     sortFn: (a, b) => (a.shifts?.[key] || 0) - (b.shifts?.[key] || 0),
