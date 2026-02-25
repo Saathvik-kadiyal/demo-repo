@@ -179,6 +179,10 @@ const getProcessedData = useCallback(
   async (payload) => {
     try {
       setLoading(true);
+        setErrorFileLink(null);
+      setErrorRows([]);
+      
+      setError("");
 
       const res = await fetchEmployees(payload);
 
@@ -220,6 +224,9 @@ const totalAllowance = res.shift_details?.[1]?.total_allowance ?? 0;
       if (total === 0) {
   setRows([]);
   setDisplayRows([]);
+  setError("No data found");   // ✅ ADD THIS
+} else {
+  setError(""); 
 }
 
     } catch (error) {
@@ -454,6 +461,9 @@ const downloadExcel = useCallback(async () => {
     modelOpen,
     setModelOpen,
     applyFilters,
+     setError,
+     setErrorFileLink,
+      setSuccess, 
     debouncedFetch,
     handlePageChange,
     handleIndividualEmployee,
