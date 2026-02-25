@@ -1,14 +1,37 @@
 import { formatRupeesWithUnit } from "../../utils/utils";
 
-export const SHIFT_HEADERS = ["ANZ", "PST_MST", "US_INDIA", "SG"];
+
+export const SHIFT_HEADERS = ["ANZ", "PST_MST", "US_INDIA", "SG"]; 
+const formatShiftLabel = (key) =>
+  key.replace(/_/g, "/").toUpperCase();
+
+export const SHIFT_TIMINGS = {
+  ANZ: "03 AM - 12 PM",
+  PST_MST: "07 PM - 06 AM ",
+  US_INDIA: "04 PM - 01 AM",
+  SG: "06 AM - 03 PM",
+};
+
+const MONEY_DATA = {
+  ANZ: 500,
+  SG: 100,
+  "US_INDIA": 300,
+  "PST_MST": 700,
+};
 
 const buildShiftColumns = () =>
   SHIFT_HEADERS.map((key) => ({
     key: `shifts.${key}`,
-    header: key,
+    // header: `${key}\n${SHIFT_TIMINGS[key]}`,
+    // header:`${key}\n${SHIFT_TIMINGS[key]}\nINR ${MONEY_DATA[key] ?? 0}`,
     // sortable: true,
+
+
+header: `${formatShiftLabel(key)}\n${SHIFT_TIMINGS[key]}\nINR ${MONEY_DATA[key] ?? 0}`,
     sortFn: (a, b) => (a?.shifts?.[key] || 0) - (b?.shifts?.[key] || 0),
     render: (val) => val ?? 0,
+   
+
   }));
 
 const buildAllowanceShiftColumns = () =>
@@ -24,10 +47,21 @@ const buildAllowanceShiftColumns = () =>
 export const buildClientSummary = () =>
   SHIFT_HEADERS.map((key) => ({
     key: `shifts.${key}`,
-    header: key,
+    // header: `${key}\n${SHIFT_TIMINGS[key]}`,
+  //  header: `${key}\n${SHIFT_TIMINGS[key]}\nINR ${MONEY_DATA[key] ?? 0}`,
+// header: `
+// <div class="shift-title">${formatShiftLabel(key)}</div>
+//   <div class="shift-sub">${SHIFT_TIMINGS[key]}</div>
+//   <div class="shift-sub">INR ${MONEY_DATA[key] ?? 0}</div>
+// `,
+
+header: `${formatShiftLabel(key)}\n${SHIFT_TIMINGS[key]}\nINR ${MONEY_DATA[key] ?? 0}`,
+
     // sortable: true,
     sortFn: (a, b) => (a.shifts?.[key] || 0) - (b.shifts?.[key] || 0),
     render: (val) => `${val?formatRupeesWithUnit(val):0}`,
+ 
+
   }));
 
 export const dashboardColumns = [

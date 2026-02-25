@@ -68,8 +68,9 @@ export default function ReusableTable({
                 key={col.key}
                 className={cellClassName}
                 style={{
+                  textAlign: "flex-start",
                   paddingLeft:
-                    colIndex ===0 ||colIndex===1 ? `${level + 10}px` : undefined,
+                    colIndex === 0 || colIndex === 1 ? `${level + 10}px` : undefined,
                 }}
               >
                 {col.type === "action" ? (
@@ -77,9 +78,8 @@ export default function ReusableTable({
                     <button onClick={() => toggle(rowKey)}>
 
                       <span
-                        className={`toggle-icon inline-block transition-transform duration-200 ${
-                          expanded.has(rowKey) ? "rotate-180" : "rotate-0"
-                        }`}
+                        className={`toggle-icon inline-block transition-transform duration-200 ${expanded.has(rowKey) ? "rotate-180" : "rotate-0"
+                          }`}
                       >
                         <img src={dropDownIcon} alt="dropdown-arrow" />
                       </span>
@@ -113,7 +113,7 @@ export default function ReusableTable({
         if (childrenAreEmployees && nestedColumns) {
           elements.push(
             <tr key={`${rowKey}-employee-table`}>
-              <td colSpan={columns.length} style={{padding:0}}>
+              <td colSpan={columns.length} style={{ padding: 0 }}>
                 <ReusableTable
                   data={children}
                   columns={nestedColumns}
@@ -138,82 +138,113 @@ export default function ReusableTable({
   };
 
   return (
-      <div
-    className="reusable-table-wrapper"
-  >
-    <table className={`reusable-table ${className || ""}`}>
-      <thead>
-        <tr>
-          {columns.map((col) => (
-            <th
-              key={col.key}
-              className={headerClassName}
-              style={{
-                textAlign: col.align || "left",
-                width: col.width,
-                cursor: col.sortable ? "pointer" : "default",
+    <div
+      className="reusable-table-wrapper"
+    >
+      <table className={`reusable-table ${className || ""}`}>
+        <thead>
+          <tr>
+            {columns.map((col) => (
+              <th
+                key={col.key}
+                className={headerClassName}
+                style={{
+                  textAlign: col.align || "left",
+                  width: col.width,
+                  cursor: col.sortable ? "pointer" : "default",      
+                  verticalAlign: "middle",
+                  whiteSpace: "pre-line",
+                  fontWeight: 500,
 
-               
-              }}
-              onClick={() => {
-                if (!col.sortable) return;
 
-                const order =
-                  sortConfig?.key === col.key && sortConfig?.order === "asc"
-                    ? "desc"
-                    : "asc";
+                }}
+                onClick={() => {
+                  if (!col.sortable) return;
 
-                onSort?.({
-                  key: col.key,
-                  sort_by: col.sortKey || col.key,
-                  order,
-                });
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                {col.header}
-                {col.sortable && (
-                  <span
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      marginLeft: 4,
-                      fontSize: 10,
-                      lineHeight: 1,
-                    }}
-                  >
+                  const order =
+                    sortConfig?.key === col.key && sortConfig?.order === "asc"
+                      ? "desc"
+                      : "asc";
+
+                  onSort?.({
+                    key: col.key,
+                    sort_by: col.sortKey || col.key,
+                    order,
+                  });
+                }}
+              >
+                {/* <div style={{ display: "flex", alignItems: "center", gap: 6 }}> */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    gap: 0,
+
+                    textAlign: "left",
+                  }}
+                >
+                  {/* {col.header} */}
+
+                    {/* ✅ Modified part for shift headers */}
+          {typeof col.header === "string" && col.header.includes("\n")
+            ? col.header.split("\n").map((line, index) => (
+                <div
+                  key={index}
+                  style={
+                    index === 0
+                      ? { fontWeight: 600 } 
+                      : { fontSize: 11, color: "#6B7280" } 
+                  }
+                >
+                  {line}
+                </div>
+              ))
+            : col.header}
+
+
+                  {col.sortable && (
                     <span
                       style={{
-                        color:
-                          sortConfig?.key === col.key &&
-                          sortConfig?.order === "asc"
-                            ? "#1C2F72"
-                            : "#C0C4CC",
+                        display: "flex",
+                        flexDirection: "column",
+                        marginLeft: 4,
+                        fontSize: 10,
+                        lineHeight: 1,
                       }}
                     >
-                      ▲
+                      <span
+                        style={{
+                          color:
+                            sortConfig?.key === col.key &&
+                              sortConfig?.order === "asc"
+                              ? "#1C2F72"
+                              : "#C0C4CC",
+                        }}
+                      >
+                        ▲
+                      </span>
+                      <span
+                        style={{
+                          color:
+                            sortConfig?.key === col.key &&
+                              sortConfig?.order === "desc"
+                              ? "#1C2F72"
+                              : "#C0C4CC",
+                        }}
+                      >
+                        ▼
+                      </span>
                     </span>
-                    <span
-                      style={{
-                        color:
-                          sortConfig?.key === col.key &&
-                          sortConfig?.order === "desc"
-                            ? "#1C2F72"
-                            : "#C0C4CC",
-                      }}
-                    >
-                      ▼
-                    </span>
-                  </span>
-                )}
-              </div>
-            </th>
-          ))}
-        </tr>
-      </thead>
+                  )}
+                </div>
+              </th>
+            ))}
+          </tr>
+        </thead>
 
-      <tbody>{renderRows(data)}</tbody>
-    </table>
-  </div>
+        <tbody>{renderRows(data)}</tbody>
+      </table>
+    </div>
   );
 }
