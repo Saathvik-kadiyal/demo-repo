@@ -13,7 +13,7 @@ import EmployeeModal from "../component/EmployeeModel.jsx";
 import KpiCard from "../component/kpicards/KpiCard";
 import ShiftKpiCard from "../component/kpicards/ShiftKpiCard";
 import PopupMessage from "../component/popupMessages/PopupMessage";
-import { allowanceColumns } from "../component/ReusableTable/columns.js";
+import { allowanceColumns ,SHIFT_TIMINGS } from "../component/ReusableTable/columns.js";
 import { mapEmployeeForTable } from "../component/ReusableTable/normalizeApiData.js";
 import { normalizeFilters } from "../utils/normalizeFilters";
 import FilterDrawer from "../component/fliters/FilterDrawer.jsx";
@@ -181,6 +181,8 @@ const FileInput = () => {
       ShiftCount: formatRupeesWithUnit(ShiftCount),
       ShiftCountSize: "2rem",
       ShiftTypeSize: "1rem",
+      ShiftTiming: SHIFT_TIMINGS[ShiftType] || "", // ✅ add timing here
+    ShiftTimingSize: "0.75rem", // smaller font
     }));
 
   /* ----------------------------------------------------
